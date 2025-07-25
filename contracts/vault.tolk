@@ -31,9 +31,7 @@ fun maxDeposit(depositAsset: Asset) {
 
 fun convertToShares(depositedAmount: coins, rounding: RoundingType, depositAsset: Asset? = null) {
     var storage = lazy Storage.load();
-    val totalSupply = storage.totalSupply;
-    val totalAssets = storage.totalAssets;
-    return roundedMulDiv(depositedAmount, totalSupply, totalAssets, rounding);
+    return roundedMulDiv(depositedAmount, storage.totalSupply, storage.totalAssets, rounding);
 }
 
 // depositAsset is for multi-asset vaults
@@ -73,13 +71,7 @@ fun onInternalMessage(in: InMessage) {
             auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT);
             // TODO: Check in.valueCoins >= deposit gas + deposit amount
 
-            val shares = handleDeposit(
-                in.senderAddress, 
-                msg.depositAmount,
-                msg.vaultDepositParams,
-                msg.toCell(), 
-                tonAsset()
-            );
+            val shares = handleDeposit(in.senderAddress, msg.depositAmount, msg.vaultDepositParams, msg.toCell(), tonAsset());
 
             // Update storage
             storage.totalSupply = storage.totalSupply + shares;
@@ -95,13 +87,7 @@ fun onInternalMessage(in: InMessage) {
                 VaultDepositFp => {
                     auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT_FP);
 
-                    val shares = handleDeposit(
-                        in.senderAddress, 
-                        msg.jettonAmount,
-                        msg.forwardPayload.vaultDepositParams,
-                        msg.toCell(), 
-                        tonAsset()
-                    );
+                    val shares = handleDeposit(in.senderAddress, msg.jettonAmount, msg.forwardPayload.vaultDepositParams, msg.toCell(), tonAsset());
 
                     // Update storage
                     storage.totalSupply = storage.totalSupply + shares;
