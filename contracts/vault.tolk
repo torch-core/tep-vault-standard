@@ -1,53 +1,71 @@
 tolk 1.0
 
-// this struct defines storage layout of the contract
-struct Storage {
-    id: uint32  // required to allow multiple independent counter instances, since the contract address depends on its initial state
-    counter: uint32 // the current counter value
-}
-
-// load contract data from the persistent storage
-fun Storage.load() {
-    return Storage.fromCell(contract.getData())
-}
-
-// save contract data into the persistent storage
-fun Storage.save(self) {
-    contract.setData(self.toCell())
-}
-
-// the struct uses a 32-bit opcode prefix for message identification
-struct (0x7e8764ef) IncreaseCounter {
-    queryId: uint64  // query id, typically included in messages
-    increaseBy: uint32
-}
-
-struct (0x3a752f06) ResetCounter {
-    queryId: uint64
-}
-
-// using unions to represent available messages
-// this allows processing them with pattern matching
-type AllowedMessage = IncreaseCounter | ResetCounter
+import "role-authority/auth";
+import "role-authority/access";
+import "role-authority/int-messages";
+import "role-authority/ext-messages";
+import "storage"
+import "int-messages"
 
 // the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
-    // use `lazy` to defer loading fields until they are accessed
     val msg = lazy AllowedMessage.fromSlice(in.body);
+    var storage = lazy Storage.load();
+    var auth = lazy storage.auth.load();
 
     match (msg) {
-        IncreaseCounter => {
-            // load contract storage lazily (efficient for large or partial reads/updates)
-            var storage = lazy Storage.load();
-
-            storage.counter += msg.increaseBy;
-            storage.save();
+        VatulDeposit => {
+            auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT);
+            // TODO
         }
 
-        ResetCounter => {
-            var storage = lazy Storage.load();
+        TransferNotificationForRecipient => {
+            auth.requireAuth(in.senderAddress, OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT);
+            // TODO
+            match (msg.forwardPayload) {
+                VaultDepositFp => {
+                    auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT_FP);
+                    // TODO
+                }
+            }
+        }
 
-            storage.counter = 0;
+        /* Auth internal messages */
+        SetPublicCapability => {
+            auth.requireAuth(in.senderAddress, OP_SET_PUBLIC_CAPABILITY);
+            storage.auth = auth.setPublicCapability(msg.opcode, msg.enabled);
+            storage.save();
+        }
+        SetRoleCapability => {
+            auth.requireAuth(in.senderAddress, OP_SET_ROLE_CAPABILITY);
+            storage.auth = auth.setRoleCapability(msg.role, msg.opcode, msg.enabled);
+            storage.save();
+        }
+        SetUserRole => {
+            auth.requireAuth(in.senderAddress, OP_SET_USER_ROLE);
+            storage.auth = auth.setUserRole(msg.user, msg.role, msg.enabled);
+            storage.save();
+        }
+        ProposeOwnership => {
+            auth.requireAuth(in.senderAddress, OP_PROPOSE_OWNERSHIP);
+            auth.ownerInfo.pendingOwner = msg.newOwner;
+            auth.ownerInfo.proposeTime = blockchain.now();
+            emitOwnershipProposed(in.senderAddress, msg.newOwner, auth.ownerInfo.proposeTime, auth.ownerInfo.timelockPeriod);
+            storage.auth = auth.toCell();
+            storage.save();
+        }
+        ClaimOwnership => {
+            auth.requirePendingOwner(in.senderAddress);
+            auth.requireTimelockPassed();
+            auth.ownerInfo.owner = in.senderAddress;
+            emitOwnershipClaimed(in.senderAddress);
+            storage.auth = auth.clearPendingOwner();
+            storage.save();
+        }
+        RevokePendingOwnership => {
+            auth.requireAuth(in.senderAddress, OP_REVOKE_PENDING_OWNERSHIP);
+            emitOwnershipRevoked(in.senderAddress, auth.ownerInfo.pendingOwner);
+            storage.auth = auth.clearPendingOwner();
             storage.save();
         }
 
@@ -60,16 +78,4 @@ fun onInternalMessage(in: InMessage) {
 
 // a handler for bounced messages (not used here, may be ommited)
 fun onBouncedMessage(in: InMessageBounced) {
-}
-
-// get methods are a means to conveniently read contract data using, for example, HTTP APIs
-// note that unlike in many other smart contract VMs, get methods cannot be called by other contracts
-get fun currentCounter(): int {
-    val storage = lazy Storage.load();
-    return storage.counter;
-}
-
-get fun initialId(): int {
-    val storage = lazy Storage.load();
-    return storage.id;
 }
