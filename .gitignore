@@ -4,6 +4,8 @@ build
 dist
 .DS_Store
 package.ts
+.env
+tmp.fc
 
 # VS Code
 .vscode/*
