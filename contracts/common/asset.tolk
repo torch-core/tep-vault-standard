@@ -1,4 +1,4 @@
-import "../constants/type";
+type AssetType = uint4;
 
 struct TonAsset {
     assetType: AssetType = 0;

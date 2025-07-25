@@ -7,23 +7,9 @@ import "role-authority/ext-messages";
 import "storage"
 import "int-messages"
 import "common/asset";
-import "constants/constants";
-import "constants/error";
-import "constants/type";
-
-fun roundedMulDiv(x: int, y: int, z: int, rounding: RoundingType) {
-    match (rounding) {
-        ROUND_DOWN => {
-            return mulDivFloor(x, y, z);
-        }
-        ROUND_UP => {
-            return mulDivCeil(x, y, z);
-        }
-        else => {
-            throw ERR_INVALID_ROUNDING_TYPE;
-        }
-    }
-}
+import "common/constants";
+import "common/error";
+import "common/math";
 
 fun maxDeposit(depositAsset: Asset) {
     return MAX_COINS_VALUE;
@@ -36,7 +22,7 @@ fun convertToShares(depositedAmount: coins, rounding: RoundingType, depositAsset
 
 // depositAsset is for multi-asset vaults
 fun previewDeposit(depositAmount: coins, depositAsset: Asset? = null) {
-    return convertToShares(depositAmount, ROUND_DOWN, depositAsset);
+    return convertToShares(depositAmount, RoundingType.Down(), depositAsset);
 }
 
 fun mintShares(sender: address, receiver: address, shares: coins, callbackParams: CallbackParams?, msgPayload: cell) {
