@@ -1,8 +1,8 @@
 import "role-authority/auth";
 
 struct Storage {
-    id: uint32
-    counter: uint32
+    totalSupply: coins
+    totalAssets: coins
     auth: Cell<Auth> // Add Auth struct to contract's storage
 }
 

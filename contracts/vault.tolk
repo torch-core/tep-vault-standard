@@ -6,6 +6,44 @@ import "role-authority/int-messages";
 import "role-authority/ext-messages";
 import "storage"
 import "int-messages"
+import "common/asset";
+import "constants/constants";
+import "constants/error";
+import "constants/type";
+
+fun mulDivWithRounding(x: int, y: int, z: int, rounding: RoundingType) {
+    match (rounding) {
+        ROUND_DOWN => {
+            return mulDivFloor(x, y, z);
+        }
+        ROUND_UP => {
+            return mulDivCeil(x, y, z);
+        }
+        else => {
+            throw ERR_INVALID_ROUNDING_TYPE;
+        }
+    }
+}
+
+fun maxDeposit(depositAsset: Asset) {
+    return MAX_COINS_VALUE;
+}
+
+fun convertToShares(depositAsset: Asset, depositedAmount: coins, rounding: RoundingType) {
+    var storage = lazy Storage.load();
+    val totalSupply = storage.totalSupply;
+    val totalAssets = storage.totalAssets;
+    return mulDivWithRounding(depositedAmount, totalSupply, totalAssets, rounding);
+}
+
+// depositAsset is for multi-asset vaults
+fun previewDeposit(depositAmount: coins, depositAsset: Asset) {
+    return convertToShares(depositAsset, depositAmount, ROUND_DOWN);
+}
+
+fun mintShares(sender: address, receiver: address, shares: coins, callbackParams: CallbackParams?, msgPayload: cell) {
+    // TODO: Implement minting
+}
 
 // the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
@@ -14,9 +52,25 @@ fun onInternalMessage(in: InMessage) {
     var auth = lazy storage.auth.load();
 
     match (msg) {
-        VatulDeposit => {
+        VaultDeposit => {
             auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT);
-            // TODO
+            // TODO: Check in.valueCoins >= deposit gas + deposit amount
+
+            val maxDepositAmount = maxDeposit(tonAsset());
+            assert (msg.depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
+
+            val shares = previewDeposit(msg.depositAmount, tonAsset());
+
+            // Check shares >= minMint
+            assert (shares >= msg.vaultDepositParams.minMint) throw ERR_MIN_MINT_NOT_MET;
+
+            // Mint shares to receiver
+            mintShares(in.senderAddress, msg.vaultDepositParams.receiver, shares, msg.vaultDepositParams.sucPayload, msg.toCell());
+
+            // Update storage
+            storage.totalSupply = storage.totalSupply + shares;
+            storage.totalAssets = storage.totalAssets + msg.depositAmount;
+            storage.save();
         }
 
         TransferNotificationForRecipient => {
@@ -71,7 +125,7 @@ fun onInternalMessage(in: InMessage) {
 
         else => {
             // ignore empty messages, "wrong opcode" for others
-            assert (in.body.isEmpty()) throw 0xFFFF
+            assert (in.body.isEmpty()) throw ERR_INVALID_OPCODE
         }
     }
 }
