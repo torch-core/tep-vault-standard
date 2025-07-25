@@ -52,6 +52,8 @@ fun handleDeposit(sender: address, depositAmount: coins, depositParams: VaultDep
         assert (shares >= depositParams.minMint) throw ERR_MIN_MINT_NOT_MET;
 
         mintShares(sender, depositParams.receiver, shares, depositParams.sucPayload, msgPayload);
+
+        //TODO: Emit deposit event
         return shares;
     } catch (e) {
         // TODO Send error message to receiver with failPayload
