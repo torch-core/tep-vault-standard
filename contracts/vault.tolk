@@ -11,7 +11,7 @@ import "constants/constants";
 import "constants/error";
 import "constants/type";
 
-fun mulDivWithRounding(x: int, y: int, z: int, rounding: RoundingType) {
+fun roundedMulDiv(x: int, y: int, z: int, rounding: RoundingType) {
     match (rounding) {
         ROUND_DOWN => {
             return mulDivFloor(x, y, z);
@@ -29,20 +29,37 @@ fun maxDeposit(depositAsset: Asset) {
     return MAX_COINS_VALUE;
 }
 
-fun convertToShares(depositAsset: Asset, depositedAmount: coins, rounding: RoundingType) {
+fun convertToShares(depositedAmount: coins, rounding: RoundingType, depositAsset: Asset? = null) {
     var storage = lazy Storage.load();
     val totalSupply = storage.totalSupply;
     val totalAssets = storage.totalAssets;
-    return mulDivWithRounding(depositedAmount, totalSupply, totalAssets, rounding);
+    return roundedMulDiv(depositedAmount, totalSupply, totalAssets, rounding);
 }
 
 // depositAsset is for multi-asset vaults
-fun previewDeposit(depositAmount: coins, depositAsset: Asset) {
-    return convertToShares(depositAsset, depositAmount, ROUND_DOWN);
+fun previewDeposit(depositAmount: coins, depositAsset: Asset? = null) {
+    return convertToShares(depositAmount, ROUND_DOWN, depositAsset);
 }
 
 fun mintShares(sender: address, receiver: address, shares: coins, callbackParams: CallbackParams?, msgPayload: cell) {
     // TODO: Implement minting
+}
+
+fun handleDeposit(sender: address, depositAmount: coins, depositParams: VaultDepositParams, msgPayload: cell, depositAsset: Asset) {
+    try {
+        val maxDepositAmount = maxDeposit(depositAsset);
+        assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
+
+        val shares = previewDeposit(depositAmount, depositAsset);
+        assert (shares >= depositParams.minMint) throw ERR_MIN_MINT_NOT_MET;
+
+        mintShares(sender, depositParams.receiver, shares, depositParams.sucPayload, msgPayload);
+        return shares;
+    } catch (e) {
+        // TODO Send error message to receiver with failPayload
+        commitContractDataAndActions();
+        throw e;
+    }
 }
 
 // the main entrypoint: called when a contract receives an message from other contracts
@@ -56,16 +73,13 @@ fun onInternalMessage(in: InMessage) {
             auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT);
             // TODO: Check in.valueCoins >= deposit gas + deposit amount
 
-            val maxDepositAmount = maxDeposit(tonAsset());
-            assert (msg.depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
-
-            val shares = previewDeposit(msg.depositAmount, tonAsset());
-
-            // Check shares >= minMint
-            assert (shares >= msg.vaultDepositParams.minMint) throw ERR_MIN_MINT_NOT_MET;
-
-            // Mint shares to receiver
-            mintShares(in.senderAddress, msg.vaultDepositParams.receiver, shares, msg.vaultDepositParams.sucPayload, msg.toCell());
+            val shares = handleDeposit(
+                in.senderAddress, 
+                msg.depositAmount,
+                msg.vaultDepositParams,
+                msg.toCell(), 
+                tonAsset()
+            );
 
             // Update storage
             storage.totalSupply = storage.totalSupply + shares;
@@ -75,11 +89,24 @@ fun onInternalMessage(in: InMessage) {
 
         TransferNotificationForRecipient => {
             auth.requireAuth(in.senderAddress, OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT);
-            // TODO
+            // TODO: Check in.valueCoins >= deposit gas
+
             match (msg.forwardPayload) {
                 VaultDepositFp => {
                     auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT_FP);
-                    // TODO
+
+                    val shares = handleDeposit(
+                        in.senderAddress, 
+                        msg.jettonAmount,
+                        msg.forwardPayload.vaultDepositParams,
+                        msg.toCell(), 
+                        tonAsset()
+                    );
+
+                    // Update storage
+                    storage.totalSupply = storage.totalSupply + shares;
+                    storage.totalAssets = storage.totalAssets + msg.jettonAmount;
+                    storage.save();
                 }
             }
         }
