@@ -1,6 +1,6 @@
-import "role-authority/int-messages";
-import "role-authority/constants/type";
-import "types/asset";
+import "../../role-authority/int-messages";
+import "../../role-authority/constants/type";
+import "../../types/asset";
 
 // Jetton Messages
 struct (0x7bdd97de) BurnNotificationForMinter {

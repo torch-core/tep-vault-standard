@@ -5,7 +5,7 @@ import "role-authority/access";
 import "role-authority/int-messages";
 import "role-authority/ext-messages";
 import "storage"
-import "int-messages"
+import "messages/internal/schemas"
 import "constants/errors";
 import "fees-management";
 import "helper/jetton";

@@ -1,6 +1,7 @@
 import "../constants/errors";
 
 type RoundingType = uint2;
+
 const ROUND_DOWN = 0;
 const ROUND_UP = 1;
 const ROUND_GENERIC = 2;

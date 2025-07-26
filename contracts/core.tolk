@@ -5,7 +5,7 @@ import "constants/values";
 import "constants/errors";
 import "types/rounding";
 import "types/asset";
-import "int-messages";
+import "messages/internal/schemas";
 
 fun maxDeposit(depositAsset: Asset? = null) {
     return MAX_COINS_VALUE;
