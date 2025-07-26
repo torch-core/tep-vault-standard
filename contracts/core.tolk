@@ -6,6 +6,10 @@ import "constants/errors";
 import "types/rounding";
 import "types/asset";
 import "messages/internal/schemas";
+import "messages/internal/send";
+import "role-authority/constants/type";
+import "messages/external/emit";
+import "types/response";
 
 fun maxDeposit(depositAsset: Asset? = null) {
     return MAX_COINS_VALUE;
@@ -52,7 +56,15 @@ fun handleWithdraw(sender: address, shares: coins, withdrawParams: VaultWithdraw
     }
 }
 
-fun handleDeposit(sender: address, depositAmount: coins, depositParams: VaultDepositParams, msgPayload: cell, depositAsset: Asset? = null) {
+fun handleDeposit(
+    inSenderAddress: address, 
+    queryId: QueryId, 
+    initiator: address, 
+    depositAmount: coins, 
+    depositParams: VaultDepositParams, 
+    msgPayload: cell, 
+    depositAsset: Asset? = null
+) {
     try {
         val maxDepositAmount = maxDeposit(depositAsset);
         assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
@@ -60,19 +72,36 @@ fun handleDeposit(sender: address, depositAmount: coins, depositParams: VaultDep
         val shares = previewDeposit(depositAmount, depositAsset);
         assert (shares >= depositParams.minMint) throw ERR_MIN_MINT_NOT_MET;
 
-        mintShares(sender, depositParams.receiver, shares, depositParams.sucPayload, msgPayload);
+        mint(depositAmount, queryId, initiator, depositParams.receiver, shares, VaultStatus.Success(), depositParams.sucPayload, msgPayload);
 
-        //TODO: Emit deposit event
+        emitDeposited(initiator, depositParams.receiver, depositAmount, shares);
         return shares;
     } catch (e) {
-        // TODO Send error message to receiver with failPayload
+        // If initiator is inSender, it's native deposit. Otherwise, it's a jetton deposit.
+        if(inSenderAddress != initiator) {
+            jettonTransfer(
+                depositParams.receiver, 
+                depositAmount, 
+                queryId, 
+                initiator, 
+                depositAmount, 
+                VaultStatus.Failure(ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED), 
+                depositParams.failPayload, 
+                msgPayload
+            );
+        } else {
+            tonTransfer(
+                inSenderAddress, 
+                depositAmount, 
+                queryId, 
+                VaultStatus.Failure(ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED), 
+                depositParams.failPayload,
+                msgPayload
+            );
+        }
         commitContractDataAndActions();
         throw e;
     }
-}
-
-fun mintShares(sender: address, receiver: address, shares: coins, callbackParams: CallbackParams?, msgPayload: cell) {
-    // TODO: Implement minting
 }
 
 fun withdrawAssets(sender: address, receiver: address, shares: coins, callbackParams: CallbackParams?, msgPayload: cell) {

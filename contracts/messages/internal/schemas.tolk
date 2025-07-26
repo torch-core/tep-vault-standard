@@ -1,10 +1,11 @@
 import "../../role-authority/messages/internal/schemas";
 import "../../role-authority/constants/type";
 import "../../types/asset";
+import "../../types/response";
 
 // Jetton Messages
 struct (0x7bdd97de) BurnNotificationForMinter {
-    queryId: uint64
+    queryId: QueryId
     jettonAmount: coins
     burnInitiator: address
     sendExcessesTo: address
@@ -42,6 +43,14 @@ struct (0x7362d09c) TransferNotificationForRecipient {
     transferInitiator: address
     forwardPayload: VaultDepositFp
 }
+struct (0x178d4519) InternalTransferStep {
+    queryId: QueryId
+    jettonAmount: coins
+    transferInitiator: address
+    sendExcessesTo: address
+    forwardTonAmount: coins
+    forwardPayload: Cell<VaultNotificationFp>?
+}
 
 // For Withdraw
 struct (0xa1242cde) VaultWithdrawFp {
@@ -51,6 +60,22 @@ struct (0xa1242cde) VaultWithdrawFp {
     sucPayload: CallbackParams?
     failPayload: CallbackParams?
     optPayload: cell?
+}
+
+struct VaultNotificationParams {
+    status: VaultStatus
+    initiator: address
+    callbackPayload: cell
+    originMsgPayload: cell?
+}
+
+struct (0x13aec42d) VaultNotification {
+    queryId: QueryId
+    vaultNotificationParams: VaultNotificationParams
+}
+
+struct (0xb00d7656) VaultNotificationFp {
+    vaultNotificationParams: VaultNotificationParams
 }
 
 const OP_VAULT_DEPOSIT = VaultDeposit.getDeclaredPackPrefix();
