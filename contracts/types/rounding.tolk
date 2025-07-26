@@ -1,4 +1,4 @@
-import "error";
+import "../constants/errors";
 
 type RoundingType = uint2;
 const ROUND_DOWN = 0;

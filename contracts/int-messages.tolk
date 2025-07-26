@@ -1,6 +1,15 @@
 import "role-authority/int-messages";
 import "role-authority/constants/type";
 
+// Jetton Messages
+struct (0x7bdd97de) BurnNotificationForMinter {
+    queryId: uint64
+    jettonAmount: coins
+    burnInitiator: address
+    sendExcessesTo: address
+    customPayload: cell?
+}
+
 struct CallbackParams {
     includeBody: bool
     callbackPayload: cell
@@ -36,5 +45,6 @@ struct (0x7362d09c) TransferNotificationForRecipient {
 const OP_VAULT_DEPOSIT = VaultDeposit.getDeclaredPackPrefix();
 const OP_VAULT_DEPOSIT_FP = VaultDepositFp.getDeclaredPackPrefix();
 const OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT = TransferNotificationForRecipient.getDeclaredPackPrefix();
+const OP_BURN_NOTIFICATION_FOR_MINTER = BurnNotificationForMinter.getDeclaredPackPrefix();
 
-type AllowedMessage = AuthMessages | VaultDeposit | TransferNotificationForRecipient;
+type AllowedMessage = AuthMessages | VaultDeposit | TransferNotificationForRecipient | BurnNotificationForMinter;

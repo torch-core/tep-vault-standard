@@ -1,20 +1,23 @@
 tolk 1.0
 
-import "@stdlib/tvm-dicts";
 import "role-authority/auth";
 import "role-authority/access";
 import "role-authority/int-messages";
 import "role-authority/ext-messages";
-import "role-authority/constants/size";
 import "storage"
 import "int-messages"
-import "common/asset";
-import "common/constants";
-import "common/error";
-import "common/math";
+import "constants/values";
+import "constants/errors";
 import "fees-management";
+import "types/rounding";
+import "types/asset";
+import "helper/jetton";
 
 fun maxDeposit(depositAsset: Asset) {
+    return MAX_COINS_VALUE;
+}
+
+fun maxWithdraw(withdrawAsset: Asset) {
     return MAX_COINS_VALUE;
 }
 
@@ -79,9 +82,7 @@ fun onInternalMessage(in: InMessage) {
                     auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT_FP);
 
                     // Get Jetton Master Address by Jetton Wallet Address from jettonInfos dict
-                    var (jettonMasterEntry: slice?, found: bool) = storage.jettonInfos.sDictGet(ADDRESS_SIZE, in.senderAddress as slice);
-                    assert (found) throw ERR_JETTON_MASTER_NOT_FOUND;
-                    val jettonMaster = jettonMasterEntry!.loadAddress();
+                    val jettonMaster = getJettonMasterFromWallet(storage.jettonInfos, in.senderAddress);
 
                     val shares = handleDeposit(in.senderAddress, msg.jettonAmount, msg.forwardPayload.vaultDepositParams, msg.toCell(), Asset.jettonAsset(jettonMaster));
 
@@ -90,6 +91,13 @@ fun onInternalMessage(in: InMessage) {
                     storage.totalAssets = storage.totalAssets + msg.jettonAmount;
                     storage.save();
                 }
+            }
+        }
+
+        BurnNotificationForMinter => {
+            auth.requireAuth(in.senderAddress, OP_BURN_NOTIFICATION_FOR_MINTER);
+            match (msg.customPayload) {
+                // TODO
             }
         }
 
