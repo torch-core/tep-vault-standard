@@ -1,15 +1,18 @@
 tolk 1.0
 
+import "@stdlib/tvm-dicts";
 import "role-authority/auth";
 import "role-authority/access";
 import "role-authority/int-messages";
 import "role-authority/ext-messages";
+import "role-authority/constants/size";
 import "storage"
 import "int-messages"
 import "common/asset";
 import "common/constants";
 import "common/error";
 import "common/math";
+import "fees-management";
 
 fun maxDeposit(depositAsset: Asset) {
     return MAX_COINS_VALUE;
@@ -57,9 +60,9 @@ fun onInternalMessage(in: InMessage) {
     match (msg) {
         VaultDeposit => {
             auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT);
-            // TODO: Check in.valueCoins >= deposit gas + deposit amount
+            validateTonDepositGas(in.valueCoins, msg.depositAmount);
 
-            val shares = handleDeposit(in.senderAddress, msg.depositAmount, msg.vaultDepositParams, msg.toCell(), tonAsset());
+            val shares = handleDeposit(in.senderAddress, msg.depositAmount, msg.vaultDepositParams, msg.toCell(), Asset.tonAsset());
 
             // Update storage
             storage.totalSupply = storage.totalSupply + shares;
@@ -69,13 +72,18 @@ fun onInternalMessage(in: InMessage) {
 
         TransferNotificationForRecipient => {
             auth.requireAuth(in.senderAddress, OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT);
-            // TODO: Check in.valueCoins >= deposit gas
+            validateJettonDepositGas(in.valueCoins);
 
             match (msg.forwardPayload) {
                 VaultDepositFp => {
                     auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT_FP);
 
-                    val shares = handleDeposit(in.senderAddress, msg.jettonAmount, msg.forwardPayload.vaultDepositParams, msg.toCell(), tonAsset());
+                    // Get Jetton Master Address by Jetton Wallet Address from jettonInfos dict
+                    var (jettonMasterEntry: slice?, found: bool) = storage.jettonInfos.sDictGet(ADDRESS_SIZE, in.senderAddress as slice);
+                    assert (found) throw ERR_JETTON_MASTER_NOT_FOUND;
+                    val jettonMaster = jettonMasterEntry!.loadAddress();
+
+                    val shares = handleDeposit(in.senderAddress, msg.jettonAmount, msg.forwardPayload.vaultDepositParams, msg.toCell(), Asset.jettonAsset(jettonMaster));
 
                     // Update storage
                     storage.totalSupply = storage.totalSupply + shares;

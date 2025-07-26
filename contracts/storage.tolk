@@ -3,6 +3,7 @@ import "role-authority/auth";
 struct Storage {
     totalSupply: coins
     totalAssets: coins
+    jettonInfos: dict
     auth: Cell<Auth> // Add Auth struct to contract's storage
 }
 

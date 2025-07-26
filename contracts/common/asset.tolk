@@ -11,13 +11,11 @@ struct JettonAsset {
 
 type Asset = TonAsset | JettonAsset;
 
-// Pack TON Asset
-fun tonAsset() {
+fun Asset.tonAsset() {
     return TonAsset {};
 }
 
-// Pack Jetton Asset
-fun jettonAsset(jettonMaster: address) {
+fun Asset.jettonAsset(jettonMaster: address) {
     return JettonAsset {
         jettonMaster: jettonMaster,
     };
