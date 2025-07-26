@@ -7,11 +7,11 @@ import "types/rounding";
 import "types/asset";
 import "int-messages";
 
-fun maxDeposit(depositAsset: Asset) {
+fun maxDeposit(depositAsset: Asset? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun maxWithdraw(withdrawAsset: Asset) {
+fun maxWithdraw(withdrawAsset: Asset? = null) {
     return MAX_COINS_VALUE;
 }
 
@@ -34,7 +34,7 @@ fun previewWithdraw(shares: coins, withdrawAsset: Asset? = null) {
     return convertToAssets(shares, RoundingType.Up(), withdrawAsset);
 }
 
-fun handleWithdraw(sender: address, shares: coins, withdrawParams: VaultWithdrawFp, msgPayload: cell, withdrawAsset: Asset) {
+fun handleWithdraw(sender: address, shares: coins, withdrawParams: VaultWithdrawFp, msgPayload: cell, withdrawAsset: Asset? = null) {
     try {
         val maxWithdrawAmount = maxWithdraw(withdrawAsset);
         assert (shares <= maxWithdrawAmount) throw ERR_MAX_WITHDRAW_AMOUNT_EXCEEDED;
@@ -52,7 +52,7 @@ fun handleWithdraw(sender: address, shares: coins, withdrawParams: VaultWithdraw
     }
 }
 
-fun handleDeposit(sender: address, depositAmount: coins, depositParams: VaultDepositParams, msgPayload: cell, depositAsset: Asset) {
+fun handleDeposit(sender: address, depositAmount: coins, depositParams: VaultDepositParams, msgPayload: cell, depositAsset: Asset? = null) {
     try {
         val maxDepositAmount = maxDeposit(depositAsset);
         assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;

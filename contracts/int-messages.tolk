@@ -46,7 +46,7 @@ struct (0x7362d09c) TransferNotificationForRecipient {
 // For Withdraw
 struct (0xa1242cde) VaultWithdrawFp {
     receiver: address
-    withdrawAsset: Asset
+    withdrawAsset: Cell<Asset>?
     minWithdraw: coins
     sucPayload: CallbackParams?
     failPayload: CallbackParams?
