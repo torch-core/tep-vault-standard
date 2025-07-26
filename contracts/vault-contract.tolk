@@ -6,53 +6,11 @@ import "role-authority/int-messages";
 import "role-authority/ext-messages";
 import "storage"
 import "int-messages"
-import "constants/values";
 import "constants/errors";
 import "fees-management";
-import "types/rounding";
-import "types/asset";
 import "helper/jetton";
-
-fun maxDeposit(depositAsset: Asset) {
-    return MAX_COINS_VALUE;
-}
-
-fun maxWithdraw(withdrawAsset: Asset) {
-    return MAX_COINS_VALUE;
-}
-
-fun convertToShares(depositedAmount: coins, rounding: RoundingType, depositAsset: Asset? = null) {
-    var storage = lazy Storage.load();
-    return roundedMulDiv(depositedAmount, storage.totalSupply, storage.totalAssets, rounding);
-}
-
-// depositAsset is for multi-asset vaults
-fun previewDeposit(depositAmount: coins, depositAsset: Asset? = null) {
-    return convertToShares(depositAmount, RoundingType.Down(), depositAsset);
-}
-
-fun mintShares(sender: address, receiver: address, shares: coins, callbackParams: CallbackParams?, msgPayload: cell) {
-    // TODO: Implement minting
-}
-
-fun handleDeposit(sender: address, depositAmount: coins, depositParams: VaultDepositParams, msgPayload: cell, depositAsset: Asset) {
-    try {
-        val maxDepositAmount = maxDeposit(depositAsset);
-        assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
-
-        val shares = previewDeposit(depositAmount, depositAsset);
-        assert (shares >= depositParams.minMint) throw ERR_MIN_MINT_NOT_MET;
-
-        mintShares(sender, depositParams.receiver, shares, depositParams.sucPayload, msgPayload);
-
-        //TODO: Emit deposit event
-        return shares;
-    } catch (e) {
-        // TODO Send error message to receiver with failPayload
-        commitContractDataAndActions();
-        throw e;
-    }
-}
+import "types/asset";
+import "core";
 
 // the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
@@ -75,11 +33,11 @@ fun onInternalMessage(in: InMessage) {
 
         TransferNotificationForRecipient => {
             auth.requireAuth(in.senderAddress, OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT);
-            validateJettonDepositGas(in.valueCoins);
 
             match (msg.forwardPayload) {
                 VaultDepositFp => {
                     auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT_FP);
+                    validateJettonDepositGas(in.valueCoins);
 
                     // Get Jetton Master Address by Jetton Wallet Address from jettonInfos dict
                     val jettonMaster = getJettonMasterFromWallet(storage.jettonInfos, in.senderAddress);
@@ -96,8 +54,19 @@ fun onInternalMessage(in: InMessage) {
 
         BurnNotificationForMinter => {
             auth.requireAuth(in.senderAddress, OP_BURN_NOTIFICATION_FOR_MINTER);
-            match (msg.customPayload) {
-                // TODO
+            var burnPayload = msg.customPayload.load();
+            match (burnPayload) {
+                VaultWithdrawFp => {
+                    auth.requireAuth(in.senderAddress, OP_VAULT_WITHDRAW_FP);
+                    validateWithdrawGas(in.valueCoins);
+
+                    val withdrawAmount = handleWithdraw(in.senderAddress, msg.jettonAmount, burnPayload, msg.toCell(), burnPayload.withdrawAsset);
+
+                    // Update storage
+                    storage.totalSupply = storage.totalSupply - msg.jettonAmount;
+                    storage.totalAssets = storage.totalAssets - withdrawAmount;
+                    storage.save();
+                }
             }
         }
 

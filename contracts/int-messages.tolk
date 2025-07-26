@@ -1,5 +1,6 @@
 import "role-authority/int-messages";
 import "role-authority/constants/type";
+import "types/asset";
 
 // Jetton Messages
 struct (0x7bdd97de) BurnNotificationForMinter {
@@ -7,7 +8,7 @@ struct (0x7bdd97de) BurnNotificationForMinter {
     jettonAmount: coins
     burnInitiator: address
     sendExcessesTo: address
-    customPayload: cell?
+    customPayload: Cell<VaultWithdrawFp>
 }
 
 struct CallbackParams {
@@ -42,9 +43,20 @@ struct (0x7362d09c) TransferNotificationForRecipient {
     forwardPayload: VaultDepositFp
 }
 
+// For Withdraw
+struct (0xa1242cde) VaultWithdrawFp {
+    receiver: address
+    withdrawAsset: Asset
+    minWithdraw: coins
+    sucPayload: CallbackParams?
+    failPayload: CallbackParams?
+    optPayload: cell?
+}
+
 const OP_VAULT_DEPOSIT = VaultDeposit.getDeclaredPackPrefix();
 const OP_VAULT_DEPOSIT_FP = VaultDepositFp.getDeclaredPackPrefix();
 const OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT = TransferNotificationForRecipient.getDeclaredPackPrefix();
 const OP_BURN_NOTIFICATION_FOR_MINTER = BurnNotificationForMinter.getDeclaredPackPrefix();
+const OP_VAULT_WITHDRAW_FP = VaultWithdrawFp.getDeclaredPackPrefix();
 
 type AllowedMessage = AuthMessages | VaultDeposit | TransferNotificationForRecipient | BurnNotificationForMinter;
