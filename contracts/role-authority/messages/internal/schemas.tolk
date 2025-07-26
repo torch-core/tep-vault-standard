@@ -1,4 +1,4 @@
-import "constants/type";
+import "../../constants/type";
 
 /* Auth internal messages structs */
 struct (0x714a73bb) SetPublicCapability {

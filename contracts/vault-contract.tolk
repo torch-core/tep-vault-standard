@@ -2,8 +2,8 @@ tolk 1.0
 
 import "role-authority/auth";
 import "role-authority/access";
-import "role-authority/int-messages";
-import "role-authority/ext-messages";
+import "role-authority/messages/internal/schemas";
+import "role-authority/messages/external/emit";
 import "storage"
 import "messages/internal/schemas"
 import "constants/errors";

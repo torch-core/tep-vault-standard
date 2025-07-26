@@ -1,4 +1,4 @@
-import "../../role-authority/int-messages";
+import "../../role-authority/messages/internal/schemas";
 import "../../role-authority/constants/type";
 import "../../types/asset";
 

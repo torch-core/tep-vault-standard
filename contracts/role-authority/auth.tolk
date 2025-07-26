@@ -1,7 +1,7 @@
 import "@stdlib/tvm-dicts";
 import "constants/size";
 import "constants/type";
-import "ext-messages";
+import "messages/external/emit";
 import "pack";
 
 /// The main structure managing the authority data, including owner and permission dictionaries.
