@@ -16,6 +16,13 @@ fun getJettonMasterFromWallet(jettonInfos: dict, jettonWallet: address) {
     return jettonMaster;
 }
 
+fun getJettonWalletFromMaster(jettonInfos: dict, jettonMaster: address) {
+    var (jettonWalletEntry: slice?, found: bool) = jettonInfos.sDictGet(ADDRESS_SIZE, jettonMaster as slice);
+    assert (found) throw ERR_JETTON_MASTER_NOT_FOUND;
+    val jettonWallet = jettonWalletEntry!.loadAddress();
+    return jettonWallet;
+}
+
 fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell): AutoDeployAddress {
     val emptyWalletStorage: WalletStorage = {
         jettonBalance: 0,

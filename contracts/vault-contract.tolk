@@ -27,6 +27,7 @@ fun onInternalMessage(in: InMessage) {
             val shares = handleDeposit(
                 in.senderAddress, 
                 msg.queryId, 
+                in.valueCoins,
                 in.senderAddress, 
                 msg.depositAmount, 
                 resolveDepositParams(msg.vaultDepositParams, in.senderAddress), 
@@ -54,6 +55,7 @@ fun onInternalMessage(in: InMessage) {
                     val shares = handleDeposit(
                         in.senderAddress, 
                         msg.queryId, 
+                        in.valueCoins,
                         msg.transferInitiator, 
                         msg.jettonAmount, 
                         resolveDepositParams(msg.forwardPayload.vaultDepositParams, msg.transferInitiator), 
@@ -77,11 +79,15 @@ fun onInternalMessage(in: InMessage) {
                     validateWithdrawGas(in.valueCoins);
 
                     val withdrawAsset = burnPayload.withdrawAsset != null ? burnPayload.withdrawAsset!.load() : null;
+                    val withdrawAssetJettonWallet =  (withdrawAsset is JettonAsset) ? getJettonWalletFromMaster(storage.jettonInfos, withdrawAsset.jettonMaster) : null;
                     val withdrawAmount = handleWithdraw(
+                        msg.queryId,
+                        in.valueCoins,
                         in.senderAddress, 
                         msg.jettonAmount, 
                         resolveWithdrawParams(burnPayload, in.senderAddress), 
                         msg.toCell(), 
+                        withdrawAssetJettonWallet,
                         withdrawAsset
                     );
 

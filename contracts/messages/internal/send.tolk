@@ -4,6 +4,7 @@ import "../../helper/jetton";
 import "../../role-authority/constants/type";
 import "../../types/response";
 import "../../constants/values";
+import "../../types/asset";
 
 fun createVaultNotificationParams(status: VaultStatus, initiator: address, callbackParams: CallbackParams?, msgPayload: cell): VaultNotificationParams? {
     return callbackParams != null ? 
@@ -72,4 +73,35 @@ fun tonTransfer(receiver: address, sendingValue: coins, queryId: QueryId, status
             } : null
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
+}
+
+fun withdraw(initiator: address, withdrawAmount: coins, queryId: QueryId, withdrawAsset: Asset?, withdrawAssetJettonWallet: address?, sendingValue: coins, withdrawParams: VaultWithdrawFp, msgPayload: cell) {
+    match (withdrawAsset) {
+        TonAsset => {
+            tonTransfer(
+                initiator,
+                withdrawAmount,
+                queryId,
+                VaultStatus.Success(),
+                withdrawParams.sucPayload,
+                msgPayload
+            );
+        }
+        JettonAsset => {
+            jettonTransfer(
+                withdrawAssetJettonWallet!, 
+                sendingValue,
+                queryId, 
+                initiator, 
+                withdrawParams.receiver!,
+                withdrawAmount, 
+                VaultStatus.Success(),
+                withdrawParams.sucPayload, 
+                msgPayload
+            );
+        }
+        null => {
+            // Default withdraw asset
+        }
+    }
 }

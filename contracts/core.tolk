@@ -38,27 +38,10 @@ fun previewWithdraw(shares: coins, withdrawAsset: Asset? = null) {
     return convertToAssets(shares, RoundingType.Up(), withdrawAsset);
 }
 
-fun handleWithdraw(sender: address, shares: coins, withdrawParams: VaultWithdrawFp, msgPayload: cell, withdrawAsset: Asset? = null) {
-    try {
-        val maxWithdrawAmount = maxWithdraw(withdrawAsset);
-        assert (shares <= maxWithdrawAmount) throw ERR_MAX_WITHDRAW_AMOUNT_EXCEEDED;
-
-        val withdrawAmount = previewWithdraw(shares, withdrawAsset);
-        assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
-
-        withdrawAssets(sender, withdrawParams.receiver!, shares, withdrawParams.sucPayload, msgPayload);
-
-        return withdrawAmount;
-    } catch (e) {
-        // TODO: Send error message to receiver with failPayload
-        commitContractDataAndActions();
-        throw e;
-    }
-}
-
 fun handleDeposit(
     inSenderAddress: address, 
     queryId: QueryId, 
+    sendingValue: coins,
     initiator: address, 
     depositAmount: coins, 
     depositParams: VaultDepositParams, 
@@ -73,7 +56,6 @@ fun handleDeposit(
         assert (shares >= depositParams.minMint!) throw ERR_MIN_MINT_NOT_MET;
 
         mint(depositAmount, queryId, initiator, depositParams.receiver!, shares, VaultStatus.Success(), depositParams.sucPayload, msgPayload);
-
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
@@ -81,7 +63,7 @@ fun handleDeposit(
         if(inSenderAddress != initiator) {
             jettonTransfer(
                 inSenderAddress, 
-                depositAmount, 
+                sendingValue, 
                 queryId, 
                 initiator, 
                 depositParams.receiver!,
@@ -90,21 +72,37 @@ fun handleDeposit(
                 depositParams.failPayload, 
                 msgPayload
             );
-        } else {
-            tonTransfer(
-                inSenderAddress, 
-                depositAmount, 
-                queryId, 
-                VaultStatus.Failure(e), 
-                depositParams.failPayload,
-                msgPayload
-            );
         }
+        tonTransfer(inSenderAddress, sendingValue, queryId, VaultStatus.Failure(e), depositParams.failPayload, msgPayload);
         commitContractDataAndActions();
         throw e;
     }
 }
 
-fun withdrawAssets(sender: address, receiver: address, shares: coins, callbackParams: CallbackParams?, msgPayload: cell) {
-    // TODO: Implement withdrawing
+
+fun handleWithdraw(
+    queryId: QueryId, 
+    sendingValue: coins, 
+    initiator: address, 
+    shares: coins, 
+    withdrawParams: VaultWithdrawFp, 
+    msgPayload: cell, 
+    withdrawAssetJettonWallet: address? = null, 
+    withdrawAsset: Asset? = null
+) {
+    try {
+        val maxWithdrawShares = maxWithdraw(withdrawAsset);
+        assert (shares <= maxWithdrawShares) throw ERR_MAX_WITHDRAW_AMOUNT_EXCEEDED;
+
+        val withdrawAmount = previewWithdraw(shares, withdrawAsset);
+        assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
+
+        withdraw(initiator, withdrawAmount, queryId, withdrawAsset, withdrawAssetJettonWallet, sendingValue, withdrawParams, msgPayload);
+        emitWithdrawn(initiator, withdrawParams.receiver!, withdrawAmount, shares);
+        return withdrawAmount;
+    } catch (e) {
+        mint(shares, queryId, initiator, initiator, shares, VaultStatus.Failure(e), withdrawParams.failPayload, msgPayload);
+        commitContractDataAndActions();
+        throw e;
+    }
 }
