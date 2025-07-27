@@ -58,9 +58,9 @@ fun handleDeposit(
         assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
 
         val shares = previewDeposit(depositAmount, depositAsset);
-        assert (shares >= depositParams.minMint!) throw ERR_MIN_MINT_NOT_MET;
+        assert (shares >= depositParams.minShares!) throw ERR_MIN_MINT_NOT_MET;
 
-        mint(depositAmount, queryId, initiator, depositParams.receiver!, shares, VaultResult.Success(), depositParams.sucPayload, msgPayload);
+        mint(depositAmount, queryId, initiator, depositParams.receiver!, shares, VaultResult.Success(), depositParams.successPayload, msgPayload);
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
@@ -73,7 +73,7 @@ fun handleDeposit(
             depositParams.receiver!,
             depositAmount,
             VaultResult.Failure(e),
-            depositParams.failPayload,
+            depositParams.failurePayload,
             msgPayload
         );
         commitContractDataAndActions();
@@ -108,13 +108,13 @@ fun handleWithdraw(
             withdrawParams.receiver!,
             withdrawAmount,
             VaultResult.Success(),
-            withdrawParams.sucPayload,
+            withdrawParams.successPayload,
             msgPayload
         );
         emitWithdrawn(initiator, withdrawParams.receiver!, withdrawAmount, shares);
         return withdrawAmount;
     } catch (e) {
-        mint(shares, queryId, initiator, initiator, shares, VaultResult.Failure(e), withdrawParams.failPayload, msgPayload);
+        mint(shares, queryId, initiator, initiator, shares, VaultResult.Failure(e), withdrawParams.failurePayload, msgPayload);
         commitContractDataAndActions();
         throw e;
     }

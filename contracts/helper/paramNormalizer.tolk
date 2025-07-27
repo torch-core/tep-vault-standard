@@ -4,19 +4,19 @@ fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: addres
     if (depositParams == null) {
         return VaultDepositParams {
             receiver: initiator,
-            minMint: 0,
-            sucPayload: null,
-            failPayload: null,
-            optPayload: null,
+            minShares: 0,
+            successPayload: null,
+            failurePayload: null,
+            optionalPayload: null,
         };
     }
     
     return VaultDepositParams {
         receiver: depositParams.receiver == null ? initiator : depositParams.receiver,
-        minMint: depositParams.minMint == null ? 0 as coins : depositParams.minMint,
-        sucPayload: depositParams.sucPayload,
-        failPayload: depositParams.failPayload,
-        optPayload: depositParams.optPayload,
+        minShares: depositParams.minShares == null ? 0 as coins : depositParams.minShares,
+        successPayload: depositParams.successPayload,
+        failurePayload: depositParams.failurePayload,
+        optionalPayload: depositParams.optionalPayload,
     };
 }
 
@@ -26,9 +26,9 @@ fun normalizeWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address
             receiver: initiator,
             withdrawAsset: null,
             minWithdraw: 0,
-            sucPayload: null,
-            failPayload: null,
-            optPayload: null,
+            successPayload: null,
+            failurePayload: null,
+            optionalPayload: null,
         };
     }
 
@@ -36,8 +36,8 @@ fun normalizeWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address
         receiver: withdrawParams.receiver == null ? initiator : withdrawParams.receiver,
         withdrawAsset: withdrawParams.withdrawAsset,
         minWithdraw: withdrawParams.minWithdraw == null ? 0 as coins : withdrawParams.minWithdraw,
-        sucPayload: withdrawParams.sucPayload,
-        failPayload: withdrawParams.failPayload,
-        optPayload: withdrawParams.optPayload,
+        successPayload: withdrawParams.successPayload,
+        failurePayload: withdrawParams.failurePayload,
+        optionalPayload: withdrawParams.optionalPayload,
     };
 }

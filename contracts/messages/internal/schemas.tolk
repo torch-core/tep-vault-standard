@@ -18,10 +18,10 @@ struct CallbackParams {
 
 struct VaultDepositParams {
     receiver: address?
-    minMint: coins?
-    sucPayload: CallbackParams?
-    failPayload: CallbackParams?
-    optPayload: cell?
+    minShares: coins?
+    successPayload: CallbackParams?
+    failurePayload: CallbackParams?
+    optionalPayload: cell?
 }
 
 // For Native Deposit
@@ -66,9 +66,9 @@ struct (0xa1242cde) VaultWithdrawFp {
     receiver: address?
     withdrawAsset: Cell<Asset>?
     minWithdraw: coins?
-    sucPayload: CallbackParams?
-    failPayload: CallbackParams?
-    optPayload: cell?
+    successPayload: CallbackParams?
+    failurePayload: CallbackParams?
+    optionalPayload: cell?
 }
 
 struct VaultNotificationParams {
