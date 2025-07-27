@@ -9,7 +9,7 @@ import "messages/internal/schemas";
 import "messages/internal/send";
 import "role-authority/constants/type";
 import "messages/external/emit";
-import "types/response";
+import "types/vault-result";
 
 fun maxDeposit(depositAsset: Asset? = null) {
     return MAX_COINS_VALUE;
@@ -55,7 +55,7 @@ fun handleDeposit(
         val shares = previewDeposit(depositAmount, depositAsset);
         assert (shares >= depositParams.minMint!) throw ERR_MIN_MINT_NOT_MET;
 
-        mint(depositAmount, queryId, initiator, depositParams.receiver!, shares, VaultStatus.Success(), depositParams.sucPayload, msgPayload);
+        mint(depositAmount, queryId, initiator, depositParams.receiver!, shares, VaultResult.Success(), depositParams.sucPayload, msgPayload);
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
@@ -67,7 +67,7 @@ fun handleDeposit(
             initiator,
             depositParams.receiver!,
             depositAmount,
-            VaultStatus.Failure(e),
+            VaultResult.Failure(e),
             depositParams.failPayload,
             msgPayload
         );
@@ -102,14 +102,14 @@ fun handleWithdraw(
             initiator,
             withdrawParams.receiver!,
             withdrawAmount,
-            VaultStatus.Success(),
+            VaultResult.Success(),
             withdrawParams.sucPayload,
             msgPayload
         );
         emitWithdrawn(initiator, withdrawParams.receiver!, withdrawAmount, shares);
         return withdrawAmount;
     } catch (e) {
-        mint(shares, queryId, initiator, initiator, shares, VaultStatus.Failure(e), withdrawParams.failPayload, msgPayload);
+        mint(shares, queryId, initiator, initiator, shares, VaultResult.Failure(e), withdrawParams.failPayload, msgPayload);
         commitContractDataAndActions();
         throw e;
     }

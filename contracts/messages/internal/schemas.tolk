@@ -1,7 +1,7 @@
 import "../../role-authority/messages/internal/schemas";
 import "../../role-authority/constants/type";
 import "../../types/asset";
-import "../../types/response";
+import "../../types/vault-result";
 
 // Jetton Messages
 struct (0x7bdd97de) BurnNotificationForMinter {
@@ -73,7 +73,7 @@ struct (0xa1242cde) VaultWithdrawFp {
 }
 
 struct VaultNotificationParams {
-    status: VaultStatus
+    status: VaultResult
     initiator: address
     callbackPayload: cell
     originMsgPayload: cell?
