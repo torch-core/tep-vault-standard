@@ -3,8 +3,8 @@ struct Storage {
     totalSupply: coins
     totalAssets: coins
     jettonWalletCode: cell
-    walletToMaster: dict  // jetton wallet -> jetton master
-    masterToWallet: dict  // jetton master -> jetton wallet
+    assetJettonMaster: address
+    assetJettonWallet: address
 }
 
 fun Storage.load() {

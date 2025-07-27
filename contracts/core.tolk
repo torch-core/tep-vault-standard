@@ -65,7 +65,7 @@ fun handleDeposit(
         return shares;
     } catch (e) {
         transferAsset(
-            (senderAddress != initiator) ? AssetType.jetton() : AssetType.ton(), // If initiator is inSender, it's native deposit. Otherwise, it's a jetton deposit.
+            AssetType.jetton(), // This is deposit jetton example, if you deposit TON, this is AssetType.ton(). If it's multi-asset vault, you can use senderAddress != initiator to determine the asset type.
             senderAddress,
             sendingValue,
             queryId,
@@ -99,7 +99,7 @@ fun handleWithdraw(
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
         transferAsset(
-            (withdrawAsset is TonAsset) ? AssetType.ton() : AssetType.jetton(), // Default asset is Jetton if withdrawAsset is null
+            AssetType.jetton(), // This is withdraw jetton example, if you withdraw TON, this is AssetType.ton(). If it's multi-asset vault, you can use withdrawAsset to determine the asset type.
             withdrawAssetJettonWallet,
             sendingValue,
             queryId,

@@ -25,8 +25,7 @@ fun onInternalMessage(in: InMessage) {
                 in.senderAddress, 
                 inMsg.depositAmount, 
                 normalizeDepositParams(inMsg.vaultDepositParams, in.senderAddress), 
-                inMsg.toCell(), 
-                Asset.tonAsset()
+                inMsg.toCell()
             );
 
             // Update storage
@@ -40,9 +39,6 @@ fun onInternalMessage(in: InMessage) {
                 VaultDepositFp => {
                     validateJettonDepositGas(in.valueCoins);
 
-                    // Get Jetton Master Address by Jetton Wallet Address from walletToMaster dict
-                    val jettonMaster = getJettonMasterFromWallet(storage.walletToMaster, in.senderAddress);
-
                     val shares = handleDeposit(
                         in.senderAddress, 
                         inMsg.queryId, 
@@ -50,8 +46,8 @@ fun onInternalMessage(in: InMessage) {
                         inMsg.transferInitiator, 
                         inMsg.jettonAmount, 
                         normalizeDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.transferInitiator), 
-                        inMsg.toCell(), 
-                        Asset.jettonAsset(jettonMaster));
+                        inMsg.toCell()
+                    );
 
                     // Update storage
                     storage.totalSupply = storage.totalSupply + shares;
@@ -67,8 +63,6 @@ fun onInternalMessage(in: InMessage) {
                 VaultWithdrawFp => {
                     validateWithdrawGas(in.valueCoins);
 
-                    val withdrawAsset = burnPayload.withdrawAsset != null ? burnPayload.withdrawAsset!.load() : null;
-                    val withdrawAssetJettonWallet =  (withdrawAsset is JettonAsset) ? getJettonWalletFromMaster(storage.masterToWallet, withdrawAsset.jettonMaster) : null;
                     val withdrawAmount = handleWithdraw(
                         inMsg.queryId,
                         in.valueCoins,
@@ -76,8 +70,7 @@ fun onInternalMessage(in: InMessage) {
                         inMsg.jettonAmount, 
                         normalizeWithdrawParams(burnPayload, in.senderAddress), 
                         inMsg.toCell(), 
-                        withdrawAssetJettonWallet,
-                        withdrawAsset
+                        storage.assetJettonWallet // This is withdraw jetton example, if you withdraw TON, this is null
                     );
 
                     // Update storage
