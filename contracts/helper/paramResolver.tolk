@@ -19,3 +19,25 @@ fun resolveDepositParams(depositParams: VaultDepositParams?, initiator: address)
         optPayload: depositParams.optPayload,
     };
 }
+
+fun resolveWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address) {
+    if (withdrawParams == null) {
+        return VaultWithdrawFp {
+            receiver: initiator,
+            withdrawAsset: null,
+            minWithdraw: 0,
+            sucPayload: null,
+            failPayload: null,
+            optPayload: null,
+        };
+    }
+
+    return VaultWithdrawFp {
+        receiver: withdrawParams.receiver == null ? initiator : withdrawParams.receiver,
+        withdrawAsset: withdrawParams.withdrawAsset,
+        minWithdraw: withdrawParams.minWithdraw == null ? 0 as coins : withdrawParams.minWithdraw,
+        sucPayload: withdrawParams.sucPayload,
+        failPayload: withdrawParams.failPayload,
+        optPayload: withdrawParams.optPayload,
+    };
+}

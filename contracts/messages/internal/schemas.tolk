@@ -64,9 +64,9 @@ struct (0x0f8a7ea5) AskToTransfer {
 
 // For Withdraw
 struct (0xa1242cde) VaultWithdrawFp {
-    receiver: address
+    receiver: address?
     withdrawAsset: Cell<Asset>?
-    minWithdraw: coins
+    minWithdraw: coins?
     sucPayload: CallbackParams?
     failPayload: CallbackParams?
     optPayload: cell?

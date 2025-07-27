@@ -44,9 +44,9 @@ fun handleWithdraw(sender: address, shares: coins, withdrawParams: VaultWithdraw
         assert (shares <= maxWithdrawAmount) throw ERR_MAX_WITHDRAW_AMOUNT_EXCEEDED;
 
         val withdrawAmount = previewWithdraw(shares, withdrawAsset);
-        assert (withdrawAmount >= withdrawParams.minWithdraw) throw ERR_MIN_WITHDRAW_NOT_MET;
+        assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
-        withdrawAssets(sender, withdrawParams.receiver, shares, withdrawParams.sucPayload, msgPayload);
+        withdrawAssets(sender, withdrawParams.receiver!, shares, withdrawParams.sucPayload, msgPayload);
 
         return withdrawAmount;
     } catch (e) {

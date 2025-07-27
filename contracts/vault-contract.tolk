@@ -77,7 +77,13 @@ fun onInternalMessage(in: InMessage) {
                     validateWithdrawGas(in.valueCoins);
 
                     val withdrawAsset = burnPayload.withdrawAsset != null ? burnPayload.withdrawAsset!.load() : null;
-                    val withdrawAmount = handleWithdraw(in.senderAddress, msg.jettonAmount, burnPayload, msg.toCell(), withdrawAsset);
+                    val withdrawAmount = handleWithdraw(
+                        in.senderAddress, 
+                        msg.jettonAmount, 
+                        resolveWithdrawParams(burnPayload, in.senderAddress), 
+                        msg.toCell(), 
+                        withdrawAsset
+                    );
 
                     // Update storage
                     storage.totalSupply = storage.totalSupply - msg.jettonAmount;
