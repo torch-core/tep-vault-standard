@@ -99,7 +99,7 @@ fun handleWithdraw(
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
         transferAsset(
-            (withdrawAsset is JettonAsset) ? AssetType.jetton() : AssetType.ton(), // Default asset is TON if withdrawAsset is null
+            (withdrawAsset is TonAsset) ? AssetType.ton() : AssetType.jetton(), // Default asset is Jetton if withdrawAsset is null
             withdrawAssetJettonWallet,
             sendingValue,
             queryId,
