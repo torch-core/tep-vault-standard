@@ -34,7 +34,6 @@ fun convertToAssets(shares: coins, rounding: RoundingType, withdrawAsset: Asset?
     return roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding) as coins;
 }
 
-// depositAsset is for multi-asset vaults
 fun previewDeposit(depositAmount: coins, depositAsset: Asset? = null) {
     return convertToShares(depositAmount, RoundingType.Down(), depositAsset);
 }
@@ -65,8 +64,8 @@ fun handleDeposit(
         return shares;
     } catch (e) {
         transferAsset(
-            AssetType.jetton(), // This is deposit jetton example, if you deposit TON, this is AssetType.ton(). If it's multi-asset vault, you can use senderAddress != initiator to determine the asset type.
-            senderAddress,
+            AssetType.jetton(), // Use AssetType.ton() for TON Deposit
+            senderAddress,   // Use null for TON Deposit
             sendingValue,
             queryId,
             initiator,
@@ -99,8 +98,8 @@ fun handleWithdraw(
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
         transferAsset(
-            AssetType.jetton(), // This is withdraw jetton example, if you withdraw TON, this is AssetType.ton(). If it's multi-asset vault, you can use withdrawAsset to determine the asset type.
-            withdrawAssetJettonWallet,
+            AssetType.jetton(),             // Use AssetType.ton() for TON Withdrawal, or withdrawAsset type to determine the asset type(multi-asset vault)
+            withdrawAssetJettonWallet,   // Use null for TON Withdrawal
             sendingValue,
             queryId,
             initiator,

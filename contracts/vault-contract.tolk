@@ -4,12 +4,10 @@ import "storage"
 import "messages/internal/schemas"
 import "constants/errors";
 import "fees-management";
-import "helper/jetton";
 import "types/asset";
 import "core";
 import "helper/paramNormalizer";
 
-// the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
     var storage = lazy Storage.load();
@@ -28,7 +26,7 @@ fun onInternalMessage(in: InMessage) {
                 inMsg.toCell()
             );
 
-            // Update storage
+            // Update totalSupply and totalAssets
             storage.totalSupply = storage.totalSupply + shares;
             storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
             storage.save();
@@ -49,7 +47,7 @@ fun onInternalMessage(in: InMessage) {
                         inMsg.toCell()
                     );
 
-                    // Update storage
+                    // Update totalSupply and totalAssets
                     storage.totalSupply = storage.totalSupply + shares;
                     storage.totalAssets = storage.totalAssets + inMsg.jettonAmount;
                     storage.save();
@@ -70,10 +68,10 @@ fun onInternalMessage(in: InMessage) {
                         inMsg.jettonAmount, 
                         normalizeWithdrawParams(burnPayload, in.senderAddress), 
                         inMsg.toCell(), 
-                        storage.assetJettonWallet // This is withdraw jetton example, if you withdraw TON, this is null
+                        storage.assetJettonWallet // Use null for TON Withdrawal
                     );
 
-                    // Update storage
+                    // Update totalSupply and totalAssets
                     storage.totalSupply = storage.totalSupply - inMsg.jettonAmount;
                     storage.totalAssets = storage.totalAssets - withdrawAmount;
                     storage.save();
@@ -82,11 +80,10 @@ fun onInternalMessage(in: InMessage) {
         }
 
         else => {
-            // ignore empty messages, "wrong opcode" for others
+            // ignore empty messages, throw ERR_INVALID_OPCODE for others
             assert (in.body.isEmpty()) throw ERR_INVALID_OPCODE
         }
     }
 }
 
-// a handler for bounced messages (not used here, may be ommited)
 fun onBouncedMessage(in: InMessageBounced) {}
