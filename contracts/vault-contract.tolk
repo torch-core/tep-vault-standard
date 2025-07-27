@@ -146,5 +146,4 @@ fun onInternalMessage(in: InMessage) {
 }
 
 // a handler for bounced messages (not used here, may be ommited)
-fun onBouncedMessage(in: InMessageBounced) {
-}
+fun onBouncedMessage(in: InMessageBounced) {}

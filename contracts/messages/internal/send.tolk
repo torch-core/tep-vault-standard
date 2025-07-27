@@ -75,33 +75,45 @@ fun tonTransfer(receiver: address, sendingValue: coins, queryId: QueryId, status
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun withdraw(initiator: address, withdrawAmount: coins, queryId: QueryId, withdrawAsset: Asset?, withdrawAssetJettonWallet: address?, sendingValue: coins, withdrawParams: VaultWithdrawFp, msgPayload: cell) {
-    match (withdrawAsset) {
+fun transferAsset(
+    asset: Asset?, 
+    jettonWallet: address?, 
+    sendingValue: coins, 
+    queryId: QueryId, 
+    initiator: address, 
+    receiver: address, 
+    amount: coins, 
+    status: VaultStatus, 
+    callbackParams: CallbackParams?, 
+    msgPayload: cell
+) {
+    match (asset) {
         TonAsset => {
             tonTransfer(
-                initiator,
-                withdrawAmount,
+                receiver,
+                amount,
                 queryId,
-                VaultStatus.Success(),
-                withdrawParams.sucPayload,
+                status,
+                callbackParams,
                 msgPayload
             );
         }
         JettonAsset => {
             jettonTransfer(
-                withdrawAssetJettonWallet!, 
+                jettonWallet!, 
                 sendingValue,
                 queryId, 
                 initiator, 
-                withdrawParams.receiver!,
-                withdrawAmount, 
-                VaultStatus.Success(),
-                withdrawParams.sucPayload, 
+                receiver,
+                amount, 
+                status,
+                callbackParams, 
                 msgPayload
             );
         }
         null => {
-            // Default withdraw asset
+            // Default asset handling
         }
     }
 }
+

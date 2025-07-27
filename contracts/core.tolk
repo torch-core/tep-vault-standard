@@ -59,21 +59,18 @@ fun handleDeposit(
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
-        // If initiator is inSender, it's native deposit. Otherwise, it's a jetton deposit.
-        if(inSenderAddress != initiator) {
-            jettonTransfer(
-                inSenderAddress, 
-                sendingValue, 
-                queryId, 
-                initiator, 
-                depositParams.receiver!,
-                depositAmount, 
-                VaultStatus.Failure(e), 
-                depositParams.failPayload, 
-                msgPayload
-            );
-        }
-        tonTransfer(inSenderAddress, sendingValue, queryId, VaultStatus.Failure(e), depositParams.failPayload, msgPayload);
+        transferAsset(
+            (inSenderAddress != initiator) ? JettonAsset : TonAsset, // If initiator is inSender, it's native deposit. Otherwise, it's a jetton deposit.
+            inSenderAddress,
+            sendingValue,
+            queryId,
+            initiator,
+            depositParams.receiver!,
+            depositAmount,
+            VaultStatus.Failure(e),
+            depositParams.failPayload,
+            msgPayload
+        );
         commitContractDataAndActions();
         throw e;
     }
@@ -97,7 +94,18 @@ fun handleWithdraw(
         val withdrawAmount = previewWithdraw(shares, withdrawAsset);
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
-        withdraw(initiator, withdrawAmount, queryId, withdrawAsset, withdrawAssetJettonWallet, sendingValue, withdrawParams, msgPayload);
+        transferAsset(
+            withdrawAsset,
+            withdrawAssetJettonWallet,
+            sendingValue,
+            queryId,
+            initiator,
+            withdrawParams.receiver!,
+            withdrawAmount,
+            VaultStatus.Success(),
+            withdrawParams.sucPayload,
+            msgPayload
+        );
         emitWithdrawn(initiator, withdrawParams.receiver!, withdrawAmount, shares);
         return withdrawAmount;
     } catch (e) {
