@@ -1,12 +1,12 @@
 tolk 1.0
 
-import "messages/internal/schemas"
-import "helper/paramNormalizer";
 import "constants/errors";
-import "fees-management";
 import "types/asset";
 import "storage"
+import "helper/paramNormalizer";
+import "messages/internal/schemas"
 import "core";
+import "fees-management";
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);

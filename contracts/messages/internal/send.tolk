@@ -1,9 +1,9 @@
-import "schemas";
-import "../../storage";
-import "../../helper/jetton";
+import "../../constants/common-types";
 import "../../types/vault-result";
 import "../../types/asset";
-import "../../constants/common-types";
+import "../../storage";
+import "../../helper/jetton";
+import "schemas";
 
 fun createVaultNotificationParams(vaultResult: VaultResult, initiator: address, callbackParams: CallbackParams?, inMsgPayload: cell): VaultNotificationParams? {
     return callbackParams != null ? 

@@ -1,15 +1,15 @@
 tolk 1.0
 
-import "storage"
 import "constants/values";
 import "constants/errors";
 import "constants/common-types";
-import "messages/internal/schemas";
-import "messages/internal/send";
-import "messages/external/emit";
 import "types/rounding";
 import "types/asset";
 import "types/vault-result";
+import "storage"
+import "messages/internal/schemas";
+import "messages/internal/send";
+import "messages/external/emit";
 
 fun maxDeposit(depositAsset: Asset? = null) {
     return MAX_COINS_VALUE;
