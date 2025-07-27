@@ -1,5 +1,3 @@
-tolk 1.0
-
 import "constants/values";
 import "constants/errors";
 import "constants/common-types";
