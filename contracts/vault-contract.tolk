@@ -11,33 +11,32 @@ import "helper/paramNormalizer";
 
 // the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
-    val msg = lazy AllowedMessage.fromSlice(in.body);
+    val inMsg = lazy AllowedMessage.fromSlice(in.body);
     var storage = lazy Storage.load();
 
-    match (msg) {
+    match (inMsg) {
         VaultDeposit => {
-            validateTonDepositGas(in.valueCoins, msg.depositAmount);
+            validateTonDepositGas(in.valueCoins, inMsg.depositAmount);
 
             val shares = handleDeposit(
                 in.senderAddress, 
-                msg.queryId, 
+                inMsg.queryId, 
                 in.valueCoins,
                 in.senderAddress, 
-                msg.depositAmount, 
-                normalizeDepositParams(msg.vaultDepositParams, in.senderAddress), 
-                msg.toCell(), 
+                inMsg.depositAmount, 
+                normalizeDepositParams(inMsg.vaultDepositParams, in.senderAddress), 
+                inMsg.toCell(), 
                 Asset.tonAsset()
             );
 
             // Update storage
             storage.totalSupply = storage.totalSupply + shares;
-            storage.totalAssets = storage.totalAssets + msg.depositAmount;
+            storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
             storage.save();
         }
 
         TransferNotificationForRecipient => {
-
-            match (msg.forwardPayload) {
+            match (inMsg.forwardPayload) {
                 VaultDepositFp => {
                     validateJettonDepositGas(in.valueCoins);
 
@@ -46,24 +45,24 @@ fun onInternalMessage(in: InMessage) {
 
                     val shares = handleDeposit(
                         in.senderAddress, 
-                        msg.queryId, 
+                        inMsg.queryId, 
                         in.valueCoins,
-                        msg.transferInitiator, 
-                        msg.jettonAmount, 
-                        normalizeDepositParams(msg.forwardPayload.vaultDepositParams, msg.transferInitiator), 
-                        msg.toCell(), 
+                        inMsg.transferInitiator, 
+                        inMsg.jettonAmount, 
+                        normalizeDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.transferInitiator), 
+                        inMsg.toCell(), 
                         Asset.jettonAsset(jettonMaster));
 
                     // Update storage
                     storage.totalSupply = storage.totalSupply + shares;
-                    storage.totalAssets = storage.totalAssets + msg.jettonAmount;
+                    storage.totalAssets = storage.totalAssets + inMsg.jettonAmount;
                     storage.save();
                 }
             }
         }
 
         BurnNotificationForMinter => {
-            var burnPayload = msg.customPayload.load();
+            var burnPayload = inMsg.customPayload.load();
             match (burnPayload) {
                 VaultWithdrawFp => {
                     validateWithdrawGas(in.valueCoins);
@@ -71,18 +70,18 @@ fun onInternalMessage(in: InMessage) {
                     val withdrawAsset = burnPayload.withdrawAsset != null ? burnPayload.withdrawAsset!.load() : null;
                     val withdrawAssetJettonWallet =  (withdrawAsset is JettonAsset) ? getJettonWalletFromMaster(storage.masterToWallet, withdrawAsset.jettonMaster) : null;
                     val withdrawAmount = handleWithdraw(
-                        msg.queryId,
+                        inMsg.queryId,
                         in.valueCoins,
                         in.senderAddress, 
-                        msg.jettonAmount, 
+                        inMsg.jettonAmount, 
                         normalizeWithdrawParams(burnPayload, in.senderAddress), 
-                        msg.toCell(), 
+                        inMsg.toCell(), 
                         withdrawAssetJettonWallet,
                         withdrawAsset
                     );
 
                     // Update storage
-                    storage.totalSupply = storage.totalSupply - msg.jettonAmount;
+                    storage.totalSupply = storage.totalSupply - inMsg.jettonAmount;
                     storage.totalAssets = storage.totalAssets - withdrawAmount;
                     storage.save();
                 }

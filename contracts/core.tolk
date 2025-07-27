@@ -44,13 +44,13 @@ fun previewWithdraw(shares: coins, withdrawAsset: Asset? = null) {
 }
 
 fun handleDeposit(
-    inSenderAddress: address, 
+    senderAddress: address, 
     queryId: QueryId, 
     sendingValue: coins,
     initiator: address, 
     depositAmount: coins, 
     depositParams: VaultDepositParams, 
-    msgPayload: cell, 
+    inMsgPayload: cell, 
     depositAsset: Asset? = null
 ) {
     try {
@@ -58,15 +58,15 @@ fun handleDeposit(
         assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
 
         val shares = previewDeposit(depositAmount, depositAsset);
-        assert (shares >= depositParams.minShares!) throw ERR_MIN_MINT_NOT_MET;
+        assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
 
-        mint(depositAmount, queryId, initiator, depositParams.receiver!, shares, VaultResult.Success(), depositParams.successPayload, msgPayload);
+        mint(depositAmount, queryId, initiator, depositParams.receiver!, shares, VaultResult.Success(), depositParams.successPayload, inMsgPayload);
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
         transferAsset(
-            (inSenderAddress != initiator) ? AssetType.jetton() : AssetType.ton(), // If initiator is inSender, it's native deposit. Otherwise, it's a jetton deposit.
-            inSenderAddress,
+            (senderAddress != initiator) ? AssetType.jetton() : AssetType.ton(), // If initiator is inSender, it's native deposit. Otherwise, it's a jetton deposit.
+            senderAddress,
             sendingValue,
             queryId,
             initiator,
@@ -74,13 +74,12 @@ fun handleDeposit(
             depositAmount,
             VaultResult.Failure(e),
             depositParams.failurePayload,
-            msgPayload
+            inMsgPayload
         );
         commitContractDataAndActions();
         throw e;
     }
 }
-
 
 fun handleWithdraw(
     queryId: QueryId, 
@@ -88,7 +87,7 @@ fun handleWithdraw(
     initiator: address, 
     shares: coins, 
     withdrawParams: VaultWithdrawFp, 
-    msgPayload: cell, 
+    inMsgPayload: cell, 
     withdrawAssetJettonWallet: address? = null, 
     withdrawAsset: Asset? = null
 ) {
@@ -109,12 +108,12 @@ fun handleWithdraw(
             withdrawAmount,
             VaultResult.Success(),
             withdrawParams.successPayload,
-            msgPayload
+            inMsgPayload
         );
         emitWithdrawn(initiator, withdrawParams.receiver!, withdrawAmount, shares);
         return withdrawAmount;
     } catch (e) {
-        mint(shares, queryId, initiator, initiator, shares, VaultResult.Failure(e), withdrawParams.failurePayload, msgPayload);
+        mint(shares, queryId, initiator, initiator, shares, VaultResult.Failure(e), withdrawParams.failurePayload, inMsgPayload);
         commitContractDataAndActions();
         throw e;
     }

@@ -75,7 +75,7 @@ struct VaultNotificationParams {
     status: VaultResult
     initiator: address
     callbackPayload: cell
-    originMsgPayload: cell?
+    inMsgPayload: cell?
 }
 
 struct (0x13aec42d) VaultNotification {
