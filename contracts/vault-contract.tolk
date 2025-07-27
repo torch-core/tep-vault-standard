@@ -1,5 +1,3 @@
-tolk 1.0
-
 import "constants/errors";
 import "types/asset";
 import "storage"
