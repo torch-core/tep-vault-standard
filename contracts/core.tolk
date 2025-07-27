@@ -21,12 +21,12 @@ fun maxWithdraw(withdrawAsset: Asset? = null) {
 
 fun convertToShares(depositedAmount: coins, rounding: RoundingType, depositAsset: Asset? = null) {
     var storage = lazy Storage.load();
-    return roundedMulDiv(depositedAmount, storage.totalSupply, storage.totalAssets, rounding);
+    return roundedMulDiv(depositedAmount, storage.totalSupply, storage.totalAssets, rounding) as coins;
 }
 
 fun convertToAssets(shares: coins, rounding: RoundingType, withdrawAsset: Asset? = null) {
     var storage = lazy Storage.load();
-    return roundedMulDiv(shares, storage.totalAssets, storage.totalSupply, rounding);
+    return roundedMulDiv(shares, storage.totalAssets, storage.totalSupply, rounding) as coins;
 }
 
 // depositAsset is for multi-asset vaults
@@ -70,21 +70,21 @@ fun handleDeposit(
         assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
 
         val shares = previewDeposit(depositAmount, depositAsset);
-        assert (shares >= depositParams.minMint) throw ERR_MIN_MINT_NOT_MET;
+        assert (shares >= depositParams.minMint!) throw ERR_MIN_MINT_NOT_MET;
 
-        mint(depositAmount, queryId, initiator, depositParams.receiver, shares, VaultStatus.Success(), depositParams.sucPayload, msgPayload);
+        mint(depositAmount, queryId, initiator, depositParams.receiver!, shares, VaultStatus.Success(), depositParams.sucPayload, msgPayload);
 
-        emitDeposited(initiator, depositParams.receiver, depositAmount, shares);
+        emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
         // If initiator is inSender, it's native deposit. Otherwise, it's a jetton deposit.
         if(inSenderAddress != initiator) {
             jettonTransfer(
-                depositParams.receiver, 
+                inSenderAddress, 
                 depositAmount, 
                 queryId, 
                 initiator, 
-                depositParams.receiver,
+                depositParams.receiver!,
                 depositAmount, 
                 VaultStatus.Failure(e), 
                 depositParams.failPayload, 

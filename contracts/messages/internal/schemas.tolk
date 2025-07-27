@@ -18,8 +18,8 @@ struct CallbackParams {
 }
 
 struct VaultDepositParams {
-    receiver: address
-    minMint: coins
+    receiver: address?
+    minMint: coins?
     sucPayload: CallbackParams?
     failPayload: CallbackParams?
     optPayload: cell?
@@ -29,12 +29,12 @@ struct VaultDepositParams {
 struct (0x7ceea8a6) VaultDeposit {
     queryId: QueryId
     depositAmount: coins
-    vaultDepositParams: VaultDepositParams
+    vaultDepositParams: VaultDepositParams?
 }
 
 // For Jetton Deposit
 struct (0x97afc71b) VaultDepositFp {
-    vaultDepositParams: VaultDepositParams
+    vaultDepositParams: VaultDepositParams?
 }
 
 struct (0x7362d09c) TransferNotificationForRecipient {

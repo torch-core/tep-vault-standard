@@ -11,6 +11,7 @@ import "fees-management";
 import "helper/jetton";
 import "types/asset";
 import "core";
+import "helper/paramResolver";
 
 // the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
@@ -23,7 +24,15 @@ fun onInternalMessage(in: InMessage) {
             auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT);
             validateTonDepositGas(in.valueCoins, msg.depositAmount);
 
-            val shares = handleDeposit(in.senderAddress, msg.queryId, in.senderAddress, msg.depositAmount, msg.vaultDepositParams, msg.toCell(), Asset.tonAsset());
+            val shares = handleDeposit(
+                in.senderAddress, 
+                msg.queryId, 
+                in.senderAddress, 
+                msg.depositAmount, 
+                resolveDepositParams(msg.vaultDepositParams, in.senderAddress), 
+                msg.toCell(), 
+                Asset.tonAsset()
+            );
 
             // Update storage
             storage.totalSupply = storage.totalSupply + shares;
@@ -42,7 +51,14 @@ fun onInternalMessage(in: InMessage) {
                     // Get Jetton Master Address by Jetton Wallet Address from jettonInfos dict
                     val jettonMaster = getJettonMasterFromWallet(storage.jettonInfos, in.senderAddress);
 
-                    val shares = handleDeposit(in.senderAddress, msg.queryId, msg.transferInitiator, msg.jettonAmount, msg.forwardPayload.vaultDepositParams, msg.toCell(), Asset.jettonAsset(jettonMaster));
+                    val shares = handleDeposit(
+                        in.senderAddress, 
+                        msg.queryId, 
+                        msg.transferInitiator, 
+                        msg.jettonAmount, 
+                        resolveDepositParams(msg.forwardPayload.vaultDepositParams, msg.transferInitiator), 
+                        msg.toCell(), 
+                        Asset.jettonAsset(jettonMaster));
 
                     // Update storage
                     storage.totalSupply = storage.totalSupply + shares;
