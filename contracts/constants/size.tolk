@@ -1,1 +1,0 @@
-const ADDRESS_SIZE = 267;
