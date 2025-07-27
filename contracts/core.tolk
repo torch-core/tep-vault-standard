@@ -60,7 +60,7 @@ fun handleDeposit(
         return shares;
     } catch (e) {
         transferAsset(
-            (inSenderAddress != initiator) ? JettonAsset : TonAsset, // If initiator is inSender, it's native deposit. Otherwise, it's a jetton deposit.
+            (inSenderAddress != initiator) ? AssetType.jetton() : AssetType.ton(), // If initiator is inSender, it's native deposit. Otherwise, it's a jetton deposit.
             inSenderAddress,
             sendingValue,
             queryId,
@@ -95,7 +95,7 @@ fun handleWithdraw(
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
         transferAsset(
-            withdrawAsset,
+            (withdrawAsset is JettonAsset) ? AssetType.jetton() : AssetType.ton(), // Default asset is TON if withdrawAsset is null
             withdrawAssetJettonWallet,
             sendingValue,
             queryId,

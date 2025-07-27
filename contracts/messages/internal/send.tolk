@@ -76,7 +76,7 @@ fun tonTransfer(receiver: address, sendingValue: coins, queryId: QueryId, status
 }
 
 fun transferAsset(
-    asset: Asset?, 
+    assetType: AssetType, 
     jettonWallet: address?, 
     sendingValue: coins, 
     queryId: QueryId, 
@@ -87,8 +87,8 @@ fun transferAsset(
     callbackParams: CallbackParams?, 
     msgPayload: cell
 ) {
-    match (asset) {
-        TonAsset => {
+    match (assetType) {
+        ASSET_TYPE_TON => {
             tonTransfer(
                 receiver,
                 amount,
@@ -98,7 +98,7 @@ fun transferAsset(
                 msgPayload
             );
         }
-        JettonAsset => {
+        ASSET_TYPE_JETTON => {
             jettonTransfer(
                 jettonWallet!, 
                 sendingValue,
@@ -110,9 +110,6 @@ fun transferAsset(
                 callbackParams, 
                 msgPayload
             );
-        }
-        null => {
-            // Default asset handling
         }
     }
 }
