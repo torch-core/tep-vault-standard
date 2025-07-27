@@ -49,8 +49,8 @@ fun onInternalMessage(in: InMessage) {
                     auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT_FP);
                     validateJettonDepositGas(in.valueCoins);
 
-                    // Get Jetton Master Address by Jetton Wallet Address from jettonInfos dict
-                    val jettonMaster = getJettonMasterFromWallet(storage.jettonInfos, in.senderAddress);
+                    // Get Jetton Master Address by Jetton Wallet Address from walletToMaster dict
+                    val jettonMaster = getJettonMasterFromWallet(storage.walletToMaster, in.senderAddress);
 
                     val shares = handleDeposit(
                         in.senderAddress, 
@@ -79,7 +79,7 @@ fun onInternalMessage(in: InMessage) {
                     validateWithdrawGas(in.valueCoins);
 
                     val withdrawAsset = burnPayload.withdrawAsset != null ? burnPayload.withdrawAsset!.load() : null;
-                    val withdrawAssetJettonWallet =  (withdrawAsset is JettonAsset) ? getJettonWalletFromMaster(storage.jettonInfos, withdrawAsset.jettonMaster) : null;
+                    val withdrawAssetJettonWallet =  (withdrawAsset is JettonAsset) ? getJettonWalletFromMaster(storage.masterToWallet, withdrawAsset.jettonMaster) : null;
                     val withdrawAmount = handleWithdraw(
                         msg.queryId,
                         in.valueCoins,

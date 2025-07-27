@@ -9,15 +9,15 @@ struct WalletStorage {
     minterAddress: address
 }
 
-fun getJettonMasterFromWallet(jettonInfos: dict, jettonWallet: address) {
-    var (jettonMasterEntry: slice?, found: bool) = jettonInfos.sDictGet(ADDRESS_SIZE, jettonWallet as slice);
+fun getJettonMasterFromWallet(walletToMaster: dict, jettonWallet: address) {
+    var (jettonMasterEntry: slice?, found: bool) = walletToMaster.sDictGet(ADDRESS_SIZE, jettonWallet as slice);
     assert (found) throw ERR_JETTON_MASTER_NOT_FOUND;
     val jettonMaster = jettonMasterEntry!.loadAddress();
     return jettonMaster;
 }
 
-fun getJettonWalletFromMaster(jettonInfos: dict, jettonMaster: address) {
-    var (jettonWalletEntry: slice?, found: bool) = jettonInfos.sDictGet(ADDRESS_SIZE, jettonMaster as slice);
+fun getJettonWalletFromMaster(masterToWallet: dict, jettonMaster: address) {
+    var (jettonWalletEntry: slice?, found: bool) = masterToWallet.sDictGet(ADDRESS_SIZE, jettonMaster as slice);
     assert (found) throw ERR_JETTON_MASTER_NOT_FOUND;
     val jettonWallet = jettonWalletEntry!.loadAddress();
     return jettonWallet;

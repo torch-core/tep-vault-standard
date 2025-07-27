@@ -4,7 +4,8 @@ struct Storage {
     totalSupply: coins
     totalAssets: coins
     jettonWalletCode: cell
-    jettonInfos: dict
+    walletToMaster: dict  // jetton wallet -> jetton master
+    masterToWallet: dict  // jetton master -> jetton wallet
     auth: Cell<Auth> // Add Auth struct to contract's storage
 }
 
