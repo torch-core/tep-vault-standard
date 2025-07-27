@@ -43,10 +43,10 @@ fun previewWithdraw(shares: coins, withdrawAsset: Asset? = null) {
 }
 
 fun handleDeposit(
-    senderAddress: address, 
+    initiator: address, 
     queryId: QueryId, 
     sendingValue: coins,
-    initiator: address, 
+    senderAddress: address, 
     depositAmount: coins, 
     depositParams: VaultDepositParams, 
     inMsgPayload: cell, 
@@ -59,16 +59,16 @@ fun handleDeposit(
         val shares = previewDeposit(depositAmount, depositAsset);
         assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
 
-        mint(sendingValue, queryId, initiator, depositParams.receiver!, shares, VaultResult.Success(), depositParams.successPayload, inMsgPayload);
+        mint(initiator, queryId, sendingValue, depositParams.receiver!, shares, VaultResult.Success(), depositParams.successPayload, inMsgPayload);
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
         transferAsset(
+            initiator,
+            queryId,
+            sendingValue,
             AssetType.jetton(), // Use AssetType.ton() for TON Deposit
             senderAddress,   // Use null for TON Deposit
-            sendingValue,
-            queryId,
-            initiator,
             depositParams.receiver!,
             depositAmount,
             VaultResult.Failure(e),
@@ -81,9 +81,9 @@ fun handleDeposit(
 }
 
 fun handleWithdraw(
+    initiator: address, 
     queryId: QueryId, 
     sendingValue: coins, 
-    initiator: address, 
     shares: coins, 
     withdrawParams: VaultWithdrawFp, 
     inMsgPayload: cell, 
@@ -98,11 +98,11 @@ fun handleWithdraw(
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
         transferAsset(
+            initiator,
+            queryId,
+            sendingValue,
             AssetType.jetton(),             // Use AssetType.ton() for TON Withdrawal, or withdrawAsset type to determine the asset type(multi-asset vault)
             withdrawAssetJettonWallet,   // Use null for TON Withdrawal
-            sendingValue,
-            queryId,
-            initiator,
             withdrawParams.receiver!,
             withdrawAmount,
             VaultResult.Success(),
@@ -112,7 +112,7 @@ fun handleWithdraw(
         emitWithdrawn(initiator, withdrawParams.receiver!, withdrawAmount, shares);
         return withdrawAmount;
     } catch (e) {
-        mint(shares, queryId, initiator, initiator, shares, VaultResult.Failure(e), withdrawParams.failurePayload, inMsgPayload);
+        mint(initiator, queryId, shares, initiator, shares, VaultResult.Failure(e), withdrawParams.failurePayload, inMsgPayload);
         commitContractDataAndActions();
         throw e;
     }

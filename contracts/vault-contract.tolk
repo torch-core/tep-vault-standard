@@ -38,10 +38,10 @@ fun onInternalMessage(in: InMessage) {
                     validateJettonDepositGas(in.valueCoins);
 
                     val shares = handleDeposit(
-                        in.senderAddress, 
+                        inMsg.transferInitiator, 
                         inMsg.queryId, 
                         in.valueCoins,
-                        inMsg.transferInitiator, 
+                        in.senderAddress, 
                         inMsg.jettonAmount, 
                         normalizeDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.transferInitiator), 
                         inMsg.toCell()
@@ -62,9 +62,9 @@ fun onInternalMessage(in: InMessage) {
                     validateWithdrawGas(in.valueCoins);
 
                     val withdrawAmount = handleWithdraw(
+                        in.senderAddress, 
                         inMsg.queryId,
                         in.valueCoins,
-                        in.senderAddress, 
                         inMsg.jettonAmount, 
                         normalizeWithdrawParams(burnPayload, in.senderAddress), 
                         inMsg.toCell(), 
