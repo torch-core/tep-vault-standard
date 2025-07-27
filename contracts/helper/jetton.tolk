@@ -2,6 +2,8 @@
 import "@stdlib/tvm-dicts";
 import "../constants/errors";
 import "../constants/size";
+import "../constants/values";
+import "../messages/internal/schemas";
 
 struct WalletStorage {
     jettonBalance: coins
@@ -36,4 +38,8 @@ fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jett
             data: emptyWalletStorage.toCell()
         }
     }
+}
+
+fun calcForwardTonAmount(forwardPayload: Cell<VaultNotificationFp>?, sendingValue: coins) {
+    return (forwardPayload == null ? 0 : sendingValue - JETTON_TRANSFER_FEE) as coins;
 }

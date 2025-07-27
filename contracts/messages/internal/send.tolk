@@ -2,7 +2,6 @@ import "schemas";
 import "../../storage";
 import "../../helper/jetton";
 import "../../types/vault-result";
-import "../../constants/values";
 import "../../types/asset";
 import "../../constants/common-types";
 
@@ -34,7 +33,7 @@ fun mint(sendingValue: coins, queryId: QueryId, initiator: address, receiver: ad
             jettonAmount: shares,
             transferInitiator: minterAddress,
             sendExcessesTo: receiver,
-            forwardTonAmount: forwardPayload == null ? 0 : sendingValue - JETTON_TRANSFER_FEE,
+            forwardTonAmount: calcForwardTonAmount(forwardPayload, sendingValue),
             forwardPayload: forwardPayload
         },
     });
@@ -63,7 +62,7 @@ fun jettonTransfer(
             transferRecipient: receiver,
             sendExcessesTo: receiver,
             customPayload: null,
-            forwardTonAmount: forwardPayload == null ? 0 : sendingValue - JETTON_TRANSFER_FEE,
+            forwardTonAmount: calcForwardTonAmount(forwardPayload, sendingValue),
             forwardPayload: forwardPayload
         },
     });
@@ -75,7 +74,7 @@ fun tonTransfer(receiver: address, sendingValue: coins, queryId: QueryId, status
     val transferMsg = createMessage({
         bounce: true,
         dest: receiver,
-        value: sendingValue,
+        value: sendingValue, 
         body: params != null ? 
             VaultNotification {
                 queryId: queryId,

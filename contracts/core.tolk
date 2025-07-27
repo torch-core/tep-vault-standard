@@ -24,9 +24,9 @@ fun totalAssets() {
     return storage.totalAssets;
 }
 
-fun convertToShares(depositedAmount: coins, rounding: RoundingType, depositAsset: Asset? = null) {
+fun convertToShares(depositAmount: coins, rounding: RoundingType, depositAsset: Asset? = null) {
     var storage = lazy Storage.load();
-    return roundedMulDiv(depositedAmount, storage.totalSupply, totalAssets(), rounding) as coins;
+    return roundedMulDiv(depositAmount, storage.totalSupply, totalAssets(), rounding) as coins;
 }
 
 fun convertToAssets(shares: coins, rounding: RoundingType, withdrawAsset: Asset? = null) {
@@ -60,7 +60,7 @@ fun handleDeposit(
         val shares = previewDeposit(depositAmount, depositAsset);
         assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
 
-        mint(depositAmount, queryId, initiator, depositParams.receiver!, shares, VaultResult.Success(), depositParams.successPayload, inMsgPayload);
+        mint(sendingValue, queryId, initiator, depositParams.receiver!, shares, VaultResult.Success(), depositParams.successPayload, inMsgPayload);
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
