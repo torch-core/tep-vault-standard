@@ -1,6 +1,6 @@
 import "../messages/internal/schemas";
 
-fun resolveDepositParams(depositParams: VaultDepositParams?, initiator: address) {
+fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: address) {
     if (depositParams == null) {
         return VaultDepositParams {
             receiver: initiator,
@@ -20,7 +20,7 @@ fun resolveDepositParams(depositParams: VaultDepositParams?, initiator: address)
     };
 }
 
-fun resolveWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address) {
+fun normalizeWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address) {
     if (withdrawParams == null) {
         return VaultWithdrawFp {
             receiver: initiator,

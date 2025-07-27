@@ -7,7 +7,7 @@ import "fees-management";
 import "helper/jetton";
 import "types/asset";
 import "core";
-import "helper/paramResolver";
+import "helper/paramNormalizer";
 
 // the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
@@ -24,7 +24,7 @@ fun onInternalMessage(in: InMessage) {
                 in.valueCoins,
                 in.senderAddress, 
                 msg.depositAmount, 
-                resolveDepositParams(msg.vaultDepositParams, in.senderAddress), 
+                normalizeDepositParams(msg.vaultDepositParams, in.senderAddress), 
                 msg.toCell(), 
                 Asset.tonAsset()
             );
@@ -50,7 +50,7 @@ fun onInternalMessage(in: InMessage) {
                         in.valueCoins,
                         msg.transferInitiator, 
                         msg.jettonAmount, 
-                        resolveDepositParams(msg.forwardPayload.vaultDepositParams, msg.transferInitiator), 
+                        normalizeDepositParams(msg.forwardPayload.vaultDepositParams, msg.transferInitiator), 
                         msg.toCell(), 
                         Asset.jettonAsset(jettonMaster));
 
@@ -75,7 +75,7 @@ fun onInternalMessage(in: InMessage) {
                         in.valueCoins,
                         in.senderAddress, 
                         msg.jettonAmount, 
-                        resolveWithdrawParams(burnPayload, in.senderAddress), 
+                        normalizeWithdrawParams(burnPayload, in.senderAddress), 
                         msg.toCell(), 
                         withdrawAssetJettonWallet,
                         withdrawAsset
