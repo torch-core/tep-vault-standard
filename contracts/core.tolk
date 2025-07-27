@@ -19,14 +19,19 @@ fun maxWithdraw(withdrawAsset: Asset? = null) {
     return MAX_COINS_VALUE;
 }
 
+fun totalAssets() {
+    var storage = lazy Storage.load();
+    return storage.totalAssets;
+}
+
 fun convertToShares(depositedAmount: coins, rounding: RoundingType, depositAsset: Asset? = null) {
     var storage = lazy Storage.load();
-    return roundedMulDiv(depositedAmount, storage.totalSupply, storage.totalAssets, rounding) as coins;
+    return roundedMulDiv(depositedAmount, storage.totalSupply, totalAssets(), rounding) as coins;
 }
 
 fun convertToAssets(shares: coins, rounding: RoundingType, withdrawAsset: Asset? = null) {
     var storage = lazy Storage.load();
-    return roundedMulDiv(shares, storage.totalAssets, storage.totalSupply, rounding) as coins;
+    return roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding) as coins;
 }
 
 // depositAsset is for multi-asset vaults
