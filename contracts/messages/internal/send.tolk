@@ -5,26 +5,26 @@ import "../../types/vault-result";
 import "../../types/asset";
 import "../../constants/common-types";
 
-fun createVaultNotificationParams(status: VaultResult, initiator: address, callbackParams: CallbackParams?, inMsgPayload: cell): VaultNotificationParams? {
+fun createVaultNotificationParams(vaultResult: VaultResult, initiator: address, callbackParams: CallbackParams?, inMsgPayload: cell): VaultNotificationParams? {
     return callbackParams != null ? 
         VaultNotificationParams {
-            status: status,
+            vaultResult: vaultResult,
             initiator: initiator,
             callbackPayload: callbackParams!.callbackPayload,
             inMsgPayload: callbackParams!.includeBody ? inMsgPayload : null
         } : null;
 }
 
-fun createForwardPayload(status: VaultResult, initiator: address, callbackParams: CallbackParams?, inMsgPayload: cell): Cell<VaultNotificationFp>? {
-    val params = createVaultNotificationParams(status, initiator, callbackParams, inMsgPayload);
+fun createForwardPayload(vaultResult: VaultResult, initiator: address, callbackParams: CallbackParams?, inMsgPayload: cell): Cell<VaultNotificationFp>? {
+    val params = createVaultNotificationParams(vaultResult, initiator, callbackParams, inMsgPayload);
     return params != null ? VaultNotificationFp { vaultNotificationParams: params! }.toCell() : null;
 }
 
-fun mint(sendingValue: coins, queryId: QueryId, initiator: address, receiver: address, shares: coins, status: VaultResult, callbackParams: CallbackParams?, inMsgPayload: cell) {
+fun mint(sendingValue: coins, queryId: QueryId, initiator: address, receiver: address, shares: coins, vaultResult: VaultResult, callbackParams: CallbackParams?, inMsgPayload: cell) {
     val storage = lazy Storage.load();
     val minterAddress = contract.getAddress();
-    val forwardPayload = createForwardPayload(status, initiator, callbackParams, inMsgPayload);
-    val deployMsg = createMessage({
+    val forwardPayload = createForwardPayload(vaultResult, initiator, callbackParams, inMsgPayload);
+    val mintMsg = createMessage({
         bounce: true,
         dest: calcDeployedJettonWallet(receiver, minterAddress, storage.jettonWalletCode),
         value: sendingValue,
@@ -37,7 +37,7 @@ fun mint(sendingValue: coins, queryId: QueryId, initiator: address, receiver: ad
             forwardPayload: forwardPayload
         },
     });
-    deployMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
+    mintMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
 fun jettonTransfer(
@@ -47,11 +47,11 @@ fun jettonTransfer(
     initiator: address, 
     receiver: address, 
     depositAmount: coins, 
-    status: VaultResult, 
+    vaultResult: VaultResult, 
     callbackParams: CallbackParams?, 
     inMsgPayload: cell
 ) {
-    val forwardPayload = createForwardPayload(status, initiator, callbackParams, inMsgPayload);
+    val forwardPayload = createForwardPayload(vaultResult, initiator, callbackParams, inMsgPayload);
     val transferMsg = createMessage({
         bounce: true,
         dest: jettonWallet,
@@ -69,8 +69,8 @@ fun jettonTransfer(
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun tonTransfer(receiver: address, sendingValue: coins, queryId: QueryId, status: VaultResult, callbackParams: CallbackParams?, inMsgPayload: cell) {
-    val params = createVaultNotificationParams(status, receiver, callbackParams, inMsgPayload);
+fun tonTransfer(receiver: address, sendingValue: coins, queryId: QueryId, vaultResult: VaultResult, callbackParams: CallbackParams?, inMsgPayload: cell) {
+    val params = createVaultNotificationParams(vaultResult, receiver, callbackParams, inMsgPayload);
     val transferMsg = createMessage({
         bounce: true,
         dest: receiver,
@@ -92,16 +92,16 @@ fun transferAsset(
     initiator: address, 
     receiver: address, 
     amount: coins, 
-    status: VaultResult, 
+    vaultResult: VaultResult, 
     callbackParams: CallbackParams?, 
     inMsgPayload: cell
 ) {
     match (assetType) {
         ASSET_TYPE_TON => {
-            tonTransfer(receiver, amount, queryId, status, callbackParams, inMsgPayload);
+            tonTransfer(receiver, amount, queryId, vaultResult, callbackParams, inMsgPayload);
         }
         ASSET_TYPE_JETTON => {
-            jettonTransfer(jettonWallet!, sendingValue, queryId, initiator, receiver, amount, status, callbackParams, inMsgPayload);
+            jettonTransfer(jettonWallet!, sendingValue, queryId, initiator, receiver, amount, vaultResult, callbackParams, inMsgPayload);
         }
     }
 }

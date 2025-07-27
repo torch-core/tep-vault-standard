@@ -72,7 +72,7 @@ struct (0xa1242cde) VaultWithdrawFp {
 }
 
 struct VaultNotificationParams {
-    status: VaultResult
+    vaultResult: VaultResult
     initiator: address
     callbackPayload: cell
     inMsgPayload: cell?
