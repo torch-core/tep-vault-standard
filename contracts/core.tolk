@@ -84,8 +84,9 @@ fun handleDeposit(
                 depositAmount, 
                 queryId, 
                 initiator, 
+                depositParams.receiver,
                 depositAmount, 
-                VaultStatus.Failure(ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED), 
+                VaultStatus.Failure(e), 
                 depositParams.failPayload, 
                 msgPayload
             );
@@ -94,7 +95,7 @@ fun handleDeposit(
                 inSenderAddress, 
                 depositAmount, 
                 queryId, 
-                VaultStatus.Failure(ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED), 
+                VaultStatus.Failure(e), 
                 depositParams.failPayload,
                 msgPayload
             );

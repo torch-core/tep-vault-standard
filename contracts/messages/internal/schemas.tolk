@@ -52,6 +52,16 @@ struct (0x178d4519) InternalTransferStep {
     forwardPayload: Cell<VaultNotificationFp>?
 }
 
+struct (0x0f8a7ea5) AskToTransfer {
+    queryId: uint64
+    jettonAmount: coins
+    transferRecipient: address
+    sendExcessesTo: address
+    customPayload: cell?
+    forwardTonAmount: coins
+    forwardPayload: Cell<VaultNotificationFp>?
+}
+
 // For Withdraw
 struct (0xa1242cde) VaultWithdrawFp {
     receiver: address
