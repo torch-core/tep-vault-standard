@@ -4,11 +4,11 @@ import "storage"
 import "constants/values";
 import "constants/errors";
 import "constants/common-types";
-import "types/rounding";
-import "types/asset";
 import "messages/internal/schemas";
 import "messages/internal/send";
 import "messages/external/emit";
+import "types/rounding";
+import "types/asset";
 import "types/vault-result";
 
 fun maxDeposit(depositAsset: Asset? = null) {

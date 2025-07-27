@@ -1,4 +1,3 @@
-
 struct Storage {
     totalSupply: coins
     totalAssets: coins
