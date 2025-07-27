@@ -1,7 +1,7 @@
 
 import "@stdlib/tvm-dicts";
 import "../constants/errors";
-import "../role-authority/constants/size";
+import "../constants/size";
 
 struct WalletStorage {
     jettonBalance: coins

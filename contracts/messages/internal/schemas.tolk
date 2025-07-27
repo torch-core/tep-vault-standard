@@ -1,7 +1,6 @@
-import "../../role-authority/messages/internal/schemas";
-import "../../role-authority/constants/type";
 import "../../types/asset";
 import "../../types/vault-result";
+import "../../constants/common-types";
 
 // Jetton Messages
 struct (0x7bdd97de) BurnNotificationForMinter {
@@ -94,4 +93,4 @@ const OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT = TransferNotificationForRecipient.
 const OP_BURN_NOTIFICATION_FOR_MINTER = BurnNotificationForMinter.getDeclaredPackPrefix();
 const OP_VAULT_WITHDRAW_FP = VaultWithdrawFp.getDeclaredPackPrefix();
 
-type AllowedMessage = AuthMessages | VaultDeposit | TransferNotificationForRecipient | BurnNotificationForMinter;
+type AllowedMessage = VaultDeposit | TransferNotificationForRecipient | BurnNotificationForMinter;

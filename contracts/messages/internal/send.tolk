@@ -1,10 +1,10 @@
 import "schemas";
 import "../../storage";
 import "../../helper/jetton";
-import "../../role-authority/constants/type";
 import "../../types/vault-result";
 import "../../constants/values";
 import "../../types/asset";
+import "../../constants/common-types";
 
 fun createVaultNotificationParams(status: VaultResult, initiator: address, callbackParams: CallbackParams?, msgPayload: cell): VaultNotificationParams? {
     return callbackParams != null ? 

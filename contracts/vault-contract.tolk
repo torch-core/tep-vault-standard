@@ -1,9 +1,5 @@
 tolk 1.0
 
-import "role-authority/auth";
-import "role-authority/access";
-import "role-authority/messages/internal/schemas";
-import "role-authority/messages/external/emit";
 import "storage"
 import "messages/internal/schemas"
 import "constants/errors";
@@ -17,11 +13,9 @@ import "helper/paramResolver";
 fun onInternalMessage(in: InMessage) {
     val msg = lazy AllowedMessage.fromSlice(in.body);
     var storage = lazy Storage.load();
-    var auth = lazy storage.auth.load();
 
     match (msg) {
         VaultDeposit => {
-            auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT);
             validateTonDepositGas(in.valueCoins, msg.depositAmount);
 
             val shares = handleDeposit(
@@ -42,11 +36,9 @@ fun onInternalMessage(in: InMessage) {
         }
 
         TransferNotificationForRecipient => {
-            auth.requireAuth(in.senderAddress, OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT);
 
             match (msg.forwardPayload) {
                 VaultDepositFp => {
-                    auth.requireAuth(in.senderAddress, OP_VAULT_DEPOSIT_FP);
                     validateJettonDepositGas(in.valueCoins);
 
                     // Get Jetton Master Address by Jetton Wallet Address from walletToMaster dict
@@ -71,11 +63,9 @@ fun onInternalMessage(in: InMessage) {
         }
 
         BurnNotificationForMinter => {
-            auth.requireAuth(in.senderAddress, OP_BURN_NOTIFICATION_FOR_MINTER);
             var burnPayload = msg.customPayload.load();
             match (burnPayload) {
                 VaultWithdrawFp => {
-                    auth.requireAuth(in.senderAddress, OP_VAULT_WITHDRAW_FP);
                     validateWithdrawGas(in.valueCoins);
 
                     val withdrawAsset = burnPayload.withdrawAsset != null ? burnPayload.withdrawAsset!.load() : null;
@@ -97,45 +87,6 @@ fun onInternalMessage(in: InMessage) {
                     storage.save();
                 }
             }
-        }
-
-        /* Auth internal messages */
-        SetPublicCapability => {
-            auth.requireAuth(in.senderAddress, OP_SET_PUBLIC_CAPABILITY);
-            storage.auth = auth.setPublicCapability(msg.opcode, msg.enabled);
-            storage.save();
-        }
-        SetRoleCapability => {
-            auth.requireAuth(in.senderAddress, OP_SET_ROLE_CAPABILITY);
-            storage.auth = auth.setRoleCapability(msg.role, msg.opcode, msg.enabled);
-            storage.save();
-        }
-        SetUserRole => {
-            auth.requireAuth(in.senderAddress, OP_SET_USER_ROLE);
-            storage.auth = auth.setUserRole(msg.user, msg.role, msg.enabled);
-            storage.save();
-        }
-        ProposeOwnership => {
-            auth.requireAuth(in.senderAddress, OP_PROPOSE_OWNERSHIP);
-            auth.ownerInfo.pendingOwner = msg.newOwner;
-            auth.ownerInfo.proposeTime = blockchain.now();
-            emitOwnershipProposed(in.senderAddress, msg.newOwner, auth.ownerInfo.proposeTime, auth.ownerInfo.timelockPeriod);
-            storage.auth = auth.toCell();
-            storage.save();
-        }
-        ClaimOwnership => {
-            auth.requirePendingOwner(in.senderAddress);
-            auth.requireTimelockPassed();
-            auth.ownerInfo.owner = in.senderAddress;
-            emitOwnershipClaimed(in.senderAddress);
-            storage.auth = auth.clearPendingOwner();
-            storage.save();
-        }
-        RevokePendingOwnership => {
-            auth.requireAuth(in.senderAddress, OP_REVOKE_PENDING_OWNERSHIP);
-            emitOwnershipRevoked(in.senderAddress, auth.ownerInfo.pendingOwner);
-            storage.auth = auth.clearPendingOwner();
-            storage.save();
         }
 
         else => {

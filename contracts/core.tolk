@@ -3,11 +3,11 @@ tolk 1.0
 import "storage"
 import "constants/values";
 import "constants/errors";
+import "constants/common-types";
 import "types/rounding";
 import "types/asset";
 import "messages/internal/schemas";
 import "messages/internal/send";
-import "role-authority/constants/type";
 import "messages/external/emit";
 import "types/vault-result";
 
