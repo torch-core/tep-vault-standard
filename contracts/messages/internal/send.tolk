@@ -11,7 +11,7 @@ fun createVaultNotificationParams(vaultResult: VaultResult, initiator: address, 
         VaultNotificationParams {
             vaultResult: vaultResult,
             initiator: initiator,
-            callbackPayload: callbackParams!.callbackPayload,
+            callbackPayload: callbackParams!.payload,
             inMsgPayload: callbackParams!.includeBody ? inMsgPayload : null
         } : null;
 }

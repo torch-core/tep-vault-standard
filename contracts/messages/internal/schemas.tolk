@@ -40,7 +40,7 @@ struct (0x7bdd97de) BurnNotificationForMinter {
 // ===== COMMON PARAMETERS =====
 struct CallbackParams {
     includeBody: bool
-    callbackPayload: cell
+    payload: cell
 }
 
 struct PayloadParams {
