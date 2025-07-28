@@ -44,8 +44,8 @@ struct CallbackParams {
 }
 
 struct PayloadParams {
-    successPayload: CallbackParams? = null
-    failurePayload: CallbackParams? = null
+    successCallback: CallbackParams? = null
+    failureCallback: CallbackParams? = null
     optionalPayload: cell? = null
 }
 
