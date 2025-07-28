@@ -5,6 +5,7 @@ import "helper/paramNormalizer";
 import "messages/internal/schemas"
 import "core";
 import "fees-management";
+import "get-methods";
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
