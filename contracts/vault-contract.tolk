@@ -7,6 +7,7 @@ import "core";
 import "fees-management";
 import "get-methods";
 import "messages/internal/send"
+import "helper/jetton"
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
@@ -38,6 +39,7 @@ fun onInternalMessage(in: InMessage) {
         }
 
         BurnNotificationForMinter => {
+            assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
             if (inMsg.customPayload == null && inMsg.sendExcessesTo != null) {
                 val remainingValue = processBurnGas(in.valueCoins);
                 sendExcessesBack(inMsg.sendExcessesTo, inMsg.queryId, remainingValue);
