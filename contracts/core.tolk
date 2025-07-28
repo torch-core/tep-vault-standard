@@ -18,17 +18,17 @@ fun maxWithdraw(optionalParams: OptionalVaultParams? = null) {
 }
 
 fun totalAssets(optionalParams: OptionalVaultParams? = null) {
-    var storage = lazy Storage.load();
+    var storage = lazy VaultStorage.load();
     return storage.totalAssets;
 }
 
 fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalParams: OptionalVaultParams? = null) {
-    var storage = lazy Storage.load();
+    var storage = lazy VaultStorage.load();
     return roundedMulDiv(depositAmount, storage.totalSupply, totalAssets(), rounding) as coins;
 }
 
 fun convertToAssets(shares: coins, rounding: RoundingType, optionalParams: OptionalVaultParams? = null) {
-    var storage = lazy Storage.load();
+    var storage = lazy VaultStorage.load();
     return roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding) as coins;
 }
 

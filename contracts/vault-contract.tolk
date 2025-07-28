@@ -11,7 +11,7 @@ import "get-methods";
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
-    var storage = lazy Storage.load();
+    var storage = lazy VaultStorage.load();
 
     match (inMsg) {
         VaultDeposit => {

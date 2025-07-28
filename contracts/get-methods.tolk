@@ -8,7 +8,7 @@ import "helper/jetton"
 
 get fun getAsset() {
     var assetsTuple: tuple = createEmptyTuple();
-    val storage = lazy Storage.load();
+    val storage = lazy VaultStorage.load();
     if(storage.assetJettonInfo != null) {
         val assetJettonInfo = storage.assetJettonInfo!.load();
         assetsTuple.push(Asset.jettonAsset(assetJettonInfo.masterAddress!).toCell());
@@ -60,7 +60,7 @@ struct JettonDataReply {
 }
 
 get fun get_jetton_data(): JettonDataReply {
-    val storage = lazy Storage.load();
+    val storage = lazy VaultStorage.load();
 
     return {
         totalSupply: storage.totalSupply,
@@ -72,7 +72,7 @@ get fun get_jetton_data(): JettonDataReply {
 }
 
 get fun get_wallet_address(ownerAddress: address): address {
-    val storage = lazy Storage.load();
+    val storage = lazy VaultStorage.load();
     val addrBuilt = buildAddressOfJettonWallet(ownerAddress, contract.getAddress(), storage.jettonWalletCode);
     return address.fromValidBuilder(addrBuilt);
 }

@@ -1,15 +1,11 @@
 import "../constants/values";
+import "../storage"
 import "../messages/internal/schemas";
-
-struct WalletStorage {
-    jettonBalance: coins
-    ownerAddress: address
-    minterAddress: address
-}
 
 @pure
 fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell): AutoDeployAddress {
     val emptyWalletStorage: WalletStorage = {
+        status: 0,
         jettonBalance: 0,
         ownerAddress,
         minterAddress,

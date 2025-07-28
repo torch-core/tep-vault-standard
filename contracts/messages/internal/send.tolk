@@ -25,7 +25,7 @@ fun createForwardPayload(vaultResult: VaultResult, initiator: address, callbackP
 }
 
 fun mint(initiator: address, queryId: QueryId, remainingValue: coins, receiver: address, shares: coins, vaultResult: VaultResult, callbackParams: CallbackParams?, inMsg: cell) {
-    val storage = lazy Storage.load();
+    val storage = lazy VaultStorage.load();
     val minterAddress = contract.getAddress();
     val forwardPayload = createForwardPayload(vaultResult, initiator, callbackParams, inMsg);
     val mintMsg = createMessage({

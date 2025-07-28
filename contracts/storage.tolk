@@ -1,9 +1,12 @@
+import "constants/common-types"
+
+// ==== Vault Storage ====
 struct AssetJettonInfo {
     masterAddress: address?
     walletAddress: address?
 }
 
-struct Storage {
+struct VaultStorage {
     adminAddress: address
     totalSupply: coins
     totalAssets: coins
@@ -12,10 +15,19 @@ struct Storage {
     content: cell
 }
 
-fun Storage.load() {
-    return Storage.fromCell(contract.getData())
+fun VaultStorage.load() {
+    return VaultStorage.fromCell(contract.getData())
 }
 
-fun Storage.save(self) {
+fun VaultStorage.save(self) {
     contract.setData(self.toCell())
 }
+
+// ==== Jetton Wallet Storage ====
+struct WalletStorage {
+    status: WalletStatus
+    jettonBalance: coins
+    ownerAddress: address
+    minterAddress: address
+}
+
