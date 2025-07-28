@@ -35,7 +35,11 @@ struct (0x7bdd97de) BurnNotificationForMinter {
     jettonAmount: coins
     initiator: address
     sendExcessesTo: address
-    customPayload: Cell<VaultWithdrawFp>
+    customPayload: Cell<VaultWithdrawFp>?
+}
+
+struct (0xd53276db) ReturnExcessesBack {
+    queryId: uint64
 }
 
 // ===== COMMON PARAMETERS =====

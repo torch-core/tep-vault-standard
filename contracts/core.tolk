@@ -43,7 +43,7 @@ fun previewWithdraw(shares: coins, optionalParams: OptionalVaultParams? = null) 
 fun handleDeposit(
     initiator: address, 
     queryId: QueryId, 
-    valueCoins: coins,
+    remainingValue: coins,
     senderAddress: address, 
     depositAmount: coins, 
     depositParams: VaultDepositParams, 
@@ -56,17 +56,17 @@ fun handleDeposit(
         val shares = previewDeposit(depositAmount);
         assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
 
-        mint(initiator, queryId, valueCoins, depositParams.receiver!, shares, VaultResult.Success(), depositParams.vaultCallbacks.successCallback, inMsg);
+        mint(initiator, queryId, remainingValue, depositParams.receiver!, shares, VaultResult.Success(), depositParams.vaultCallbacks.successCallback, inMsg);
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
         if (initiator == senderAddress) {
-            tonTransfer(initiator, queryId, valueCoins, depositParams.receiver!, VaultResult.Error(e), depositParams.vaultCallbacks.failureCallback, inMsg);
+            tonTransfer(initiator, queryId, remainingValue, depositParams.receiver!, VaultResult.Error(e), depositParams.vaultCallbacks.failureCallback, inMsg);
         } else {
             jettonTransfer(
                 initiator, 
                 queryId, 
-                valueCoins, 
+                remainingValue, 
                 senderAddress, 
                 depositParams.receiver!,
                 depositAmount, 
@@ -83,7 +83,7 @@ fun handleDeposit(
 fun handleWithdraw(
     initiator: address, 
     queryId: QueryId, 
-    valueCoins: coins, 
+    remainingValue: coins, 
     shares: coins, 
     withdrawParams: VaultWithdrawFp, 
     inMsg: cell, 
@@ -97,12 +97,12 @@ fun handleWithdraw(
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
         if (assetJettonWallet == null) {
-            tonTransfer(initiator, queryId, valueCoins, withdrawParams.receiver!, VaultResult.Success(), withdrawParams.vaultCallbacks.successCallback, inMsg);
+            tonTransfer(initiator, queryId, remainingValue, withdrawParams.receiver!, VaultResult.Success(), withdrawParams.vaultCallbacks.successCallback, inMsg);
         } else {
             jettonTransfer(
                 initiator, 
                 queryId, 
-                valueCoins, 
+                remainingValue, 
                 assetJettonWallet, 
                 withdrawParams.receiver!, 
                 withdrawAmount, 
@@ -115,7 +115,7 @@ fun handleWithdraw(
         emitWithdrawn(initiator, withdrawParams.receiver!, withdrawAmount, shares);
         return withdrawAmount;
     } catch (e) {
-        mint(initiator, queryId, valueCoins, initiator, shares, VaultResult.Error(e), withdrawParams.vaultCallbacks.failureCallback, inMsg);
+        mint(initiator, queryId, remainingValue, initiator, shares, VaultResult.Error(e), withdrawParams.vaultCallbacks.failureCallback, inMsg);
         commitContractDataAndActions();
         throw e;
     }

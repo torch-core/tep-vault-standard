@@ -6,6 +6,7 @@ import "messages/internal/schemas"
 import "core";
 import "fees-management";
 import "get-methods";
+import "messages/internal/send"
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
@@ -13,9 +14,9 @@ fun onInternalMessage(in: InMessage) {
 
     match (inMsg) {
         VaultDeposit => {
-            validateTonDepositGas(in.valueCoins, inMsg.depositAmount);
+            val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
             val depositParams = fillDefaultDepositParams(inMsg.vaultDepositParams, in.senderAddress);
-            val shares = handleDeposit(in.senderAddress, inMsg.queryId, in.valueCoins, in.senderAddress, inMsg.depositAmount, depositParams, inMsg.toCell());
+            val shares = handleDeposit(in.senderAddress, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, depositParams, inMsg.toCell());
 
             storage.totalSupply = storage.totalSupply + shares;
             storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
@@ -25,9 +26,9 @@ fun onInternalMessage(in: InMessage) {
         TransferNotificationForRecipient => {
             match (inMsg.forwardPayload) {
                 VaultDepositFp => {
-                    validateJettonDepositGas(in.valueCoins);
+                    val remainingValue = processJettonDepositGas(in.valueCoins);
                     val depositParams = fillDefaultDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.initiator);
-                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, in.valueCoins, in.senderAddress, inMsg.jettonAmount, depositParams, inMsg.toCell());
+                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.jettonAmount, depositParams, inMsg.toCell());
 
                     storage.totalSupply = storage.totalSupply + shares;
                     storage.totalAssets = storage.totalAssets + inMsg.jettonAmount;
@@ -37,12 +38,20 @@ fun onInternalMessage(in: InMessage) {
         }
 
         BurnNotificationForMinter => {
-            var burnPayload = inMsg.customPayload.load();
+            if (inMsg.customPayload == null && inMsg.sendExcessesTo != null) {
+                val remainingValue = processBurnGas(in.valueCoins);
+                sendExcessesBack(inMsg.sendExcessesTo, inMsg.queryId, remainingValue);
+                storage.totalSupply = storage.totalSupply - inMsg.jettonAmount;
+                storage.save();
+                return;
+            }
+
+            var burnPayload = inMsg.customPayload!.load();
             match (burnPayload) {
                 VaultWithdrawFp => {
-                    validateWithdrawGas(in.valueCoins);
+                    val remainingValue = processWithdrawGas(in.valueCoins);
                     val withdrawParams = fillDefaultWithdrawParams(burnPayload, inMsg.initiator);
-                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, in.valueCoins, inMsg.jettonAmount, withdrawParams, inMsg.toCell(), storage.assetJettonWallet);
+                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.jettonAmount, withdrawParams, inMsg.toCell(), storage.assetJettonWallet);
 
                     storage.totalSupply = storage.totalSupply - inMsg.jettonAmount; 
                     storage.totalAssets = storage.totalAssets - withdrawAmount;

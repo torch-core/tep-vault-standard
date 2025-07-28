@@ -1,17 +1,26 @@
 import "constants/errors";
+import "constants/values"
 
 const DEPOSIT_TON_GAS = 10000;
 const DEPOSIT_JETTON_GAS = 10000;
 const WITHDRAW_GAS = 10000;
 
-fun validateTonDepositGas(msgValue: coins, depositAmount: coins) {
-    assert (msgValue >= depositAmount + DEPOSIT_TON_GAS) throw ERR_TON_DEPOSIT_GAS_TOO_LOW;
+fun processTonDepositGas(valueCoins: coins, depositAmount: coins) {
+    assert (valueCoins >= depositAmount + DEPOSIT_TON_GAS) throw ERR_TON_DEPOSIT_GAS_TOO_LOW;
+    return valueCoins - depositAmount - DEPOSIT_TON_GAS;
 }
 
-fun validateJettonDepositGas(msgValue: coins) {
-    assert (msgValue >= DEPOSIT_JETTON_GAS) throw ERR_JETTON_DEPOSIT_GAS_TOO_LOW;
+fun processJettonDepositGas(valueCoins: coins) {
+    assert (valueCoins >= DEPOSIT_JETTON_GAS) throw ERR_JETTON_DEPOSIT_GAS_TOO_LOW;
+    return valueCoins - DEPOSIT_JETTON_GAS;
 }
 
-fun validateWithdrawGas(msgValue: coins) {
-    assert (msgValue >= WITHDRAW_GAS) throw ERR_WITHDRAW_GAS_TOO_LOW;
+fun processWithdrawGas(valueCoins: coins) {
+    assert (valueCoins >= WITHDRAW_GAS) throw ERR_WITHDRAW_GAS_TOO_LOW;
+    return valueCoins - WITHDRAW_GAS;
+}
+
+fun processBurnGas(valueCoins: coins) {
+    assert (valueCoins >= BURN_NOTIFICATION_FEE) throw ERR_BURN_GAS_TOO_LOW;
+    return valueCoins - BURN_NOTIFICATION_FEE;
 }
