@@ -1,7 +1,7 @@
 import "constants/errors";
 import "types/asset";
 import "storage"
-import "helper/paramNormalizer";
+import "helper/paramDefaulter";
 import "messages/internal/schemas"
 import "core";
 import "fees-management";
@@ -14,7 +14,7 @@ fun onInternalMessage(in: InMessage) {
     match (inMsg) {
         VaultDeposit => {
             validateTonDepositGas(in.valueCoins, inMsg.depositAmount);
-            val depositParams = normalizeDepositParams(inMsg.vaultDepositParams, in.senderAddress);
+            val depositParams = fillDefaultDepositParams(inMsg.vaultDepositParams, in.senderAddress);
 
             val shares = handleDeposit(
                 in.senderAddress, 
@@ -35,7 +35,7 @@ fun onInternalMessage(in: InMessage) {
             match (inMsg.forwardPayload) {
                 VaultDepositFp => {
                     validateJettonDepositGas(in.valueCoins);
-                    val depositParams = normalizeDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.transferInitiator);
+                    val depositParams = fillDefaultDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.transferInitiator);
 
                     val shares = handleDeposit(
                         inMsg.transferInitiator, 
@@ -65,7 +65,7 @@ fun onInternalMessage(in: InMessage) {
                         inMsg.queryId,
                         in.valueCoins,
                         inMsg.jettonAmount, 
-                        normalizeWithdrawParams(burnPayload, in.senderAddress), 
+                        fillDefaultWithdrawParams(burnPayload, in.senderAddress), 
                         inMsg.toCell(), 
                         storage.assetJettonWallet // null for TON Withdrawal
                     );

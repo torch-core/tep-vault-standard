@@ -2,7 +2,7 @@ import "../types/callback-params";
 import "../messages/internal/schemas";
 
 @pure
-fun normalizeCallbacks(callbacks: VaultCallbacks, defaultSuccess: CallbackParams, defaultFailure: CallbackParams) {
+fun fillDefaultCallbacks(callbacks: VaultCallbacks, defaultSuccess: CallbackParams, defaultFailure: CallbackParams) {
     return VaultCallbacks {
         successCallback: callbacks.successCallback == null ? defaultSuccess : callbacks.successCallback,
         failureCallback: callbacks.failureCallback == null ? defaultFailure : callbacks.failureCallback,
@@ -10,7 +10,7 @@ fun normalizeCallbacks(callbacks: VaultCallbacks, defaultSuccess: CallbackParams
 }
 
 @pure
-fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: address) {
+fun fillDefaultDepositParams(depositParams: VaultDepositParams?, initiator: address) {
     if (depositParams == null) {
         return VaultDepositParams {
             receiver: initiator,
@@ -27,7 +27,7 @@ fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: addres
         receiver: depositParams.receiver == null ? initiator : depositParams.receiver,
         minShares: depositParams.minShares == null ? 0 as coins : depositParams.minShares,
         optionalVaultParams: depositParams.optionalVaultParams,
-        vaultCallbacks: normalizeCallbacks(
+        vaultCallbacks: fillDefaultCallbacks(
             depositParams.vaultCallbacks,
             CallbackParams.defaultSuccessDeposit(),
             CallbackParams.defaultFailureDeposit()
@@ -36,7 +36,7 @@ fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: addres
 }
 
 @pure
-fun normalizeWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address) {
+fun fillDefaultWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address) {
     if (withdrawParams == null) {
         return VaultWithdrawFp {
             receiver: initiator,
@@ -53,7 +53,7 @@ fun normalizeWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address
         receiver: withdrawParams.receiver == null ? initiator : withdrawParams.receiver,
         minWithdraw: withdrawParams.minWithdraw == null ? 0 as coins : withdrawParams.minWithdraw,
         optionalVaultParams: withdrawParams.optionalVaultParams,
-        vaultCallbacks: normalizeCallbacks(
+        vaultCallbacks: fillDefaultCallbacks(
             withdrawParams.vaultCallbacks,
             CallbackParams.defaultSuccessWithdraw(),
             CallbackParams.defaultFailureWithdraw()
