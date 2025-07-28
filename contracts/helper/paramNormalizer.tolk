@@ -6,14 +6,16 @@ fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: addres
         return VaultDepositParams {
             receiver: initiator,
             minShares: 0,
-            operationsParams: OperationParams {},
+            optionalVaultParams: null,
+            vaultCallbacks: VaultCallbacks {},
         };
     }
     
     return VaultDepositParams {
         receiver: depositParams.receiver == null ? initiator : depositParams.receiver,
         minShares: depositParams.minShares == null ? 0 as coins : depositParams.minShares,
-        operationsParams: depositParams.operationsParams,
+        optionalVaultParams: depositParams.optionalVaultParams,
+        vaultCallbacks: depositParams.vaultCallbacks,
     };
 }
 
@@ -22,16 +24,16 @@ fun normalizeWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address
     if (withdrawParams == null) {
         return VaultWithdrawFp {
             receiver: initiator,
-            withdrawAsset: null,
             minWithdraw: 0,
-            payloadParams: OperationParams {},
+            optionalVaultParams: null,
+            vaultCallbacks: VaultCallbacks {},
         };
     }
 
     return VaultWithdrawFp {
         receiver: withdrawParams.receiver == null ? initiator : withdrawParams.receiver,
-        withdrawAsset: withdrawParams.withdrawAsset,
         minWithdraw: withdrawParams.minWithdraw == null ? 0 as coins : withdrawParams.minWithdraw,
-        payloadParams: withdrawParams.payloadParams,
+        optionalVaultParams: withdrawParams.optionalVaultParams,
+        vaultCallbacks: withdrawParams.vaultCallbacks,
     };
 }

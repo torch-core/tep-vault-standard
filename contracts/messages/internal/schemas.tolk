@@ -47,8 +47,7 @@ struct OptionalVaultParams {
     // Add your optional params for vault here
 }
 
-struct OperationParams {
-    optionalVaultParams: Cell<OptionalVaultParams>? = null
+struct VaultCallbacks {
     successCallback: CallbackParams? = null
     failureCallback: CallbackParams? = null
 }
@@ -64,7 +63,8 @@ struct VaultNotificationParams {
 struct VaultDepositParams {
     receiver: address?
     minShares: coins?
-    operationsParams: OperationParams
+    optionalVaultParams: Cell<OptionalVaultParams>? = null
+    vaultCallbacks: VaultCallbacks
 }
 struct (0x7ceea8a6) VaultDeposit {
     queryId: QueryId
@@ -79,9 +79,9 @@ struct (0x97afc71b) VaultDepositFp {
 // ===== WITHDRAW MESSAGES =====
 struct (0xa1242cde) VaultWithdrawFp {
     receiver: address?
-    withdrawAsset: Cell<Asset>?
     minWithdraw: coins?
-    payloadParams: OperationParams
+    optionalVaultParams: Cell<OptionalVaultParams>? = null
+    vaultCallbacks: VaultCallbacks
 }
 
 // ===== NOTIFICATION MESSAGES =====
