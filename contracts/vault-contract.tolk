@@ -25,7 +25,6 @@ fun onInternalMessage(in: InMessage) {
                 inMsg.toCell()
             );
 
-            // Update totalSupply and totalAssets
             storage.totalSupply = storage.totalSupply + shares;
             storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
             storage.save();
@@ -46,7 +45,6 @@ fun onInternalMessage(in: InMessage) {
                         inMsg.toCell()
                     );
 
-                    // Update totalSupply and totalAssets
                     storage.totalSupply = storage.totalSupply + shares;
                     storage.totalAssets = storage.totalAssets + inMsg.jettonAmount;
                     storage.save();
@@ -70,7 +68,6 @@ fun onInternalMessage(in: InMessage) {
                         storage.assetJettonWallet // null for TON Withdrawal
                     );
 
-                    // Update totalSupply and totalAssets
                     storage.totalSupply = storage.totalSupply - inMsg.jettonAmount;
                     storage.totalAssets = storage.totalAssets - withdrawAmount;
                     storage.save();

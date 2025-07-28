@@ -1,3 +1,4 @@
+@pure
 fun convertAssetsTupleToCell(assetsTuple: tuple, currentIndex: int): cell {
     // Remaining assets count
     var remainingAssetsCount: int = assetsTuple.size() - currentIndex;
