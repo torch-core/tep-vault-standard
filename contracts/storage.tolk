@@ -2,8 +2,8 @@ struct Storage {
     totalSupply: coins
     totalAssets: coins
     jettonWalletCode: cell
-    assetJettonMaster: address
-    assetJettonWallet: address
+    assetJettonMaster: address?
+    assetJettonWallet: address?
 }
 
 fun Storage.load() {

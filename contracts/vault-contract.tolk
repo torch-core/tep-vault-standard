@@ -66,7 +66,7 @@ fun onInternalMessage(in: InMessage) {
                         inMsg.jettonAmount, 
                         normalizeWithdrawParams(burnPayload, in.senderAddress), 
                         inMsg.toCell(), 
-                        storage.assetJettonWallet // Use null for TON Withdrawal
+                        storage.assetJettonWallet // null for TON Withdrawal
                     );
 
                     // Update totalSupply and totalAssets

@@ -61,12 +61,13 @@ fun handleDeposit(
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
+        val (assetType, jettonWallet) = initiator == senderAddress ? (AssetType.ton(), null) : (AssetType.jetton(), senderAddress);
         transferAsset(
             initiator,
             queryId,
             sendingValue,
-            AssetType.jetton(), // Use AssetType.ton() for TON Deposit
-            senderAddress,   // Use null for TON Deposit
+            assetType,
+            jettonWallet,
             depositParams.receiver!,
             depositAmount,
             VaultResult.Failure(e),
@@ -98,8 +99,8 @@ fun handleWithdraw(
             initiator,
             queryId,
             sendingValue,
-            AssetType.jetton(),             // Use AssetType.ton() for TON Withdrawal, or withdrawAsset type to determine the asset type(multi-asset vault)
-            withdrawAssetJettonWallet,   // Use null for TON Withdrawal
+            withdrawAssetJettonWallet == null ? AssetType.ton() : AssetType.jetton(),
+            withdrawAssetJettonWallet,   // null for TON Withdrawal
             withdrawParams.receiver!,
             withdrawAmount,
             VaultResult.Success(),
