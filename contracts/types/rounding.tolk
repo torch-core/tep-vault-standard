@@ -6,14 +6,17 @@ const ROUND_DOWN = 0;
 const ROUND_UP = 1;
 const ROUND_GENERIC = 2;
 
+@pure
 fun RoundingType.Down() {
     return ROUND_DOWN;
 }
 
+@pure
 fun RoundingType.Up() {
     return ROUND_UP;
 }
 
+@pure
 fun RoundingType.Generic() {
     return ROUND_GENERIC;
 }

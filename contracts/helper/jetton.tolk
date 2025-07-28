@@ -7,6 +7,7 @@ struct WalletStorage {
     minterAddress: address
 }
 
+@pure
 fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell): AutoDeployAddress {
     val emptyWalletStorage: WalletStorage = {
         jettonBalance: 0,
@@ -22,6 +23,7 @@ fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jett
     }
 }
 
+@pure
 fun calcForwardTonAmount(forwardPayload: Cell<VaultNotificationFp>?, sendingValue: coins) {
     return (forwardPayload == null ? 0 : sendingValue - JETTON_TRANSFER_FEE) as coins;
 }

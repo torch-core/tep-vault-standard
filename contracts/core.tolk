@@ -9,35 +9,37 @@ import "messages/internal/schemas";
 import "messages/internal/send";
 import "messages/external/emit";
 
-fun maxDeposit(depositAsset: Asset? = null) {
+@pure
+fun maxDeposit(optionalPayload: cell? = null, depositAsset: Asset? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun maxWithdraw(withdrawAsset: Asset? = null) {
+@pure
+fun maxWithdraw(optionalPayload: cell? = null, withdrawAsset: Asset? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun totalAssets() {
+fun totalAssets(optionalPayload: cell? = null) {
     var storage = lazy Storage.load();
     return storage.totalAssets;
 }
 
-fun convertToShares(depositAmount: coins, rounding: RoundingType, depositAsset: Asset? = null) {
+fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalPayload: cell? = null, depositAsset: Asset? = null) {
     var storage = lazy Storage.load();
     return roundedMulDiv(depositAmount, storage.totalSupply, totalAssets(), rounding) as coins;
 }
 
-fun convertToAssets(shares: coins, rounding: RoundingType, withdrawAsset: Asset? = null) {
+fun convertToAssets(shares: coins, rounding: RoundingType, optionalPayload: cell? = null, withdrawAsset: Asset? = null) {
     var storage = lazy Storage.load();
     return roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding) as coins;
 }
 
-fun previewDeposit(depositAmount: coins, depositAsset: Asset? = null) {
-    return convertToShares(depositAmount, RoundingType.Down(), depositAsset);
+fun previewDeposit(depositAmount: coins, optionalPayload: cell? = null, depositAsset: Asset? = null) {
+    return convertToShares(depositAmount, RoundingType.Down());
 }
 
-fun previewWithdraw(shares: coins, withdrawAsset: Asset? = null) {
-    return convertToAssets(shares, RoundingType.Up(), withdrawAsset);
+fun previewWithdraw(shares: coins, optionalPayload: cell? = null, withdrawAsset: Asset? = null) {
+    return convertToAssets(shares, RoundingType.Up());
 }
 
 fun handleDeposit(
@@ -51,10 +53,10 @@ fun handleDeposit(
     depositAsset: Asset? = null
 ) {
     try {
-        val maxDepositAmount = maxDeposit(depositAsset);
+        val maxDepositAmount = maxDeposit();
         assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
 
-        val shares = previewDeposit(depositAmount, depositAsset);
+        val shares = previewDeposit(depositAmount);
         assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
 
         mint(initiator, queryId, sendingValue, depositParams.receiver!, shares, VaultResult.Success(), depositParams.successPayload, inMsgPayload);
@@ -89,10 +91,9 @@ fun handleWithdraw(
     withdrawAsset: Asset? = null
 ) {
     try {
-        val maxWithdrawShares = maxWithdraw(withdrawAsset);
+        val maxWithdrawShares = maxWithdraw();
         assert (shares <= maxWithdrawShares) throw ERR_MAX_WITHDRAW_AMOUNT_EXCEEDED;
-
-        val withdrawAmount = previewWithdraw(shares, withdrawAsset);
+        val withdrawAmount = previewWithdraw(shares);
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
         transferAsset(

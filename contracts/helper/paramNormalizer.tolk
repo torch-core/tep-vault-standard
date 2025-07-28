@@ -1,5 +1,6 @@
 import "../messages/internal/schemas";
 
+@pure
 fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: address) {
     if (depositParams == null) {
         return VaultDepositParams {
@@ -20,6 +21,7 @@ fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: addres
     };
 }
 
+@pure
 fun normalizeWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address) {
     if (withdrawParams == null) {
         return VaultWithdrawFp {

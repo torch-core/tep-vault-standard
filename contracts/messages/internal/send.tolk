@@ -5,6 +5,7 @@ import "../../storage";
 import "../../helper/jetton";
 import "schemas";
 
+@pure
 fun createVaultNotificationParams(vaultResult: VaultResult, initiator: address, callbackParams: CallbackParams?, inMsgPayload: cell): VaultNotificationParams? {
     return callbackParams != null ? 
         VaultNotificationParams {
@@ -15,6 +16,7 @@ fun createVaultNotificationParams(vaultResult: VaultResult, initiator: address, 
         } : null;
 }
 
+@pure
 fun createForwardPayload(vaultResult: VaultResult, initiator: address, callbackParams: CallbackParams?, inMsgPayload: cell): Cell<VaultNotificationFp>? {
     val params = createVaultNotificationParams(vaultResult, initiator, callbackParams, inMsgPayload);
     return params != null ? VaultNotificationFp { vaultNotificationParams: params! }.toCell() : null;
