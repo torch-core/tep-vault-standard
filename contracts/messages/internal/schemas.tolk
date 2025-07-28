@@ -43,10 +43,14 @@ struct CallbackParams {
     payload: cell
 }
 
-struct PayloadParams {
+struct OptionalParams {
+    asset: Asset?
+}
+
+struct OperationParams {
     successCallback: CallbackParams? = null
     failureCallback: CallbackParams? = null
-    optionalPayload: cell? = null
+    optionalParams: Cell<OptionalParams>? = null
 }
 
 struct VaultNotificationParams {
@@ -60,7 +64,7 @@ struct VaultNotificationParams {
 struct VaultDepositParams {
     receiver: address?
     minShares: coins?
-    payloadParams: PayloadParams
+    operationsParams: OperationParams
 }
 struct (0x7ceea8a6) VaultDeposit {
     queryId: QueryId
@@ -77,7 +81,7 @@ struct (0xa1242cde) VaultWithdrawFp {
     receiver: address?
     withdrawAsset: Cell<Asset>?
     minWithdraw: coins?
-    payloadParams: PayloadParams
+    payloadParams: OperationParams
 }
 
 // ===== NOTIFICATION MESSAGES =====

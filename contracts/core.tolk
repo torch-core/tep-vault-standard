@@ -9,34 +9,34 @@ import "messages/internal/schemas";
 import "messages/internal/send";
 import "messages/external/emit";
 
-fun maxDeposit(optionalPayload: cell? = null, depositAsset: Asset? = null) {
+fun maxDeposit(optionalParams: Cell<OptionalParams>? = null, depositAsset: Asset? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun maxWithdraw(optionalPayload: cell? = null, withdrawAsset: Asset? = null) {
+fun maxWithdraw(optionalParams: Cell<OptionalParams>? = null, withdrawAsset: Asset? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun totalAssets(optionalPayload: cell? = null) {
+fun totalAssets(optionalParams: Cell<OptionalParams>? = null) {
     var storage = lazy Storage.load();
     return storage.totalAssets;
 }
 
-fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalPayload: cell? = null, depositAsset: Asset? = null) {
+fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalParams: Cell<OptionalParams>? = null, depositAsset: Asset? = null) {
     var storage = lazy Storage.load();
     return roundedMulDiv(depositAmount, storage.totalSupply, totalAssets(), rounding) as coins;
 }
 
-fun convertToAssets(shares: coins, rounding: RoundingType, optionalPayload: cell? = null, withdrawAsset: Asset? = null) {
+fun convertToAssets(shares: coins, rounding: RoundingType, optionalParams: Cell<OptionalParams>? = null, withdrawAsset: Asset? = null) {
     var storage = lazy Storage.load();
     return roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding) as coins;
 }
 
-fun previewDeposit(depositAmount: coins, optionalPayload: cell? = null, depositAsset: Asset? = null) {
+fun previewDeposit(depositAmount: coins, optionalParams: Cell<OptionalParams>? = null, depositAsset: Asset? = null) {
     return convertToShares(depositAmount, RoundingType.Down());
 }
 
-fun previewWithdraw(shares: coins, optionalPayload: cell? = null, withdrawAsset: Asset? = null) {
+fun previewWithdraw(shares: coins, optionalParams: Cell<OptionalParams>? = null, withdrawAsset: Asset? = null) {
     return convertToAssets(shares, RoundingType.Up());
 }
 
@@ -57,12 +57,12 @@ fun handleDeposit(
         val shares = previewDeposit(depositAmount);
         assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
 
-        mint(initiator, queryId, sendingValue, depositParams.receiver!, shares, VaultResult.Success(), depositParams.payloadParams.successCallback, inMsgPayload);
+        mint(initiator, queryId, sendingValue, depositParams.receiver!, shares, VaultResult.Success(), depositParams.operationsParams.successCallback, inMsgPayload);
         emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
         return shares;
     } catch (e) {
         if (initiator == senderAddress) {
-            tonTransfer(initiator, queryId, sendingValue, depositParams.receiver!, VaultResult.Failure(e), depositParams.payloadParams.failureCallback, inMsgPayload);
+            tonTransfer(initiator, queryId, sendingValue, depositParams.receiver!, VaultResult.Failure(e), depositParams.operationsParams.failureCallback, inMsgPayload);
         } else {
             jettonTransfer(
                 initiator, 
@@ -72,7 +72,7 @@ fun handleDeposit(
                 depositParams.receiver!,
                 depositAmount, 
                 VaultResult.Failure(e), 
-                depositParams.payloadParams.failureCallback, 
+                depositParams.operationsParams.failureCallback, 
                 inMsgPayload
             );
         }
