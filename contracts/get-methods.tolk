@@ -7,14 +7,15 @@ import "messages/internal/schemas"
 import "helper/jetton"
 
 get fun getAsset() {
-    // This is an example for jetton asset.
     var assetsTuple: tuple = createEmptyTuple();
     val storage = lazy Storage.load();
-    val assetJettonInfo = storage.assetJettonInfo!.load();
-    assetsTuple.push(Asset.jettonAsset(assetJettonInfo.masterAddress!).toCell());
-
-    // If your deposit asset is ton, uncomment the following line:
-    // assetsTuple.push(Asset.tonAsset().toCell());
+    if(storage.assetJettonInfo != null) {
+        val assetJettonInfo = storage.assetJettonInfo!.load();
+        assetsTuple.push(Asset.jettonAsset(assetJettonInfo.masterAddress!).toCell());
+    }
+    else {
+        assetsTuple.push(Asset.tonAsset().toCell());
+    }
 
     return convertAssetsTupleToCell(assetsTuple, 0);
 }
