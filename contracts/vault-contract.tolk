@@ -2,12 +2,12 @@ import "constants/errors";
 import "types/asset";
 import "storage"
 import "helper/paramDefaulter";
+import "helper/jetton"
 import "messages/internal/schemas"
+import "messages/internal/send"
 import "core";
 import "fees-management";
 import "get-methods";
-import "messages/internal/send"
-import "helper/jetton"
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
