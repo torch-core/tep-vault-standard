@@ -5,9 +5,9 @@ struct AssetJettonInfo {
 
 struct Storage {
     adminAddress: address
-    assetJettonInfo: Cell<AssetJettonInfo>?
     totalSupply: coins
     totalAssets: coins
+    assetJettonInfo: Cell<AssetJettonInfo>?
     jettonWalletCode: cell
     content: cell
 }
