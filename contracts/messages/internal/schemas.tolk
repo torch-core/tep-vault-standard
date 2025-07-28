@@ -7,14 +7,14 @@ import "../../types/callback-params";
 struct (0x7362d09c) TransferNotificationForRecipient {
     queryId: QueryId
     jettonAmount: coins
-    transferInitiator: address
+    initiator: address
     forwardPayload: VaultDepositFp
 }
 
 struct (0x178d4519) InternalTransferStep {
     queryId: QueryId
     jettonAmount: coins
-    transferInitiator: address
+    initiator: address
     sendExcessesTo: address
     forwardTonAmount: coins
     forwardPayload: Cell<VaultNotificationFp>?
@@ -33,7 +33,7 @@ struct (0x0f8a7ea5) AskToTransfer {
 struct (0x7bdd97de) BurnNotificationForMinter {
     queryId: QueryId
     jettonAmount: coins
-    burnInitiator: address
+    initiator: address
     sendExcessesTo: address
     customPayload: Cell<VaultWithdrawFp>
 }
@@ -52,7 +52,7 @@ struct VaultNotificationParams {
     vaultResult: VaultResult
     initiator: address
     callbackPayload: cell
-    inMsgPayload: cell?
+    inMsg: cell?
 }
 
 // ===== DEPOSIT MESSAGES =====
