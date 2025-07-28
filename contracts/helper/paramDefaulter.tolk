@@ -10,6 +10,16 @@ fun fillDefaultCallbacks(callbacks: VaultCallbacks, defaultSuccess: CallbackPara
 }
 
 @pure
+fun fillDefaultReceiver(receiver: address?, initiator: address) {
+    return receiver == null ? initiator : receiver;
+}
+
+@pure
+fun fillDefaultMinAmount(minAmount: coins?, defaultMinAmount: coins) {
+    return minAmount == null ? defaultMinAmount : minAmount;
+}
+
+@pure
 fun fillDefaultDepositParams(depositParams: VaultDepositParams?, initiator: address) {
     if (depositParams == null) {
         return VaultDepositParams {
@@ -24,8 +34,8 @@ fun fillDefaultDepositParams(depositParams: VaultDepositParams?, initiator: addr
     }
     
     return VaultDepositParams {
-        receiver: depositParams.receiver == null ? initiator : depositParams.receiver,
-        minShares: depositParams.minShares == null ? 0 as coins : depositParams.minShares,
+        receiver: fillDefaultReceiver(depositParams.receiver, initiator),
+        minShares: fillDefaultMinAmount(depositParams.minShares, 0 as coins),
         optionalVaultParams: depositParams.optionalVaultParams,
         vaultCallbacks: fillDefaultCallbacks(
             depositParams.vaultCallbacks,
@@ -50,8 +60,8 @@ fun fillDefaultWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: addre
     }
 
     return VaultWithdrawFp {
-        receiver: withdrawParams.receiver == null ? initiator : withdrawParams.receiver,
-        minWithdraw: withdrawParams.minWithdraw == null ? 0 as coins : withdrawParams.minWithdraw,
+        receiver: fillDefaultReceiver(withdrawParams.receiver, initiator),
+        minWithdraw: fillDefaultMinAmount(withdrawParams.minWithdraw, 0 as coins),
         optionalVaultParams: withdrawParams.optionalVaultParams,
         vaultCallbacks: fillDefaultCallbacks(
             withdrawParams.vaultCallbacks,
