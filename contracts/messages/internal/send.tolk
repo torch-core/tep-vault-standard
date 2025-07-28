@@ -1,6 +1,7 @@
 import "../../constants/common-types";
 import "../../types/vault-result";
 import "../../types/asset";
+import "../../types/callback-params";
 import "../../storage";
 import "../../helper/jetton";
 import "schemas";

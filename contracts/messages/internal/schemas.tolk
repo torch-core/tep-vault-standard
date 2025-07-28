@@ -1,6 +1,7 @@
+import "../../constants/common-types";
 import "../../types/asset";
 import "../../types/vault-result";
-import "../../constants/common-types";
+import "../../types/callback-params";
 
 // ===== JETTON TRANSFER MESSAGES =====
 struct (0x7362d09c) TransferNotificationForRecipient {
@@ -38,11 +39,6 @@ struct (0x7bdd97de) BurnNotificationForMinter {
 }
 
 // ===== COMMON PARAMETERS =====
-struct CallbackParams {
-    includeBody: bool
-    payload: cell
-}
-
 struct OptionalVaultParams {
     // Add your optional params for vault here
 }

@@ -1,4 +1,13 @@
+import "../types/callback-params";
 import "../messages/internal/schemas";
+
+@pure
+fun normalizeCallbacks(callbacks: VaultCallbacks, defaultSuccess: CallbackParams, defaultFailure: CallbackParams) {
+    return VaultCallbacks {
+        successCallback: callbacks.successCallback == null ? defaultSuccess : callbacks.successCallback,
+        failureCallback: callbacks.failureCallback == null ? defaultFailure : callbacks.failureCallback,
+    };
+}
 
 @pure
 fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: address) {
@@ -7,7 +16,10 @@ fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: addres
             receiver: initiator,
             minShares: 0,
             optionalVaultParams: null,
-            vaultCallbacks: VaultCallbacks {},
+            vaultCallbacks: VaultCallbacks {
+                successCallback: CallbackParams.defaultSuccessDeposit(),
+                failureCallback: CallbackParams.defaultFailureDeposit(),
+            },
         };
     }
     
@@ -15,7 +27,11 @@ fun normalizeDepositParams(depositParams: VaultDepositParams?, initiator: addres
         receiver: depositParams.receiver == null ? initiator : depositParams.receiver,
         minShares: depositParams.minShares == null ? 0 as coins : depositParams.minShares,
         optionalVaultParams: depositParams.optionalVaultParams,
-        vaultCallbacks: depositParams.vaultCallbacks,
+        vaultCallbacks: normalizeCallbacks(
+            depositParams.vaultCallbacks,
+            CallbackParams.defaultSuccessDeposit(),
+            CallbackParams.defaultFailureDeposit()
+        ),
     };
 }
 
@@ -26,7 +42,10 @@ fun normalizeWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address
             receiver: initiator,
             minWithdraw: 0,
             optionalVaultParams: null,
-            vaultCallbacks: VaultCallbacks {},
+            vaultCallbacks: VaultCallbacks {
+                successCallback: CallbackParams.defaultSuccessWithdraw(),
+                failureCallback: CallbackParams.defaultFailureWithdraw(),
+            },
         };
     }
 
@@ -34,6 +53,10 @@ fun normalizeWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: address
         receiver: withdrawParams.receiver == null ? initiator : withdrawParams.receiver,
         minWithdraw: withdrawParams.minWithdraw == null ? 0 as coins : withdrawParams.minWithdraw,
         optionalVaultParams: withdrawParams.optionalVaultParams,
-        vaultCallbacks: withdrawParams.vaultCallbacks,
+        vaultCallbacks: normalizeCallbacks(
+            withdrawParams.vaultCallbacks,
+            CallbackParams.defaultSuccessWithdraw(),
+            CallbackParams.defaultFailureWithdraw()
+        ),
     };
 }
