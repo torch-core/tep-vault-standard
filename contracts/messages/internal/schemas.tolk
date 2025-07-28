@@ -2,46 +2,14 @@ import "../../types/asset";
 import "../../types/vault-result";
 import "../../constants/common-types";
 
-// Jetton Messages
-struct (0x7bdd97de) BurnNotificationForMinter {
-    queryId: QueryId
-    jettonAmount: coins
-    burnInitiator: address
-    sendExcessesTo: address
-    customPayload: Cell<VaultWithdrawFp>
-}
-
-struct CallbackParams {
-    includeBody: bool
-    callbackPayload: cell
-}
-
-struct VaultDepositParams {
-    receiver: address?
-    minShares: coins?
-    successPayload: CallbackParams?
-    failurePayload: CallbackParams?
-    optionalPayload: cell?
-}
-
-// For Native Deposit
-struct (0x7ceea8a6) VaultDeposit {
-    queryId: QueryId
-    depositAmount: coins
-    vaultDepositParams: VaultDepositParams?
-}
-
-// For Jetton Deposit
-struct (0x97afc71b) VaultDepositFp {
-    vaultDepositParams: VaultDepositParams?
-}
-
+// ===== JETTON TRANSFER MESSAGES =====
 struct (0x7362d09c) TransferNotificationForRecipient {
     queryId: QueryId
     jettonAmount: coins
     transferInitiator: address
     forwardPayload: VaultDepositFp
 }
+
 struct (0x178d4519) InternalTransferStep {
     queryId: QueryId
     jettonAmount: coins
@@ -61,14 +29,18 @@ struct (0x0f8a7ea5) AskToTransfer {
     forwardPayload: Cell<VaultNotificationFp>?
 }
 
-// For Withdraw
-struct (0xa1242cde) VaultWithdrawFp {
-    receiver: address?
-    withdrawAsset: Cell<Asset>?
-    minWithdraw: coins?
-    successPayload: CallbackParams?
-    failurePayload: CallbackParams?
-    optionalPayload: cell?
+struct (0x7bdd97de) BurnNotificationForMinter {
+    queryId: QueryId
+    jettonAmount: coins
+    burnInitiator: address
+    sendExcessesTo: address
+    customPayload: Cell<VaultWithdrawFp>
+}
+
+// ===== COMMON PARAMETERS =====
+struct CallbackParams {
+    includeBody: bool
+    callbackPayload: cell
 }
 
 struct VaultNotificationParams {
@@ -78,6 +50,35 @@ struct VaultNotificationParams {
     inMsgPayload: cell?
 }
 
+// ===== DEPOSIT MESSAGES =====
+struct VaultDepositParams {
+    receiver: address?
+    minShares: coins?
+    successPayload: CallbackParams?
+    failurePayload: CallbackParams?
+    optionalPayload: cell?
+}
+struct (0x7ceea8a6) VaultDeposit {
+    queryId: QueryId
+    depositAmount: coins
+    vaultDepositParams: VaultDepositParams?
+}
+
+struct (0x97afc71b) VaultDepositFp {
+    vaultDepositParams: VaultDepositParams?
+}
+
+// ===== WITHDRAW MESSAGES =====
+struct (0xa1242cde) VaultWithdrawFp {
+    receiver: address?
+    withdrawAsset: Cell<Asset>?
+    minWithdraw: coins?
+    successPayload: CallbackParams?
+    failurePayload: CallbackParams?
+    optionalPayload: cell?
+}
+
+// ===== NOTIFICATION MESSAGES =====
 struct (0x13aec42d) VaultNotification {
     queryId: QueryId
     vaultNotificationParams: VaultNotificationParams
