@@ -9,12 +9,10 @@ import "messages/internal/schemas";
 import "messages/internal/send";
 import "messages/external/emit";
 
-@pure
 fun maxDeposit(optionalPayload: cell? = null, depositAsset: Asset? = null) {
     return MAX_COINS_VALUE;
 }
 
-@pure
 fun maxWithdraw(optionalPayload: cell? = null, withdrawAsset: Asset? = null) {
     return MAX_COINS_VALUE;
 }
@@ -92,7 +90,7 @@ fun handleWithdraw(
 ) {
     try {
         val maxWithdrawShares = maxWithdraw();
-        assert (shares <= maxWithdrawShares) throw ERR_MAX_WITHDRAW_AMOUNT_EXCEEDED;
+        assert (shares <= maxWithdrawShares) throw ERR_MAX_WITHDRAW_EXCEEDED;
         val withdrawAmount = previewWithdraw(shares);
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
@@ -111,7 +109,7 @@ fun handleWithdraw(
         emitWithdrawn(initiator, withdrawParams.receiver!, withdrawAmount, shares);
         return withdrawAmount;
     } catch (e) {
-        mint(initiator, queryId, shares, initiator, shares, VaultResult.Failure(e), withdrawParams.failurePayload, inMsgPayload);
+        mint(initiator, queryId, sendingValue, initiator, shares, VaultResult.Failure(e), withdrawParams.failurePayload, inMsgPayload);
         commitContractDataAndActions();
         throw e;
     }
