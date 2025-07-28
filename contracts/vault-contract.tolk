@@ -53,7 +53,8 @@ fun onInternalMessage(in: InMessage) {
                 VaultWithdrawFp => {
                     val remainingValue = processWithdrawGas(in.valueCoins);
                     val withdrawParams = fillDefaultWithdrawParams(burnPayload, inMsg.initiator);
-                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.jettonAmount, withdrawParams, inMsg.toCell(), storage.assetJettonWallet);
+                    val assetJettonWallet = storage.assetJettonInfo != null ? storage.assetJettonInfo!.load().walletAddress : null;
+                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.jettonAmount, withdrawParams, inMsg.toCell(), assetJettonWallet);
 
                     storage.totalSupply = storage.totalSupply - inMsg.jettonAmount; 
                     storage.totalAssets = storage.totalAssets - withdrawAmount;

@@ -28,6 +28,11 @@ fun calcForwardTonAmount(forwardPayload: Cell<VaultNotificationFp>?, sendingValu
     return (forwardPayload == null ? 0 : sendingValue - JETTON_TRANSFER_FEE) as coins;
 }
 
+fun buildAddressOfJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell) {
+    val jwDeployed = calcDeployedJettonWallet(ownerAddress, minterAddress, jettonWalletCode);
+    return jwDeployed.buildAddress()
+}
+
 @pure
 fun address.isAddressOfJettonWallet(self, initiator: address, minterAddress: address, jettonWalletCode: cell) {
     val jwDeployed = calcDeployedJettonWallet(initiator, minterAddress, jettonWalletCode);

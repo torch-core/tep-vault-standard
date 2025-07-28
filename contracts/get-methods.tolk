@@ -4,12 +4,14 @@ import "storage"
 import "helper/packAssets"
 import "core"
 import "messages/internal/schemas"
+import "helper/jetton"
 
 get fun getAsset() {
    val storage = lazy Storage.load();
+   val assetJettonInfo = storage.assetJettonInfo!.load();
    var assetsTuple: tuple = createEmptyTuple();
    assetsTuple.push(Asset.tonAsset().toCell());
-   assetsTuple.push(Asset.jettonAsset(storage.assetJettonMaster!).toCell());
+   assetsTuple.push(Asset.jettonAsset(assetJettonInfo.masterAddress!).toCell());
 
    return convertAssetsTupleToCell(assetsTuple, 0);
 }
@@ -41,4 +43,32 @@ get fun getPreviewDeposit(depositAmount: coins, optionalParams: OptionalVaultPar
 
 get fun getPreviewWithdraw(shares: coins, optionalParams: OptionalVaultParams? = null) {
     return previewWithdraw(shares);
+}
+
+// For Jetton
+
+struct JettonDataReply {
+    totalSupply: int
+    mintable: bool
+    adminAddress: address
+    jettonContent: cell
+    jettonWalletCode: cell
+}
+
+get fun get_jetton_data(): JettonDataReply {
+    val storage = lazy Storage.load();
+
+    return {
+        totalSupply: storage.totalSupply,
+        mintable: true,
+        adminAddress: storage.adminAddress,
+        jettonContent: storage.content,
+        jettonWalletCode: storage.jettonWalletCode,
+    }
+}
+
+get fun get_wallet_address(ownerAddress: address): address {
+    val storage = lazy Storage.load();
+    val addrBuilt = buildAddressOfJettonWallet(ownerAddress, contract.getAddress(), storage.jettonWalletCode);
+    return address.fromValidBuilder(addrBuilt);
 }

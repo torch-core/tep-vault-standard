@@ -1,9 +1,15 @@
+struct AssetJettonInfo {
+    masterAddress: address?
+    walletAddress: address?
+}
+
 struct Storage {
+    adminAddress: address
+    assetJettonInfo: Cell<AssetJettonInfo>?
     totalSupply: coins
     totalAssets: coins
     jettonWalletCode: cell
-    assetJettonMaster: address?
-    assetJettonWallet: address?
+    content: cell
 }
 
 fun Storage.load() {
