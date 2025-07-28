@@ -6,6 +6,6 @@ fun VaultResult.Success() {
 }
 
 @pure
-fun VaultResult.Failure(errorCode: VaultResult) {
-    return errorCode;
+fun VaultResult.Error(errCode: VaultResult) {
+    return errCode;
 }
