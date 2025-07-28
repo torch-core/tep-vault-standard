@@ -9,34 +9,34 @@ import "messages/internal/schemas";
 import "messages/internal/send";
 import "messages/external/emit";
 
-fun maxDeposit(optionalParams: Cell<OptionalParams>? = null, depositAsset: Asset? = null) {
+fun maxDeposit(optionalParams: OptionalVaultParams? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun maxWithdraw(optionalParams: Cell<OptionalParams>? = null, withdrawAsset: Asset? = null) {
+fun maxWithdraw(optionalParams: OptionalVaultParams? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun totalAssets(optionalParams: Cell<OptionalParams>? = null) {
+fun totalAssets(optionalParams: OptionalVaultParams? = null) {
     var storage = lazy Storage.load();
     return storage.totalAssets;
 }
 
-fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalParams: Cell<OptionalParams>? = null, depositAsset: Asset? = null) {
+fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalParams: OptionalVaultParams? = null) {
     var storage = lazy Storage.load();
     return roundedMulDiv(depositAmount, storage.totalSupply, totalAssets(), rounding) as coins;
 }
 
-fun convertToAssets(shares: coins, rounding: RoundingType, optionalParams: Cell<OptionalParams>? = null, withdrawAsset: Asset? = null) {
+fun convertToAssets(shares: coins, rounding: RoundingType, optionalParams: OptionalVaultParams? = null) {
     var storage = lazy Storage.load();
     return roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding) as coins;
 }
 
-fun previewDeposit(depositAmount: coins, optionalParams: Cell<OptionalParams>? = null, depositAsset: Asset? = null) {
+fun previewDeposit(depositAmount: coins, optionalParams: OptionalVaultParams? = null) {
     return convertToShares(depositAmount, RoundingType.Down());
 }
 
-fun previewWithdraw(shares: coins, optionalParams: Cell<OptionalParams>? = null, withdrawAsset: Asset? = null) {
+fun previewWithdraw(shares: coins, optionalParams: OptionalVaultParams? = null) {
     return convertToAssets(shares, RoundingType.Up());
 }
 
@@ -47,8 +47,7 @@ fun handleDeposit(
     senderAddress: address, 
     depositAmount: coins, 
     depositParams: VaultDepositParams, 
-    inMsgPayload: cell, 
-    depositAsset: Asset? = null
+    inMsgPayload: cell
 ) {
     try {
         val maxDepositAmount = maxDeposit();
@@ -88,8 +87,7 @@ fun handleWithdraw(
     shares: coins, 
     withdrawParams: VaultWithdrawFp, 
     inMsgPayload: cell, 
-    withdrawAssetJettonWallet: address? = null, 
-    withdrawAsset: Asset? = null
+    withdrawAssetJettonWallet: address? = null
 ) {
     try {
         val maxWithdrawShares = maxWithdraw();

@@ -14,6 +14,7 @@ fun onInternalMessage(in: InMessage) {
     match (inMsg) {
         VaultDeposit => {
             validateTonDepositGas(in.valueCoins, inMsg.depositAmount);
+            val depositParams = normalizeDepositParams(inMsg.vaultDepositParams, in.senderAddress);
 
             val shares = handleDeposit(
                 in.senderAddress, 
@@ -21,7 +22,7 @@ fun onInternalMessage(in: InMessage) {
                 in.valueCoins,
                 in.senderAddress, 
                 inMsg.depositAmount, 
-                normalizeDepositParams(inMsg.vaultDepositParams, in.senderAddress), 
+                depositParams, 
                 inMsg.toCell()
             );
 
@@ -34,6 +35,7 @@ fun onInternalMessage(in: InMessage) {
             match (inMsg.forwardPayload) {
                 VaultDepositFp => {
                     validateJettonDepositGas(in.valueCoins);
+                    val depositParams = normalizeDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.transferInitiator);
 
                     val shares = handleDeposit(
                         inMsg.transferInitiator, 
@@ -41,7 +43,7 @@ fun onInternalMessage(in: InMessage) {
                         in.valueCoins,
                         in.senderAddress, 
                         inMsg.jettonAmount, 
-                        normalizeDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.transferInitiator), 
+                        depositParams, 
                         inMsg.toCell()
                     );
 

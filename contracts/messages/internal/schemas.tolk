@@ -43,14 +43,14 @@ struct CallbackParams {
     payload: cell
 }
 
-struct OptionalParams {
-    asset: Asset?
+struct OptionalVaultParams {
+    // Add your optional params for vault here
 }
 
 struct OperationParams {
+    optionalVaultParams: Cell<OptionalVaultParams>? = null
     successCallback: CallbackParams? = null
     failureCallback: CallbackParams? = null
-    optionalParams: Cell<OptionalParams>? = null
 }
 
 struct VaultNotificationParams {
