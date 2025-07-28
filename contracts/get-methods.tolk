@@ -7,13 +7,16 @@ import "messages/internal/schemas"
 import "helper/jetton"
 
 get fun getAsset() {
-   val storage = lazy Storage.load();
-   val assetJettonInfo = storage.assetJettonInfo!.load();
-   var assetsTuple: tuple = createEmptyTuple();
-   assetsTuple.push(Asset.tonAsset().toCell());
-   assetsTuple.push(Asset.jettonAsset(assetJettonInfo.masterAddress!).toCell());
+    // This is an example for jetton asset.
+    var assetsTuple: tuple = createEmptyTuple();
+    val storage = lazy Storage.load();
+    val assetJettonInfo = storage.assetJettonInfo!.load();
+    assetsTuple.push(Asset.jettonAsset(assetJettonInfo.masterAddress!).toCell());
 
-   return convertAssetsTupleToCell(assetsTuple, 0);
+    // If your deposit asset is ton, uncomment the following line:
+    // assetsTuple.push(Asset.tonAsset().toCell());
+
+    return convertAssetsTupleToCell(assetsTuple, 0);
 }
 
 get fun getTotalAssets(optionalParams: OptionalVaultParams? = null) {
