@@ -1,6 +1,8 @@
 // General errors 
 const ERR_INVALID_OPCODE = 0xFFFF;
 const ERR_INVALID_ROUNDING_TYPE = 1001;
+const ERR_NOT_ADMIN = 1002;
+const ERR_INVALID_JETTON_MASTER = 1003;
 
 // Deposit errors
 const ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED = 2000;

@@ -42,6 +42,18 @@ struct (0xd53276db) ReturnExcessesBack {
     queryId: uint64
 }
 
+struct (0x2c76b973) RequestWalletAddress {
+    queryId: uint64
+    ownerAddress: address
+    includeOwnerAddress: bool
+}
+
+struct (0xd1735400) ResponseWalletAddress {
+    queryId: uint64
+    jettonWalletAddress: address
+    ownerAddress: Cell<address>?
+}
+
 // ===== COMMON PARAMETERS =====
 struct OptionalVaultParams {
     // Add your optional params for vault here
@@ -94,10 +106,16 @@ struct (0xb00d7656) VaultNotificationFp {
     vaultNotificationParams: VaultNotificationParams
 }
 
+// ===== DEPLOY VAULT MESSAGES =====
+struct (0xe43f93a9) DeployVault {
+    queryId: QueryId
+    jettonMaster: address?
+}
+
 const OP_VAULT_DEPOSIT = VaultDeposit.getDeclaredPackPrefix();
 const OP_VAULT_DEPOSIT_FP = VaultDepositFp.getDeclaredPackPrefix();
 const OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT = TransferNotificationForRecipient.getDeclaredPackPrefix();
 const OP_BURN_NOTIFICATION_FOR_MINTER = BurnNotificationForMinter.getDeclaredPackPrefix();
 const OP_VAULT_WITHDRAW_FP = VaultWithdrawFp.getDeclaredPackPrefix();
 
-type AllowedMessage = VaultDeposit | TransferNotificationForRecipient | BurnNotificationForMinter;
+type AllowedMessage = VaultDeposit | TransferNotificationForRecipient | BurnNotificationForMinter | DeployVault | ResponseWalletAddress;

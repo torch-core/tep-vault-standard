@@ -63,6 +63,23 @@ fun onInternalMessage(in: InMessage) {
             }
         }
 
+        ResponseWalletAddress => {
+            var assetJettonInfo = storage.assetJettonInfo!.load();
+            assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
+            assetJettonInfo.walletAddress = inMsg.jettonWalletAddress;
+            storage.assetJettonInfo = assetJettonInfo.toCell();
+            storage.save();
+        }
+
+        DeployVault => {
+            if(inMsg.jettonMaster != null) { 
+                assert (in.senderAddress == storage.adminAddress) throw ERR_NOT_ADMIN;
+                requestJettonWalletAddress(inMsg.jettonMaster!, inMsg.queryId);
+                storage.assetJettonInfo = AssetJettonInfo { masterAddress: inMsg.jettonMaster!, walletAddress: null }.toCell();
+                storage.save();
+            }
+        }
+
         else => {
             // ignore empty messages, throw ERR_INVALID_OPCODE for others
             assert (in.body.isEmpty()) throw ERR_INVALID_OPCODE

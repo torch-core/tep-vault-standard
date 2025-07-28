@@ -97,3 +97,13 @@ fun sendExcessesBack(sendExcessesTo: address, queryId: QueryId, remainingValue: 
     });
     excessesMsg.send(SEND_MODE_REGULAR);
 }
+
+fun requestJettonWalletAddress(jettonMaster: address, queryId: QueryId) {
+    val requestMsg = createMessage({
+        bounce: true,
+        dest: jettonMaster,
+        value: REQUEST_JETTON_WALLET_ADDRESS_FEE,
+        body: RequestWalletAddress { queryId: queryId, ownerAddress: contract.getAddress(), includeOwnerAddress: false }
+    });
+    requestMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
+}
