@@ -48,7 +48,7 @@ fun jettonTransfer(
     sendingValue: coins, 
     jettonWallet: address, 
     receiver: address, 
-    depositAmount: coins, 
+    transferAmount: coins, 
     vaultResult: VaultResult, 
     callbackParams: CallbackParams?, 
     inMsgPayload: cell
@@ -60,7 +60,7 @@ fun jettonTransfer(
         value: sendingValue,
         body: AskToTransfer {
             queryId: queryId,
-            jettonAmount: depositAmount,
+            jettonAmount: transferAmount,
             transferRecipient: receiver,
             sendExcessesTo: receiver,
             customPayload: null,
@@ -85,26 +85,3 @@ fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, recei
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
-
-fun transferAsset(
-    initiator: address, 
-    queryId: QueryId, 
-    sendingValue: coins, 
-    assetType: AssetType, 
-    jettonWallet: address?, 
-    receiver: address, 
-    amount: coins, 
-    vaultResult: VaultResult, 
-    callbackParams: CallbackParams?, 
-    inMsgPayload: cell
-) {
-    match (assetType) {
-        ASSET_TYPE_TON => {
-            tonTransfer(initiator, queryId, sendingValue, receiver, vaultResult, callbackParams, inMsgPayload);
-        }
-        ASSET_TYPE_JETTON => {
-            jettonTransfer(initiator, queryId, sendingValue, jettonWallet!, receiver, amount, vaultResult, callbackParams, inMsgPayload);
-        }
-    }
-}
-
