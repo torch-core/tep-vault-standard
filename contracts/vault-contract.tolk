@@ -15,16 +15,7 @@ fun onInternalMessage(in: InMessage) {
         VaultDeposit => {
             validateTonDepositGas(in.valueCoins, inMsg.depositAmount);
             val depositParams = fillDefaultDepositParams(inMsg.vaultDepositParams, in.senderAddress);
-
-            val shares = handleDeposit(
-                in.senderAddress, 
-                inMsg.queryId, 
-                in.valueCoins,
-                in.senderAddress, 
-                inMsg.depositAmount, 
-                depositParams, 
-                inMsg.toCell()
-            );
+            val shares = handleDeposit(in.senderAddress, inMsg.queryId, in.valueCoins, in.senderAddress, inMsg.depositAmount, depositParams, inMsg.toCell());
 
             storage.totalSupply = storage.totalSupply + shares;
             storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
@@ -36,16 +27,7 @@ fun onInternalMessage(in: InMessage) {
                 VaultDepositFp => {
                     validateJettonDepositGas(in.valueCoins);
                     val depositParams = fillDefaultDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.transferInitiator);
-
-                    val shares = handleDeposit(
-                        inMsg.transferInitiator, 
-                        inMsg.queryId, 
-                        in.valueCoins,
-                        in.senderAddress, 
-                        inMsg.jettonAmount, 
-                        depositParams, 
-                        inMsg.toCell()
-                    );
+                    val shares = handleDeposit(inMsg.transferInitiator, inMsg.queryId, in.valueCoins, in.senderAddress, inMsg.jettonAmount, depositParams, inMsg.toCell());
 
                     storage.totalSupply = storage.totalSupply + shares;
                     storage.totalAssets = storage.totalAssets + inMsg.jettonAmount;
@@ -59,16 +41,8 @@ fun onInternalMessage(in: InMessage) {
             match (burnPayload) {
                 VaultWithdrawFp => {
                     validateWithdrawGas(in.valueCoins);
-
-                    val withdrawAmount = handleWithdraw(
-                        in.senderAddress, 
-                        inMsg.queryId,
-                        in.valueCoins,
-                        inMsg.jettonAmount, 
-                        fillDefaultWithdrawParams(burnPayload, in.senderAddress), 
-                        inMsg.toCell(), 
-                        storage.assetJettonWallet // null for TON Withdrawal
-                    );
+                    val withdrawParams = fillDefaultWithdrawParams(burnPayload, in.senderAddress);
+                    val withdrawAmount = handleWithdraw(in.senderAddress, inMsg.queryId, in.valueCoins, inMsg.jettonAmount, withdrawParams, inMsg.toCell(), storage.assetJettonWallet);
 
                     storage.totalSupply = storage.totalSupply - inMsg.jettonAmount;
                     storage.totalAssets = storage.totalAssets - withdrawAmount;

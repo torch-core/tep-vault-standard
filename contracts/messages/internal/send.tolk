@@ -23,20 +23,20 @@ fun createForwardPayload(vaultResult: VaultResult, initiator: address, callbackP
     return params != null ? VaultNotificationFp { vaultNotificationParams: params! }.toCell() : null;
 }
 
-fun mint(initiator: address, queryId: QueryId, sendingValue: coins, receiver: address, shares: coins, vaultResult: VaultResult, callbackParams: CallbackParams?, inMsgPayload: cell) {
+fun mint(initiator: address, queryId: QueryId, valueCoins: coins, receiver: address, shares: coins, vaultResult: VaultResult, callbackParams: CallbackParams?, inMsgPayload: cell) {
     val storage = lazy Storage.load();
     val minterAddress = contract.getAddress();
     val forwardPayload = createForwardPayload(vaultResult, initiator, callbackParams, inMsgPayload);
     val mintMsg = createMessage({
         bounce: true,
         dest: calcDeployedJettonWallet(receiver, minterAddress, storage.jettonWalletCode),
-        value: sendingValue,
+        value: valueCoins,
         body: InternalTransferStep {
             queryId: queryId,
             jettonAmount: shares,
             transferInitiator: minterAddress,
             sendExcessesTo: receiver,
-            forwardTonAmount: calcForwardTonAmount(forwardPayload, sendingValue),
+            forwardTonAmount: calcForwardTonAmount(forwardPayload, valueCoins),
             forwardPayload: forwardPayload
         },
     });
@@ -46,7 +46,7 @@ fun mint(initiator: address, queryId: QueryId, sendingValue: coins, receiver: ad
 fun jettonTransfer(
     initiator: address, 
     queryId: QueryId, 
-    sendingValue: coins, 
+    valueCoins: coins, 
     jettonWallet: address, 
     receiver: address, 
     transferAmount: coins, 
@@ -58,26 +58,26 @@ fun jettonTransfer(
     val transferMsg = createMessage({
         bounce: true,
         dest: jettonWallet,
-        value: sendingValue,
+        value: valueCoins,
         body: AskToTransfer {
             queryId: queryId,
             jettonAmount: transferAmount,
             transferRecipient: receiver,
             sendExcessesTo: receiver,
             customPayload: null,
-            forwardTonAmount: calcForwardTonAmount(forwardPayload, sendingValue),
+            forwardTonAmount: calcForwardTonAmount(forwardPayload, valueCoins),
             forwardPayload: forwardPayload
         },
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, receiver: address, vaultResult: VaultResult, callbackParams: CallbackParams?, inMsgPayload: cell) {
+fun tonTransfer(initiator: address, queryId: QueryId, valueCoins: coins, receiver: address, vaultResult: VaultResult, callbackParams: CallbackParams?, inMsgPayload: cell) {
     val params = createVaultNotificationParams(vaultResult, initiator, callbackParams, inMsgPayload);
     val transferMsg = createMessage({
         bounce: true,
         dest: receiver,
-        value: sendingValue, 
+        value: valueCoins, 
         body: params != null ? 
             VaultNotification {
                 queryId: queryId,
