@@ -58,7 +58,7 @@ struct VaultNotificationParams {
 // ===== DEPOSIT MESSAGES =====
 struct VaultDepositParams {
     receiver: address?
-    minShares: coins?
+    minShares: coins? = 0
     optionalVaultParams: Cell<OptionalVaultParams>? = null
     vaultCallbacks: VaultCallbacks
 }
@@ -75,7 +75,7 @@ struct (0x97afc71b) VaultDepositFp {
 // ===== WITHDRAW MESSAGES =====
 struct (0xa1242cde) VaultWithdrawFp {
     receiver: address?
-    minWithdraw: coins?
+    minWithdraw: coins? = 0
     optionalVaultParams: Cell<OptionalVaultParams>? = null
     vaultCallbacks: VaultCallbacks
 }

@@ -24,8 +24,6 @@ fun fillDefaultDepositParams(depositParams: VaultDepositParams?, initiator: addr
     if (depositParams == null) {
         return VaultDepositParams {
             receiver: initiator,
-            minShares: 0,
-            optionalVaultParams: null,
             vaultCallbacks: VaultCallbacks {
                 successCallback: CallbackParams.defaultSuccessDeposit(),
                 failureCallback: CallbackParams.defaultFailureDeposit(),
@@ -50,8 +48,6 @@ fun fillDefaultWithdrawParams(withdrawParams: VaultWithdrawFp?, initiator: addre
     if (withdrawParams == null) {
         return VaultWithdrawFp {
             receiver: initiator,
-            minWithdraw: 0,
-            optionalVaultParams: null,
             vaultCallbacks: VaultCallbacks {
                 successCallback: CallbackParams.defaultSuccessWithdraw(),
                 failureCallback: CallbackParams.defaultFailureWithdraw(),

@@ -1,7 +1,7 @@
 import "../constants/common-types"
 
 struct CallbackParams {
-    includeBody: bool
+    includeBody: bool = false
     payload: cell
 }
 
@@ -13,7 +13,6 @@ struct CommentPayload {
 @pure
 fun CallbackParams.defaultSuccessDeposit(): CallbackParams {
     return CallbackParams {
-        includeBody: false,
         payload: CommentPayload{
             comment: "Vault deposit completed - shares minted",
         }.toCell(),
@@ -23,7 +22,6 @@ fun CallbackParams.defaultSuccessDeposit(): CallbackParams {
 @pure
 fun CallbackParams.defaultFailureDeposit(): CallbackParams {
     return CallbackParams {
-        includeBody: false,
         payload: CommentPayload{
             comment: "Vault deposit failed - assets refunded",
         }.toCell(),
@@ -33,7 +31,6 @@ fun CallbackParams.defaultFailureDeposit(): CallbackParams {
 @pure
 fun CallbackParams.defaultSuccessWithdraw(): CallbackParams {
     return CallbackParams {
-        includeBody: false,
         payload: CommentPayload{
             comment: "Vault withdrawal completed - assets transferred",
         }.toCell(),
@@ -43,7 +40,6 @@ fun CallbackParams.defaultSuccessWithdraw(): CallbackParams {
 @pure
 fun CallbackParams.defaultFailureWithdraw(): CallbackParams {
     return CallbackParams {
-        includeBody: false,
         payload: CommentPayload{
             comment: "Vault withdrawal failed - shares refunded",
         }.toCell(),
