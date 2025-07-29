@@ -14,13 +14,13 @@ describe('Deposit to TON Vault', () => {
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;
     let maxeyShareWallet: SandboxContract<JettonWallet>;
-    let maxeyShareBalanceBefore: bigint;
-    let maxeyTonBalanceBefore: bigint;
+    let maxeyShareBalBefore: bigint;
+    let maxeyTonBalBefore: bigint;
     let bobShareWallet: SandboxContract<JettonWallet>;
-    let bobShareBalanceBefore: bigint;
+    let bobShareBalBefore: bigint;
     let tonVault: SandboxContract<Vault>;
-    let tonVaultTONBalanceBefore: bigint;
-    let vaultTonBalanceDelta: bigint;
+    let tonVaultTONBalBefore: bigint;
+    let tonVaultTonBalDelta: bigint;
     const queryId = 8n;
     const DEFAULT_GAS_FEE = toNano('0.05');
 
@@ -35,16 +35,16 @@ describe('Deposit to TON Vault', () => {
         bobShareWallet = blockchain.openContract(
             JettonWallet.createFromAddress(await tonVault.getWalletAddress(bob.address)),
         );
-        maxeyShareBalanceBefore = await maxeyShareWallet.getJettonBalance();
-        maxeyTonBalanceBefore = await maxey.getBalance();
-        bobShareBalanceBefore = await bobShareWallet.getJettonBalance();
-        tonVaultTONBalanceBefore = (await blockchain.getContract(tonVault.address)).balance;
-        vaultTonBalanceDelta = 0n;
+        maxeyShareBalBefore = await maxeyShareWallet.getJettonBalance();
+        maxeyTonBalBefore = await maxey.getBalance();
+        bobShareBalBefore = await bobShareWallet.getJettonBalance();
+        tonVaultTONBalBefore = (await blockchain.getContract(tonVault.address)).balance;
+        tonVaultTonBalDelta = 0n;
     });
 
     afterEach(async () => {
         const tonVaultTONBalanceAfter = (await blockchain.getContract(tonVault.address)).balance;
-        expect(tonVaultTONBalanceAfter - vaultTonBalanceDelta).toBeGreaterThanOrEqual(tonVaultTONBalanceBefore);
+        expect(tonVaultTONBalanceAfter - tonVaultTonBalDelta).toBeGreaterThanOrEqual(tonVaultTONBalBefore);
     });
 
     describe('Deposit success', () => {
@@ -67,14 +67,14 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey shares is depositAmount
             const maxeyShareBalanceAfter = await maxeyShareWallet.getJettonBalance();
-            expect(maxeyShareBalanceAfter).toBe(maxeyShareBalanceBefore + depositAmount);
+            expect(maxeyShareBalanceAfter).toBe(maxeyShareBalBefore + depositAmount);
 
             // Expect that vault storage is updated
             await expectDepositedVaultStorage(tonVault, depositAmount, depositAmount);
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
-            vaultTonBalanceDelta = depositAmount;
+            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit to specified receiver', async () => {
@@ -100,14 +100,14 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that bob shares is depositAmount
             const bobShareBalanceAfter = await bobShareWallet.getJettonBalance();
-            expect(bobShareBalanceAfter).toBe(bobShareBalanceBefore + depositAmount);
+            expect(bobShareBalanceAfter).toBe(bobShareBalBefore + depositAmount);
 
             // Expect that vault storage is updated
             await expectDepositedVaultStorage(tonVault, depositAmount, depositAmount);
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, bob.address, depositAmount, depositAmount);
-            vaultTonBalanceDelta = depositAmount;
+            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit with success callback (body not included)', async () => {
@@ -142,7 +142,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
-            vaultTonBalanceDelta = depositAmount;
+            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit with success callback (body included)', async () => {
@@ -184,7 +184,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
-            vaultTonBalanceDelta = depositAmount;
+            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit to receiver with success callback (body not included)', async () => {
@@ -220,7 +220,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, bob.address, depositAmount, depositAmount);
-            vaultTonBalanceDelta = depositAmount;
+            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit to receiver with success callback (body included)', async () => {
@@ -263,7 +263,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, bob.address, depositAmount, depositAmount);
-            vaultTonBalanceDelta = depositAmount;
+            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle consecutive deposits correctly', async () => {
@@ -286,7 +286,7 @@ describe('Deposit to TON Vault', () => {
 
             // Check shares and vault storage after first deposit
             const maxeyShareBalanceAfterFirst = await maxeyShareWallet.getJettonBalance();
-            expect(maxeyShareBalanceAfterFirst).toBe(maxeyShareBalanceBefore + firstDepositAmount);
+            expect(maxeyShareBalanceAfterFirst).toBe(maxeyShareBalBefore + firstDepositAmount);
             await expectDepositedVaultStorage(tonVault, firstDepositAmount, firstDepositAmount);
 
             // Second deposit: Maxey deposit another 7 TON to TON Vault
@@ -310,7 +310,7 @@ describe('Deposit to TON Vault', () => {
             // Check final shares and vault storage after both deposits
             const totalDepositAmount = firstDepositAmount + secondDepositAmount;
             const maxeyShareBalanceAfterSecond = await maxeyShareWallet.getJettonBalance();
-            expect(maxeyShareBalanceAfterSecond).toBe(maxeyShareBalanceBefore + totalDepositAmount);
+            expect(maxeyShareBalanceAfterSecond).toBe(maxeyShareBalBefore + totalDepositAmount);
             await expectDepositedVaultStorage(tonVault, totalDepositAmount, totalDepositAmount);
 
             // Expect that deposited emit log is emitted
@@ -321,7 +321,7 @@ describe('Deposit to TON Vault', () => {
                 secondDepositAmount,
                 secondDepositAmount,
             );
-            vaultTonBalanceDelta = totalDepositAmount;
+            tonVaultTonBalDelta = totalDepositAmount;
         });
     });
 
@@ -343,7 +343,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalanceBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
 
             // Expect that tonVault shares and total assets are not updated
             await expectDepositedVaultStorage(tonVault, 0n, 0n);
@@ -367,7 +367,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalanceBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
 
             // Expect that tonVault shares and total assets are not updated
             await expectDepositedVaultStorage(tonVault, 0n, 0n);
@@ -404,7 +404,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalanceBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
 
             // Expect that tonVault shares and total assets are not updated
             await expectDepositedVaultStorage(tonVault, 0n, 0n);
@@ -442,7 +442,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalanceBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
 
             // Expect that tonVault shares and total assets are not updated
             await expectDepositedVaultStorage(tonVault, 0n, 0n);
@@ -480,7 +480,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalanceBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
 
             // Expect that tonVault shares and total assets are not updated
             await expectDepositedVaultStorage(tonVault, 0n, 0n);
@@ -519,7 +519,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalanceBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
 
             // Expect that tonVault shares and total assets are not updated
             await expectDepositedVaultStorage(tonVault, 0n, 0n);
