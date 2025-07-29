@@ -1,6 +1,6 @@
 import "constants/errors";
 
-const DEPOSIT_TON_GAS = 10000;
+const DEPOSIT_TON_GAS = ton("0.012");
 const DEPOSIT_JETTON_GAS = 10000;
 const WITHDRAW_GAS = 10000;
 

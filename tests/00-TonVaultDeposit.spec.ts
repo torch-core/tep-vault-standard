@@ -19,6 +19,8 @@ describe('Deposit to TON Vault', () => {
     let bobShareWallet: SandboxContract<JettonWallet>;
     let bobShareBalanceBefore: bigint;
     let tonVault: SandboxContract<Vault>;
+    let tonVaultTONBalanceBefore: bigint;
+    let vaultTonBalanceDelta: bigint;
     const queryId = 8n;
     const DEFAULT_GAS_FEE = toNano('0.05');
 
@@ -36,6 +38,13 @@ describe('Deposit to TON Vault', () => {
         maxeyShareBalanceBefore = await maxeyShareWallet.getJettonBalance();
         maxeyTonBalanceBefore = await maxey.getBalance();
         bobShareBalanceBefore = await bobShareWallet.getJettonBalance();
+        tonVaultTONBalanceBefore = (await blockchain.getContract(tonVault.address)).balance;
+        vaultTonBalanceDelta = 0n;
+    });
+
+    afterEach(async () => {
+        const tonVaultTONBalanceAfter = (await blockchain.getContract(tonVault.address)).balance;
+        expect(tonVaultTONBalanceAfter - vaultTonBalanceDelta).toBeGreaterThanOrEqual(tonVaultTONBalanceBefore);
     });
 
     describe('Deposit success', () => {
@@ -65,6 +74,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
+            vaultTonBalanceDelta = depositAmount;
         });
 
         it('should handle deposit to specified receiver', async () => {
@@ -96,6 +106,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, bob.address, depositAmount, depositAmount);
+            vaultTonBalanceDelta = depositAmount;
         });
 
         it('should handle deposit with success callback (body not included)', async () => {
@@ -129,6 +140,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
+            vaultTonBalanceDelta = depositAmount;
         });
 
         it('should handle deposit with success callback (body included)', async () => {
@@ -170,6 +182,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
+            vaultTonBalanceDelta = depositAmount;
         });
 
         it('should handle deposit to receiver with success callback (body not included)', async () => {
@@ -201,6 +214,10 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that vault storage is updated
             await expectDepositedVaultStorage(tonVault, depositAmount, depositAmount);
+
+            // Expect that deposited emit log is emitted
+            expectDepositedEmitLog(depositResult, maxey.address, bob.address, depositAmount, depositAmount);
+            vaultTonBalanceDelta = depositAmount;
         });
 
         it('should handle deposit to receiver with success callback (body included)', async () => {
@@ -243,6 +260,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that deposited emit log is emitted
             expectDepositedEmitLog(depositResult, maxey.address, bob.address, depositAmount, depositAmount);
+            vaultTonBalanceDelta = depositAmount;
         });
 
         it('should handle consecutive deposits correctly', async () => {
@@ -291,7 +309,14 @@ describe('Deposit to TON Vault', () => {
             await expectDepositedVaultStorage(tonVault, totalDepositAmount, totalDepositAmount);
 
             // Expect that deposited emit log is emitted
-            expectDepositedEmitLog(secondDepositResult, maxey.address, maxey.address, secondDepositAmount, secondDepositAmount);
+            expectDepositedEmitLog(
+                secondDepositResult,
+                maxey.address,
+                maxey.address,
+                secondDepositAmount,
+                secondDepositAmount,
+            );
+            vaultTonBalanceDelta = totalDepositAmount;
         });
     });
 
