@@ -38,10 +38,6 @@ struct (0x7bdd97de) BurnNotificationForMinter {
     customPayload: Cell<WithdrawParamsFp>?
 }
 
-struct (0xd53276db) ReturnExcessesBack {
-    queryId: uint64
-}
-
 struct (0x2c76b973) RequestWalletAddress {
     queryId: uint64
     ownerAddress: address
