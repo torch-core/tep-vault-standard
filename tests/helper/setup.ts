@@ -2,10 +2,10 @@ import { beginCell, Cell } from '@ton/core';
 import { Blockchain, BlockchainSnapshot, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { compile } from '@ton/blueprint';
 import { Vault } from '../../wrappers/Vault';
-import { JettonMinter } from '../../wrappers/jetton/JettonMinter';
+import { JettonMinter } from '../../wrappers/mock-jetton/JettonMinter';
 import { deployJettonMinter } from './jetton';
 import { VaultOpcodes } from '../../wrappers/constants/op';
-import { JettonOpcodes } from '../../wrappers/jetton/JettonConstants';
+import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 import { expectVaultStorage } from './expect';
 
 export const createTestEnvironment = () => {

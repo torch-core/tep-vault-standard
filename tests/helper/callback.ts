@@ -4,7 +4,7 @@ import { OPCODE_SIZE, QUERY_ID_SIZE, RESULT_SIZE } from '../../wrappers/constant
 import { SandboxContract } from '@ton/sandbox';
 import { Vault } from '../../wrappers/Vault';
 import { TreasuryContract } from '@ton/sandbox';
-import { JettonOpcodes } from '../../wrappers/jetton/JettonConstants';
+import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 
 export const DEFAULT_SUCCESS_CALLBACK_PAYLOAD = beginCell()
     .storeUint(VaultOpcodes.Comment, OPCODE_SIZE)

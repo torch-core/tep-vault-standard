@@ -3,7 +3,7 @@ import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, toNano } from '@ton/core';
-import { JettonWallet } from '../wrappers/jetton/JettonWallet';
+import { JettonWallet } from '../wrappers/mock-jetton/JettonWallet';
 import { buildSuccessCallbackFp } from './helper/callback';
 import { expectDepositedVaultStorage, expectFailDepositTON, expectTONDeposit } from './helper/expect';
 import { VaultErrors } from '../wrappers/constants/error';

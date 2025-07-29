@@ -1,7 +1,7 @@
 import { compile } from '@ton/blueprint';
 import { Address, toNano } from '@ton/core';
 import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
-import { JettonMinter } from '../../wrappers/jetton/JettonMinter';
+import { JettonMinter } from '../../wrappers/mock-jetton/JettonMinter';
 
 /**
  * Deploys a Jetton Master (minter) contract on the blockchain.

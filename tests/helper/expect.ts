@@ -2,7 +2,7 @@ import { SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandb
 import { Vault, VaultStorage } from '../../wrappers/Vault';
 import { Cell } from '@ton/core';
 import { VaultOpcodes } from '../../wrappers/constants/op';
-import { JettonOpcodes } from '../../wrappers/jetton/JettonConstants';
+import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 import { VaultErrors } from '../../wrappers/constants/error';
 import { buildFailVaultNotification } from './callback';
 
