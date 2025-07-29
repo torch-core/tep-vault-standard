@@ -23,10 +23,12 @@ fun onInternalMessage(in: InMessage) {
         }
 
         TransferNotificationForRecipient => {
-            match (inMsg.forwardPayload) {
+            assert (inMsg.forwardPayload != null) throw ERR_NULL_FORWARD_PAYLOAD;
+            val forwardPayload = inMsg.forwardPayload!.load();
+            match (forwardPayload) {
                 DepositFp => {
                     val remainingValue = processJettonDepositGas(in.valueCoins);
-                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, inMsg.forwardPayload.depositParams, in.body);
+                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, forwardPayload.depositParams, in.body);
 
                     storage.totalSupply = storage.totalSupply + shares;
                     storage.totalAssets = storage.totalAssets + inMsg.depositAmount;

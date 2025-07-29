@@ -13,6 +13,7 @@ import {
 import { OPCODE_SIZE, QUERY_ID_SIZE } from './constants/size';
 import { Opcodes } from './constants/op';
 import { Maybe } from '@ton/core/dist/utils/maybe';
+import { JettonMaster } from '@ton/ton';
 
 export type VaultConfig = {
     adminAddress: Address;
@@ -85,17 +86,18 @@ export interface JettonTransferParams {
 export class Vault implements Contract {
     constructor(
         readonly address: Address,
+        readonly jettonMaster?: Address,
         readonly init?: { code: Cell; data: Cell },
     ) {}
 
-    static createFromAddress(address: Address) {
-        return new Vault(address);
+    static createFromAddress(address: Address, jettonMaster?: Address) {
+        return new Vault(address, jettonMaster);
     }
 
     static createFromConfig(config: VaultConfig, code: Cell, workchain = 0) {
         const data = vaultConfigToCell(config);
         const init = { code, data };
-        return new Vault(contractAddress(workchain, init), init);
+        return new Vault(contractAddress(workchain, init), config.masterAddress, init);
     }
 
     private optionalVaultParamsToCell(params?: OptionalParams): Cell | null {
@@ -166,6 +168,35 @@ export class Vault implements Contract {
                 .storeCoins(deposit.depositAmount)
                 .store(this.storeVaultDepositParams(deposit.depositParams))
                 .endCell(),
+        };
+    }
+
+    async getJettonDepositArg(provider: ContractProvider, depositor: Address, deposit: Deposit) {
+        const forwardAmount = toNano('0.1');
+        if (!this.jettonMaster) {
+            throw new Error('Jetton Master is not set');
+        }
+        const jettonMaster = provider.open(JettonMaster.create(this.jettonMaster));
+        const jettonWalletAddress = await jettonMaster.getWalletAddress(depositor);
+        const transferBody = beginCell()
+            .store(
+                this.storeJettonTransferMessage({
+                    queryId: deposit.queryId,
+                    amount: deposit.depositAmount,
+                    recipient: this.address,
+                    responseDst: depositor,
+                    forwardAmount,
+                    forwardPayload: beginCell()
+                        .storeUint(Opcodes.Vault.DepositFp, OPCODE_SIZE)
+                        .store(this.storeVaultDepositParams(deposit.depositParams))
+                        .endCell(),
+                }),
+            )
+            .endCell();
+        return {
+            to: jettonWalletAddress,
+            value: toNano('0.07') + forwardAmount,
+            body: transferBody,
         };
     }
 

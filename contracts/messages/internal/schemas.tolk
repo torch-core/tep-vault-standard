@@ -8,7 +8,7 @@ struct (0x7362d09c) TransferNotificationForRecipient {
     queryId: QueryId
     depositAmount: coins
     initiator: address
-    forwardPayload: DepositFp
+    forwardPayload: Cell<DepositFp>?
 }
 
 struct (0x178d4519) InternalTransferStep {
