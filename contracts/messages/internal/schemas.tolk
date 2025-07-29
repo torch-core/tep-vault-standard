@@ -6,9 +6,9 @@ import "../../types/callback-params";
 // ===== JETTON TRANSFER MESSAGES =====
 struct (0x7362d09c) TransferNotificationForRecipient {
     queryId: QueryId
-    jettonAmount: coins
+    depositAmount: coins
     initiator: address
-    forwardPayload: VaultDepositFp
+    forwardPayload: DepositFp
 }
 
 struct (0x178d4519) InternalTransferStep {
@@ -32,10 +32,10 @@ struct (0x0f8a7ea5) AskToTransfer {
 
 struct (0x7bdd97de) BurnNotificationForMinter {
     queryId: QueryId
-    jettonAmount: coins
+    shares: coins
     initiator: address
     sendExcessesTo: address
-    customPayload: Cell<VaultWithdrawFp>?
+    customPayload: Cell<WithdrawParamsFp>?
 }
 
 struct (0xd53276db) ReturnExcessesBack {
@@ -55,45 +55,45 @@ struct (0xd1735400) ResponseWalletAddress {
 }
 
 // ===== COMMON PARAMETERS =====
-struct OptionalVaultParams {
+struct OptionalParams {
     // Add your optional params for vault here
 }
 
-struct VaultCallbacks {
+struct Callbacks {
     successCallback: Cell<CallbackParams>? = null
     failureCallback: Cell<CallbackParams>? = null
 }
 
 struct VaultNotificationParams {
-    vaultResult: VaultResult
+    result: Result
     initiator: address
     callbackPayload: cell
     inMsg: cell?
 }
 
 // ===== DEPOSIT MESSAGES =====
-struct VaultDepositParams {
+struct DepositParams {
     receiver: address
-    minShares: coins? = 0
-    optionalVaultParams: Cell<OptionalVaultParams>? = null
-    vaultCallbacks: VaultCallbacks
+    minShares: coins = 0
+    optionalParams: Cell<OptionalParams>? = null
+    callbacks: Callbacks
 }
-struct (0x7ceea8a6) VaultDeposit {
+struct (0x7ceea8a6) Deposit {
     queryId: QueryId
     depositAmount: coins
-    vaultDepositParams: VaultDepositParams?
+    depositParams: DepositParams
 }
 
-struct (0x97afc71b) VaultDepositFp {
-    vaultDepositParams: VaultDepositParams?
+struct (0x97afc71b) DepositFp {
+    depositParams: DepositParams
 }
 
 // ===== WITHDRAW MESSAGES =====
-struct (0xa1242cde) VaultWithdrawFp {
+struct (0xa1242cde) WithdrawParamsFp {
     receiver: address
-    minWithdraw: coins? = 0
-    optionalVaultParams: Cell<OptionalVaultParams>? = null
-    vaultCallbacks: VaultCallbacks
+    minWithdraw: coins = 0
+    optionalParams: Cell<OptionalParams>? = null
+    callbacks: Callbacks
 }
 
 // ===== NOTIFICATION MESSAGES =====
@@ -111,11 +111,11 @@ struct (0xe43f93a9) DeployVault {
     queryId: QueryId
 }
 
-const OP_VAULT_DEPOSIT = VaultDeposit.getDeclaredPackPrefix();
-const OP_VAULT_DEPOSIT_FP = VaultDepositFp.getDeclaredPackPrefix();
+const OP_VAULT_DEPOSIT = Deposit.getDeclaredPackPrefix();
+const OP_VAULT_DEPOSIT_FP = DepositFp.getDeclaredPackPrefix();
 const OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT = TransferNotificationForRecipient.getDeclaredPackPrefix();
 const OP_BURN_NOTIFICATION_FOR_MINTER = BurnNotificationForMinter.getDeclaredPackPrefix();
-const OP_VAULT_WITHDRAW_FP = VaultWithdrawFp.getDeclaredPackPrefix();
+const OP_VAULT_WITHDRAW_FP = WithdrawParamsFp.getDeclaredPackPrefix();
 const OP_DEPLOY_VAULT = DeployVault.getDeclaredPackPrefix();
 
-type AllowedMessage = VaultDeposit | TransferNotificationForRecipient | BurnNotificationForMinter | DeployVault | ResponseWalletAddress;
+type AllowedMessage = Deposit | TransferNotificationForRecipient | BurnNotificationForMinter | DeployVault | ResponseWalletAddress;

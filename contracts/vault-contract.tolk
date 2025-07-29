@@ -1,7 +1,6 @@
 import "constants/errors";
 import "types/asset";
 import "storage"
-import "helper/paramDefaulter";
 import "helper/jetton"
 import "messages/internal/schemas"
 import "messages/internal/send"
@@ -14,10 +13,9 @@ fun onInternalMessage(in: InMessage) {
     var storage = lazy VaultStorage.load();
 
     match (inMsg) {
-        VaultDeposit => {
+        Deposit => {
             val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
-            val depositParams = fillDefaultDepositParams(inMsg.vaultDepositParams, in.senderAddress);
-            val shares = handleDeposit(in.senderAddress, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, depositParams, inMsg.toCell());
+            val shares = handleDeposit(in.senderAddress, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, inMsg.depositParams, in.body);
 
             storage.totalSupply = storage.totalSupply + shares;
             storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
@@ -26,13 +24,12 @@ fun onInternalMessage(in: InMessage) {
 
         TransferNotificationForRecipient => {
             match (inMsg.forwardPayload) {
-                VaultDepositFp => {
+                DepositFp => {
                     val remainingValue = processJettonDepositGas(in.valueCoins);
-                    val depositParams = fillDefaultDepositParams(inMsg.forwardPayload.vaultDepositParams, inMsg.initiator);
-                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.jettonAmount, depositParams, inMsg.toCell());
+                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, inMsg.forwardPayload.depositParams, in.body);
 
                     storage.totalSupply = storage.totalSupply + shares;
-                    storage.totalAssets = storage.totalAssets + inMsg.jettonAmount;
+                    storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
                     storage.save();
                 }
             }
@@ -40,15 +37,14 @@ fun onInternalMessage(in: InMessage) {
 
         BurnNotificationForMinter => {
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
-            var burnPayload = inMsg.customPayload!.load();
-            match (burnPayload) {
-                VaultWithdrawFp => {
+            var withdrawParamsFp = inMsg.customPayload!.load();
+            match (withdrawParamsFp) {
+                WithdrawParamsFp => {
                     val remainingValue = processWithdrawGas(in.valueCoins);
-                    val withdrawParams = fillDefaultWithdrawParams(burnPayload, inMsg.initiator);
                     val assetJettonWallet = storage.assetJettonInfo != null ? storage.assetJettonInfo!.load().walletAddress : null;
-                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.jettonAmount, withdrawParams, inMsg.toCell(), assetJettonWallet);
+                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, withdrawParamsFp, in.body, assetJettonWallet);
 
-                    storage.totalSupply = storage.totalSupply - inMsg.jettonAmount; 
+                    storage.totalSupply = storage.totalSupply - inMsg.shares; 
                     storage.totalAssets = storage.totalAssets - withdrawAmount;
                     storage.save();
                 }
@@ -57,7 +53,7 @@ fun onInternalMessage(in: InMessage) {
 
         ResponseWalletAddress => {
             var assetJettonInfo = lazy storage.assetJettonInfo!.load();
-            // assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
+            assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
             assetJettonInfo.walletAddress = inMsg.jettonWalletAddress;
             storage.assetJettonInfo = assetJettonInfo.toCell();
             storage.save();

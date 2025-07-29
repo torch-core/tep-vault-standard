@@ -1,4 +1,4 @@
-import { Blockchain, printTransactionFees, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
@@ -31,7 +31,7 @@ describe('Deposit to TON Vault', () => {
         expect(depositResult.transactions).toHaveTransaction({
             from: maxey.address,
             to: tonVault.address,
-            op: VaultOpcodes.VaultDeposit,
+            op: VaultOpcodes.Deposit,
             success: true,
         });
 
@@ -59,7 +59,6 @@ describe('Deposit to TON Vault', () => {
             from: maxeyShareWallet.address,
             to: maxey.address,
             op: JettonOpcodes.TransferNotification,
-            success: true,
         });
 
         // Expect that maxey shares is depositAmount

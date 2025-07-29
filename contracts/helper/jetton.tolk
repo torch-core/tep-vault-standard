@@ -1,6 +1,6 @@
 import "../constants/values";
 import "../storage"
-import "../messages/internal/schemas";
+import "../types/callback-params"
 
 @pure
 fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell): AutoDeployAddress {
@@ -20,8 +20,8 @@ fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jett
 }
 
 @pure
-fun calcForwardTonAmount(forwardPayload: Cell<VaultNotificationFp>?, sendingValue: coins) {
-    return (forwardPayload == null ? 0 : sendingValue - JETTON_TRANSFER_FEE) as coins;
+fun calcForwardTonAmount(callbackParams: Cell<CallbackParams>?, sendingValue: coins) {
+    return (callbackParams == null ? 1 : sendingValue - JETTON_TRANSFER_FEE) as coins;
 }
 
 fun buildAddressOfJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell) {

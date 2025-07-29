@@ -20,32 +20,32 @@ get fun getAsset() {
     return convertAssetsTupleToCell(assetsTuple, 0);
 }
 
-get fun getTotalAssets(optionalParams: OptionalVaultParams? = null) {
+get fun getTotalAssets(optionalParams: OptionalParams? = null) {
     return totalAssets();
 }
 
-get fun getConvertToShares(depositAmount: coins, optionalParams: OptionalVaultParams? = null) {
+get fun getConvertToShares(depositAmount: coins, optionalParams: OptionalParams? = null) {
     return convertToShares(depositAmount, RoundingType.Down());
 }
 
-get fun getConvertToAssets(shares: coins, optionalParams: OptionalVaultParams? = null) {
+get fun getConvertToAssets(shares: coins, optionalParams: OptionalParams? = null) {
     return convertToAssets(shares, RoundingType.Up());
 }
 
 
-get fun getMaxDeposit(optionalParams: OptionalVaultParams? = null) {
+get fun getMaxDeposit(optionalParams: OptionalParams? = null) {
     return maxDeposit();
 }
 
-get fun getMaxWithdraw(optionalParams: OptionalVaultParams? = null) {
+get fun getMaxWithdraw(optionalParams: OptionalParams? = null) {
     return maxWithdraw();
 }
 
-get fun getPreviewDeposit(depositAmount: coins, optionalParams: OptionalVaultParams? = null) {
+get fun getPreviewDeposit(depositAmount: coins, optionalParams: OptionalParams? = null) {
     return previewDeposit(depositAmount);
 }
 
-get fun getPreviewWithdraw(shares: coins, optionalParams: OptionalVaultParams? = null) {
+get fun getPreviewWithdraw(shares: coins, optionalParams: OptionalParams? = null) {
     return previewWithdraw(shares);
 }
 

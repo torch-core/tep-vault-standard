@@ -9,34 +9,34 @@ import "messages/internal/schemas";
 import "messages/internal/send";
 import "messages/external/emit";
 
-fun maxDeposit(optionalParams: OptionalVaultParams? = null) {
+fun maxDeposit(optionalParams: OptionalParams? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun maxWithdraw(optionalParams: OptionalVaultParams? = null) {
+fun maxWithdraw(optionalParams: OptionalParams? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun totalAssets(optionalParams: OptionalVaultParams? = null) {
+fun totalAssets(optionalParams: OptionalParams? = null) {
     var storage = lazy VaultStorage.load();
     return storage.totalAssets;
 }
 
-fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalParams: OptionalVaultParams? = null) {
+fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalParams: OptionalParams? = null) {
     var storage = lazy VaultStorage.load();
     return storage.totalSupply == 0 ? depositAmount : roundedMulDiv(depositAmount, storage.totalSupply, totalAssets(), rounding) as coins;
 }
 
-fun convertToAssets(shares: coins, rounding: RoundingType, optionalParams: OptionalVaultParams? = null) {
+fun convertToAssets(shares: coins, rounding: RoundingType, optionalParams: OptionalParams? = null) {
     var storage = lazy VaultStorage.load();
     return roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding) as coins;
 }
 
-fun previewDeposit(depositAmount: coins, optionalParams: OptionalVaultParams? = null) {
+fun previewDeposit(depositAmount: coins, optionalParams: OptionalParams? = null) {
     return convertToShares(depositAmount, RoundingType.Down());
 }
 
-fun previewWithdraw(shares: coins, optionalParams: OptionalVaultParams? = null) {
+fun previewWithdraw(shares: coins, optionalParams: OptionalParams? = null) {
     return convertToAssets(shares, RoundingType.Up());
 }
 
@@ -46,8 +46,8 @@ fun handleDeposit(
     remainingValue: coins,
     senderAddress: address, 
     depositAmount: coins, 
-    depositParams: VaultDepositParams, 
-    inMsg: cell
+    depositParams: DepositParams, 
+    inBody: slice
 ) {
     try {
         val maxDepositAmount = maxDeposit();
@@ -56,12 +56,12 @@ fun handleDeposit(
         val shares = previewDeposit(depositAmount);
         assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
 
-        mint(initiator, queryId, remainingValue, depositParams.receiver, shares, VaultResult.Success(), depositParams.vaultCallbacks.successCallback, inMsg);
+        mint(initiator, queryId, remainingValue, depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback, inBody);
         emitDeposited(initiator, depositParams.receiver, depositAmount, shares);
         return shares;
     } catch (e) {
         if (initiator == senderAddress) {
-            tonTransfer(initiator, queryId, remainingValue, depositParams.receiver, VaultResult.Error(e), depositParams.vaultCallbacks.failureCallback, inMsg);
+            tonTransfer(initiator, queryId, remainingValue, depositParams.receiver, Result.Error(e), depositParams.callbacks.failureCallback, inBody);
         } else {
             jettonTransfer(
                 initiator, 
@@ -70,9 +70,9 @@ fun handleDeposit(
                 senderAddress, 
                 depositParams.receiver,
                 depositAmount, 
-                VaultResult.Error(e), 
-                depositParams.vaultCallbacks.failureCallback, 
-                inMsg
+                Result.Error(e), 
+                depositParams.callbacks.failureCallback, 
+                inBody
             );
         }
         commitContractDataAndActions();
@@ -85,8 +85,8 @@ fun handleWithdraw(
     queryId: QueryId, 
     remainingValue: coins, 
     shares: coins, 
-    withdrawParams: VaultWithdrawFp, 
-    inMsg: cell, 
+    withdrawParamsFp: WithdrawParamsFp, 
+    inBody: slice, 
     assetJettonWallet: address? = null
 ) {
     try {
@@ -94,28 +94,28 @@ fun handleWithdraw(
         assert (shares <= maxWithdrawShares) throw ERR_MAX_WITHDRAW_EXCEEDED;
 
         val withdrawAmount = previewWithdraw(shares);
-        assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
+        assert (withdrawAmount >= withdrawParamsFp.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
         if (assetJettonWallet == null) {
-            tonTransfer(initiator, queryId, remainingValue, withdrawParams.receiver, VaultResult.Success(), withdrawParams.vaultCallbacks.successCallback, inMsg);
+            tonTransfer(initiator, queryId, remainingValue, withdrawParamsFp.receiver, Result.Success(), withdrawParamsFp.callbacks.successCallback, inBody);
         } else {
             jettonTransfer(
                 initiator, 
                 queryId, 
                 remainingValue, 
                 assetJettonWallet, 
-                withdrawParams.receiver, 
+                withdrawParamsFp.receiver, 
                 withdrawAmount, 
-                VaultResult.Success(), 
-                withdrawParams.vaultCallbacks.successCallback, 
-                inMsg
+                Result.Success(), 
+                withdrawParamsFp.callbacks.successCallback, 
+                inBody
             );
         }
 
-        emitWithdrawn(initiator, withdrawParams.receiver, withdrawAmount, shares);
+        emitWithdrawn(initiator, withdrawParamsFp.receiver, withdrawAmount, shares);
         return withdrawAmount;
     } catch (e) {
-        mint(initiator, queryId, remainingValue, initiator, shares, VaultResult.Error(e), withdrawParams.vaultCallbacks.failureCallback, inMsg);
+        mint(initiator, queryId, remainingValue, initiator, shares, Result.Error(e), withdrawParamsFp.callbacks.failureCallback, inBody);
         commitContractDataAndActions();
         throw e;
     }
