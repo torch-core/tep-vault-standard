@@ -147,6 +147,16 @@ export class Vault implements Contract {
         await provider.internal(via, Vault.createVaultDepositArg(deposit));
     }
 
+    async getWalletAddress(provider: ContractProvider, owner: Address): Promise<Address> {
+        const res = await provider.get('get_wallet_address', [
+            {
+                type: 'slice',
+                cell: beginCell().storeAddress(owner).endCell(),
+            },
+        ]);
+        return res.stack.readAddress();
+    }
+
     async getStorage(provider: ContractProvider) {
         const { state } = await provider.getState();
         if (state.type !== 'active' || !state.code || !state.data) {
