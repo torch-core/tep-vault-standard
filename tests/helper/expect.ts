@@ -124,7 +124,7 @@ export function expectFailDepositTON(
     initiator: SandboxContract<TreasuryContract>,
     vault: SandboxContract<Vault>,
     queryId: bigint,
-    errorCode: number,
+    exitCode: number,
     callbackPayload?: Cell,
     inBody?: Cell,
 ) {
@@ -134,7 +134,7 @@ export function expectFailDepositTON(
         to: vault.address,
         op: Opcodes.Vault.Deposit,
         success: true,
-        exitCode: VaultErrors.MinShareNotMet,
+        exitCode: exitCode,
     });
 
     // Expect that Vault send OP_VAULT_NOTIFICATION to initiator
@@ -143,7 +143,7 @@ export function expectFailDepositTON(
         to: initiator.address,
         op: Opcodes.Vault.VaultNotification,
         success: true,
-        body: buildFailVaultNotification(queryId, errorCode, initiator.address, callbackPayload, inBody),
+        body: buildFailVaultNotification(queryId, exitCode, initiator.address, callbackPayload, inBody),
     });
 }
 
