@@ -11,7 +11,8 @@ import {
     toNano,
 } from '@ton/core';
 import { OPCODE_SIZE, QUERY_ID_SIZE } from './constants/size';
-import { VaultOpcodes } from './constants/op';
+import { Opcodes } from './constants/op';
+import { Maybe } from '@ton/core/dist/utils/maybe';
 
 export type VaultConfig = {
     adminAddress: Address;
@@ -71,6 +72,16 @@ export interface Deposit {
     depositParams?: VaultDepositParams;
 }
 
+export interface JettonTransferParams {
+    queryId: bigint;
+    amount: bigint;
+    recipient: Address;
+    responseDst: Address;
+    customPayload?: Maybe<Cell>;
+    forwardAmount?: bigint;
+    forwardPayload?: Maybe<Cell>;
+}
+
 export class Vault implements Contract {
     constructor(
         readonly address: Address,
@@ -115,12 +126,27 @@ export class Vault implements Contract {
         };
     }
 
+    private storeJettonTransferMessage(params: JettonTransferParams): (builder: Builder) => void {
+        return (builder: Builder) => {
+            return builder
+                .storeUint(Opcodes.Jetton.Transfer, OPCODE_SIZE)
+                .storeUint(params.queryId, QUERY_ID_SIZE)
+                .storeCoins(params.amount)
+                .storeAddress(params.recipient)
+                .storeAddress(params.responseDst)
+                .storeMaybeRef(params.customPayload ?? null)
+                .storeCoins(params.forwardAmount ?? 0)
+                .storeMaybeRef(params.forwardPayload ?? null)
+                .endCell();
+        };
+    }
+
     static createDeployVaultArg(queryId?: bigint) {
         return {
             value: toNano('0.08'),
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
-                .storeUint(VaultOpcodes.DeployVault, OPCODE_SIZE)
+                .storeUint(Opcodes.Vault.DeployVault, OPCODE_SIZE)
                 .storeUint(queryId ?? 8n, QUERY_ID_SIZE)
                 .endCell(),
         };
@@ -131,7 +157,7 @@ export class Vault implements Contract {
             value: toNano('0.1') + deposit.depositAmount,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
-                .storeUint(VaultOpcodes.Deposit, OPCODE_SIZE)
+                .storeUint(Opcodes.Vault.Deposit, OPCODE_SIZE)
                 .storeUint(deposit.queryId, QUERY_ID_SIZE)
                 .storeCoins(deposit.depositAmount)
                 .store(this.storeVaultDepositParams(deposit.depositParams))

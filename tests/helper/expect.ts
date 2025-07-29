@@ -1,8 +1,7 @@
 import { SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault, VaultStorage } from '../../wrappers/Vault';
 import { Cell } from '@ton/core';
-import { VaultOpcodes } from '../../wrappers/constants/op';
-import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
+import { Opcodes } from '../../wrappers/constants/op';
 import { VaultErrors } from '../../wrappers/constants/error';
 import { buildFailVaultNotification } from './callback';
 
@@ -37,7 +36,7 @@ export async function expectTONDeposit(
     expect(depositResult.transactions).toHaveTransaction({
         from: initiator.address,
         to: vault.address,
-        op: VaultOpcodes.Deposit,
+        op: Opcodes.Vault.Deposit,
         success: true,
     });
 
@@ -46,7 +45,7 @@ export async function expectTONDeposit(
     expect(depositResult.transactions).toHaveTransaction({
         from: vault.address,
         to: receiverShareWalletAddress,
-        op: JettonOpcodes.InternalTransfer,
+        op: Opcodes.Jetton.InternalTransfer,
         success: true,
     });
 
@@ -54,7 +53,7 @@ export async function expectTONDeposit(
     expect(depositResult.transactions).toHaveTransaction({
         from: receiverShareWalletAddress,
         to: receiver.address,
-        op: JettonOpcodes.Excesses,
+        op: Opcodes.Jetton.Excesses,
         success: true,
     });
 
@@ -63,14 +62,14 @@ export async function expectTONDeposit(
         expect(depositResult.transactions).toHaveTransaction({
             from: receiverShareWalletAddress,
             to: receiver.address,
-            op: JettonOpcodes.TransferNotification,
+            op: Opcodes.Jetton.TransferNotification,
             body: callbackPayload,
         });
     } else {
         expect(depositResult.transactions).toHaveTransaction({
             from: receiverShareWalletAddress,
             to: receiver.address,
-            op: JettonOpcodes.TransferNotification,
+            op: Opcodes.Jetton.TransferNotification,
         });
     }
 }
@@ -88,7 +87,7 @@ export function expectFailDepositTON(
     expect(depositResult.transactions).toHaveTransaction({
         from: initiator.address,
         to: vault.address,
-        op: VaultOpcodes.Deposit,
+        op: Opcodes.Vault.Deposit,
         success: true,
         exitCode: VaultErrors.MinShareNotMet,
     });
@@ -97,7 +96,7 @@ export function expectFailDepositTON(
     expect(depositResult.transactions).toHaveTransaction({
         from: vault.address,
         to: initiator.address,
-        op: VaultOpcodes.VaultNotification,
+        op: Opcodes.Vault.VaultNotification,
         success: true,
         body: buildFailVaultNotification(queryId, errorCode, initiator.address, callbackPayload, inBody),
     });

@@ -4,7 +4,7 @@ import { compile } from '@ton/blueprint';
 import { Vault } from '../../wrappers/Vault';
 import { JettonMinter } from '../../wrappers/mock-jetton/JettonMinter';
 import { deployJettonMinter } from './jetton';
-import { VaultOpcodes } from '../../wrappers/constants/op';
+import { Opcodes } from '../../wrappers/constants/op';
 import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 import { expectVaultStorage } from './expect';
 
@@ -57,7 +57,7 @@ export const createTestEnvironment = () => {
             to: tonVault.address,
             deploy: true,
             success: true,
-            op: VaultOpcodes.DeployVault,
+            op: Opcodes.Vault.DeployVault,
         });
         // Check TON Vault storage
         const tonVaultStorage = await tonVault.getStorage();
@@ -99,7 +99,7 @@ export const createTestEnvironment = () => {
             to: USDTVault.address,
             deploy: true,
             success: true,
-            op: VaultOpcodes.DeployVault,
+            op: Opcodes.Vault.DeployVault,
         });
 
         // USDT Jetton Master should send OP_TAKE_WALLET_ADDRESS to USDTVault

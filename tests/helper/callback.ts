@@ -1,5 +1,5 @@
 import { Address, beginCell, Cell } from '@ton/core';
-import { VaultOpcodes } from '../../wrappers/constants/op';
+import { Opcodes } from '../../wrappers/constants/op';
 import { OPCODE_SIZE, QUERY_ID_SIZE, RESULT_SIZE } from '../../wrappers/constants/size';
 import { SandboxContract } from '@ton/sandbox';
 import { Vault } from '../../wrappers/Vault';
@@ -7,12 +7,12 @@ import { TreasuryContract } from '@ton/sandbox';
 import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 
 export const DEFAULT_SUCCESS_CALLBACK_PAYLOAD = beginCell()
-    .storeUint(VaultOpcodes.Comment, OPCODE_SIZE)
+    .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
     .storeStringTail('Vault interaction successful')
     .endCell();
 
 export const DEFAULT_FAIL_CALLBACK_PAYLOAD = beginCell()
-    .storeUint(VaultOpcodes.Comment, OPCODE_SIZE)
+    .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
     .storeStringTail('Vault interaction failed')
     .endCell();
 
@@ -39,7 +39,7 @@ export function buildFailVaultNotification(
     inBody?: Cell,
 ) {
     return beginCell()
-        .storeUint(VaultOpcodes.VaultNotification, OPCODE_SIZE)
+        .storeUint(Opcodes.Vault.VaultNotification, OPCODE_SIZE)
         .storeUint(queryId, QUERY_ID_SIZE)
         .storeUint(errorCode, RESULT_SIZE)
         .storeAddress(initiator)
@@ -57,7 +57,7 @@ export function buildSuccessCallbackFp(
     inBody?: Cell,
 ) {
     const callbackPayload = beginCell()
-        .storeUint(VaultOpcodes.VaultNotificationFp, OPCODE_SIZE)
+        .storeUint(Opcodes.Vault.VaultNotificationFp, OPCODE_SIZE)
         .storeUint(0, RESULT_SIZE)
         .storeAddress(initiator.address)
         .storeRef(successCallbackPayload ?? DEFAULT_SUCCESS_CALLBACK_PAYLOAD)
