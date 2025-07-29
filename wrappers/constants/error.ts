@@ -1,3 +1,3 @@
 export const VaultErrors = {
-    MinShareNotMet: 2001,
+    MinShareNotMet: 2002,
 };

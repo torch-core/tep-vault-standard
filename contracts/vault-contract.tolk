@@ -39,6 +39,7 @@ fun onInternalMessage(in: InMessage) {
 
         BurnNotificationForMinter => {
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
+            assert (inMsg.customPayload != null) throw ERR_NULL_CUSTOM_PAYLOAD;
             var withdrawParamsFp = inMsg.customPayload!.load();
             match (withdrawParamsFp) {
                 WithdrawParamsFp => {
