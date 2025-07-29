@@ -60,8 +60,8 @@ struct OptionalVaultParams {
 }
 
 struct VaultCallbacks {
-    successCallback: CallbackParams? = null
-    failureCallback: CallbackParams? = null
+    successCallback: Cell<CallbackParams>? = null
+    failureCallback: Cell<CallbackParams>? = null
 }
 
 struct VaultNotificationParams {

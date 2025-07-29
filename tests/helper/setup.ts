@@ -136,7 +136,11 @@ export const createTestEnvironment = () => {
         return {
             blockchain,
             admin,
+            maxey,
+            bob,
+            USDT,
             tonVault,
+            USDTVault,
         };
     };
 

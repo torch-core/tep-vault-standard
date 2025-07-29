@@ -1,6 +1,7 @@
 import {
     Address,
     beginCell,
+    Builder,
     Cell,
     Contract,
     contractAddress,
@@ -45,6 +46,31 @@ export interface VaultStorage {
     content: Cell;
 }
 
+export interface OptionalVaultParams {}
+
+export interface CallbackParams {
+    includeBody: boolean;
+    payload: Cell;
+}
+
+export interface VaultCallbacks {
+    successCallback?: CallbackParams;
+    failureCallback?: CallbackParams;
+}
+
+export interface VaultDepositParams {
+    receiver?: Address;
+    minShares?: bigint;
+    optionalVaultParams?: OptionalVaultParams;
+    vaultCallbacks?: VaultCallbacks;
+}
+
+export interface VaultDeposit {
+    queryId: bigint;
+    depositAmount: bigint;
+    vaultDepositParams?: VaultDepositParams;
+}
+
 export class Vault implements Contract {
     constructor(
         readonly address: Address,
@@ -61,6 +87,34 @@ export class Vault implements Contract {
         return new Vault(contractAddress(workchain, init), init);
     }
 
+    private static optionalVaultParamsToCell(params?: OptionalVaultParams): Cell | null {
+        return null;
+    }
+
+    private static callbackParamsToCell(params: CallbackParams): Cell {
+        return beginCell().storeBit(params.includeBody).storeRef(params.payload).endCell();
+    }
+
+    private static storeVaultDepositParams(params?: VaultDepositParams) {
+        return (builder: Builder) => {
+            return builder
+                .storeAddress(params?.receiver)
+                .storeMaybeCoins(params?.minShares)
+                .storeMaybeRef(this.optionalVaultParamsToCell(params?.optionalVaultParams))
+                .storeMaybeRef(
+                    params?.vaultCallbacks?.successCallback
+                        ? this.callbackParamsToCell(params.vaultCallbacks.successCallback)
+                        : null,
+                )
+                .storeMaybeRef(
+                    params?.vaultCallbacks?.failureCallback
+                        ? this.callbackParamsToCell(params.vaultCallbacks.failureCallback)
+                        : null,
+                )
+                .endCell();
+        };
+    }
+
     static createDeployVaultArg(queryId?: bigint) {
         return {
             value: toNano('0.08'),
@@ -72,18 +126,25 @@ export class Vault implements Contract {
         };
     }
 
+    static createVaultDepositArg(deposit: VaultDeposit) {
+        return {
+            value: toNano('0.1') + deposit.depositAmount,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(VaultOpcodes.VaultDeposit, OPCODE_SIZE)
+                .storeUint(deposit.queryId, QUERY_ID_SIZE)
+                .storeCoins(deposit.depositAmount)
+                .store(this.storeVaultDepositParams(deposit.vaultDepositParams))
+                .endCell(),
+        };
+    }
+
     async sendDeploy(provider: ContractProvider, via: Sender, queryId?: bigint) {
         await provider.internal(via, Vault.createDeployVaultArg(queryId));
     }
 
-    async getCounter(provider: ContractProvider) {
-        const result = await provider.get('currentCounter', []);
-        return result.stack.readNumber();
-    }
-
-    async getID(provider: ContractProvider) {
-        const result = await provider.get('initialId', []);
-        return result.stack.readNumber();
+    async sendDeposit(provider: ContractProvider, via: Sender, deposit: VaultDeposit) {
+        await provider.internal(via, Vault.createVaultDepositArg(deposit));
     }
 
     async getStorage(provider: ContractProvider) {

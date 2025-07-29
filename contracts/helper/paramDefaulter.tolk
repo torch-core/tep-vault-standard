@@ -2,7 +2,7 @@ import "../types/callback-params";
 import "../messages/internal/schemas";
 
 @pure
-fun fillDefaultCallbacks(callbacks: VaultCallbacks, defaultSuccess: CallbackParams, defaultFailure: CallbackParams) {
+fun fillDefaultCallbacks(callbacks: VaultCallbacks, defaultSuccess: Cell<CallbackParams>, defaultFailure: Cell<CallbackParams>) {
     return VaultCallbacks {
         successCallback: callbacks.successCallback == null ? defaultSuccess : callbacks.successCallback,
         failureCallback: callbacks.failureCallback == null ? defaultFailure : callbacks.failureCallback,
@@ -11,7 +11,7 @@ fun fillDefaultCallbacks(callbacks: VaultCallbacks, defaultSuccess: CallbackPara
 
 @pure
 fun fillDefaultReceiver(receiver: address, initiator: address) {
-    return receiver == null ? initiator : receiver;
+    return receiver == createAddressNone() ? initiator : receiver;
 }
 
 @pure
