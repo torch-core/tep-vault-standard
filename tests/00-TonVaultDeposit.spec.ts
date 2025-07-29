@@ -51,11 +51,11 @@ describe('Deposit to TON Vault', () => {
         it('should handle basic deposit to depositor', async () => {
             // Maxey deposit 5 TON to TON Vault
             const depositAmount = toNano('5');
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
             });
-
+            const depositResult = await maxey.send(depositArgs);
             // Expect the deposit to be successful
             await expectTONDeposit(
                 depositResult,
@@ -80,13 +80,14 @@ describe('Deposit to TON Vault', () => {
         it('should handle deposit to specified receiver', async () => {
             // Maxey deposit 5 TON to TON Vault with receiver bob
             const depositAmount = toNano('5');
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
                     receiver: bob.address,
                 },
             });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful
             await expectTONDeposit(
@@ -113,7 +114,7 @@ describe('Deposit to TON Vault', () => {
             // Maxey deposit 5 TON to TON Vault with success callback and without body
             const depositAmount = toNano('5');
             const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
@@ -125,6 +126,7 @@ describe('Deposit to TON Vault', () => {
                     },
                 },
             });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful
             await expectTONDeposit(
@@ -147,7 +149,7 @@ describe('Deposit to TON Vault', () => {
             // Maxey deposit 5 TON to TON Vault with success callback and with body
             const depositAmount = toNano('5');
             const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
-            const depositParams = {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
@@ -158,8 +160,8 @@ describe('Deposit to TON Vault', () => {
                         },
                     },
                 },
-            };
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), depositParams);
+            });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful with success callback and in body
             await expectTONDeposit(
@@ -173,7 +175,7 @@ describe('Deposit to TON Vault', () => {
                     tonVault,
                     maxey,
                     successCallbackPayload,
-                    Vault.createVaultDepositArg(depositParams).body,
+                    depositArgs.body,
                 ),
             );
 
@@ -189,7 +191,7 @@ describe('Deposit to TON Vault', () => {
             // Maxey deposit 5 TON to TON Vault with receiver bob, success callback and without body
             const depositAmount = toNano('5');
             const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
@@ -202,6 +204,7 @@ describe('Deposit to TON Vault', () => {
                     },
                 },
             });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful
             await expectTONDeposit(
@@ -224,7 +227,7 @@ describe('Deposit to TON Vault', () => {
             // Maxey deposit 5 TON to TON Vault with receiver bob, success callback and with body
             const depositAmount = toNano('5');
             const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
-            const depositParams = {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
@@ -236,8 +239,8 @@ describe('Deposit to TON Vault', () => {
                         },
                     },
                 },
-            };
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), depositParams);
+            });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful with success callback and in body
             await expectTONDeposit(
@@ -251,7 +254,7 @@ describe('Deposit to TON Vault', () => {
                     tonVault,
                     maxey,
                     successCallbackPayload,
-                    Vault.createVaultDepositArg(depositParams).body,
+                    depositArgs.body,
                 ),
             );
 
@@ -266,10 +269,11 @@ describe('Deposit to TON Vault', () => {
         it('should handle consecutive deposits correctly', async () => {
             // First deposit: Maxey deposit 3 TON to TON Vault
             const firstDepositAmount = toNano('3');
-            const firstDepositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const firstDepositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount: firstDepositAmount,
             });
+            const firstDepositResult = await maxey.send(firstDepositArgs);
 
             // Expect the first deposit to be successful
             await expectTONDeposit(
@@ -288,10 +292,11 @@ describe('Deposit to TON Vault', () => {
             // Second deposit: Maxey deposit another 7 TON to TON Vault
             const secondDepositAmount = toNano('7');
             const secondQueryId = 9n;
-            const secondDepositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const secondDepositArgs = await tonVault.getTonDepositArg({
                 queryId: secondQueryId,
                 depositAmount: secondDepositAmount,
             });
+            const secondDepositResult = await maxey.send(secondDepositArgs);
 
             // Expect the second deposit to be successful
             await expectTONDeposit(
@@ -324,13 +329,14 @@ describe('Deposit to TON Vault', () => {
         it('should handle basic deposit failure', async () => {
             // Maxey deposit 5 TON to TON Vault
             const depositAmount = toNano('5');
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
                     minShares: toNano('10'),
                 },
             });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
             expectFailDepositTON(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
@@ -346,7 +352,7 @@ describe('Deposit to TON Vault', () => {
         it('should handle deposit failure with receiver', async () => {
             // Maxey deposit 5 TON to TON Vault
             const depositAmount = toNano('5');
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
@@ -354,6 +360,7 @@ describe('Deposit to TON Vault', () => {
                     receiver: bob.address,
                 },
             });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
             expectFailDepositTON(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
@@ -370,7 +377,7 @@ describe('Deposit to TON Vault', () => {
             // Maxey deposit 5 TON to TON Vault
             const depositAmount = toNano('5');
             const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
@@ -383,6 +390,7 @@ describe('Deposit to TON Vault', () => {
                     },
                 },
             });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
             expectFailDepositTON(
@@ -406,7 +414,7 @@ describe('Deposit to TON Vault', () => {
             // Maxey deposit 5 TON to TON Vault
             const depositAmount = toNano('5');
             const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
-            const depositParams = {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
@@ -418,8 +426,8 @@ describe('Deposit to TON Vault', () => {
                         },
                     },
                 },
-            };
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), depositParams);
+            });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
             expectFailDepositTON(
@@ -429,7 +437,7 @@ describe('Deposit to TON Vault', () => {
                 queryId,
                 VaultErrors.MinShareNotMet,
                 failCallbackPayload,
-                Vault.createVaultDepositArg(depositParams).body,
+                depositArgs.body,
             );
 
             // Expect that maxey ton balance is only decreased by gas fee
@@ -444,7 +452,7 @@ describe('Deposit to TON Vault', () => {
             // Maxey deposit 5 TON to TON Vault
             const depositAmount = toNano('5');
             const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
@@ -458,6 +466,7 @@ describe('Deposit to TON Vault', () => {
                     },
                 },
             });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
             expectFailDepositTON(
@@ -481,7 +490,7 @@ describe('Deposit to TON Vault', () => {
             // Maxey deposit 5 TON to TON Vault
             const depositAmount = toNano('5');
             const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
-            const depositParams = {
+            const depositArgs = await tonVault.getTonDepositArg({
                 queryId,
                 depositAmount,
                 depositParams: {
@@ -494,8 +503,8 @@ describe('Deposit to TON Vault', () => {
                         },
                     },
                 },
-            };
-            const depositResult = await tonVault.sendDeposit(maxey.getSender(), depositParams);
+            });
+            const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
             expectFailDepositTON(
@@ -505,7 +514,7 @@ describe('Deposit to TON Vault', () => {
                 queryId,
                 VaultErrors.MinShareNotMet,
                 failCallbackPayload,
-                Vault.createVaultDepositArg(depositParams).body,
+                depositArgs.body,
             );
 
             // Expect that maxey ton balance is only decreased by gas fee

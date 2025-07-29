@@ -98,15 +98,15 @@ export class Vault implements Contract {
         return new Vault(contractAddress(workchain, init), init);
     }
 
-    private static optionalVaultParamsToCell(params?: OptionalParams): Cell | null {
+    private optionalVaultParamsToCell(params?: OptionalParams): Cell | null {
         return null;
     }
 
-    private static callbackParamsToCell(params: CallbackParams): Cell {
+    private callbackParamsToCell(params: CallbackParams): Cell {
         return beginCell().storeBit(params.includeBody).storeRef(params.payload).endCell();
     }
 
-    private static storeVaultDepositParams(params?: VaultDepositParams) {
+    private storeVaultDepositParams(params?: VaultDepositParams) {
         return (builder: Builder) => {
             return builder
                 .storeAddress(params?.receiver)
@@ -152,10 +152,14 @@ export class Vault implements Contract {
         };
     }
 
-    static createVaultDepositArg(deposit: Deposit) {
+    async sendDeploy(provider: ContractProvider, via: Sender, queryId?: bigint) {
+        await provider.internal(via, Vault.createDeployVaultArg(queryId));
+    }
+
+    async getTonDepositArg(provider: ContractProvider, deposit: Deposit) {
         return {
+            to: this.address,
             value: toNano('0.1') + deposit.depositAmount,
-            sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
                 .storeUint(Opcodes.Vault.Deposit, OPCODE_SIZE)
                 .storeUint(deposit.queryId, QUERY_ID_SIZE)
@@ -163,14 +167,6 @@ export class Vault implements Contract {
                 .store(this.storeVaultDepositParams(deposit.depositParams))
                 .endCell(),
         };
-    }
-
-    async sendDeploy(provider: ContractProvider, via: Sender, queryId?: bigint) {
-        await provider.internal(via, Vault.createDeployVaultArg(queryId));
-    }
-
-    async sendDeposit(provider: ContractProvider, via: Sender, deposit: Deposit) {
-        await provider.internal(via, Vault.createVaultDepositArg(deposit));
     }
 
     async getWalletAddress(provider: ContractProvider, owner: Address): Promise<Address> {
