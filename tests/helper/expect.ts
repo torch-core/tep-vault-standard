@@ -3,6 +3,8 @@ import { Vault, VaultStorage } from '../../wrappers/Vault';
 import { Cell } from '@ton/core';
 import { VaultOpcodes } from '../../wrappers/constants/op';
 import { JettonOpcodes } from '../../wrappers/jetton/JettonConstants';
+import { VaultErrors } from '../../wrappers/constants/error';
+import { buildFailVaultNotification } from './callback';
 
 export const expectVaultStorage = (storage: VaultStorage, expectedStorage: VaultStorage) => {
     expect(storage.adminAddress.equals(expectedStorage.adminAddress)).toBeTruthy();
@@ -71,6 +73,34 @@ export async function expectTONDeposit(
             op: JettonOpcodes.TransferNotification,
         });
     }
+}
+
+export function expectFailDepositTON(
+    depositResult: SendMessageResult,
+    initiator: SandboxContract<TreasuryContract>,
+    vault: SandboxContract<Vault>,
+    queryId: bigint,
+    errorCode: number,
+    callbackPayload?: Cell,
+    inBody?: Cell,
+) {
+    // Expect that initiator send OP_DEPOSIT to vault and fail with ERR_MIN_SHARES_NOT_MET
+    expect(depositResult.transactions).toHaveTransaction({
+        from: initiator.address,
+        to: vault.address,
+        op: VaultOpcodes.Deposit,
+        success: true,
+        exitCode: VaultErrors.MinShareNotMet,
+    });
+
+    // Expect that Vault send OP_VAULT_NOTIFICATION to initiator
+    expect(depositResult.transactions).toHaveTransaction({
+        from: vault.address,
+        to: initiator.address,
+        op: VaultOpcodes.VaultNotification,
+        success: true,
+        body: buildFailVaultNotification(queryId, errorCode, initiator.address, callbackPayload, inBody),
+    });
 }
 
 export async function expectDepositedVaultStorage(

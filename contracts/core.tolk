@@ -61,7 +61,7 @@ fun handleDeposit(
         return shares;
     } catch (e) {
         if (initiator == senderAddress) {
-            tonTransfer(initiator, queryId, remainingValue, depositParams.receiver, Result.Error(e), depositParams.callbacks.failureCallback, inBody);
+            tonTransfer(initiator, queryId, remainingValue + depositAmount, initiator, Result.Error(e), depositParams.callbacks.failureCallback, inBody);
         } else {
             jettonTransfer(
                 initiator, 

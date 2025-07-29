@@ -11,6 +11,11 @@ export const DEFAULT_SUCCESS_CALLBACK_PAYLOAD = beginCell()
     .storeStringTail('Vault interaction successful')
     .endCell();
 
+export const DEFAULT_FAIL_CALLBACK_PAYLOAD = beginCell()
+    .storeUint(VaultOpcodes.Comment, OPCODE_SIZE)
+    .storeStringTail('Vault interaction failed')
+    .endCell();
+
 export function buildJettonTransferNotificationPayload(
     queryId: bigint,
     jettonAmount: bigint,
@@ -26,7 +31,24 @@ export function buildJettonTransferNotificationPayload(
         .endCell();
 }
 
-export function buildSuccessCallbackPayload(
+export function buildFailVaultNotification(
+    queryId: bigint,
+    errorCode: number,
+    initiator: Address,
+    callbackPayload?: Cell,
+    inBody?: Cell,
+) {
+    return beginCell()
+        .storeUint(VaultOpcodes.VaultNotification, OPCODE_SIZE)
+        .storeUint(queryId, QUERY_ID_SIZE)
+        .storeUint(errorCode, RESULT_SIZE)
+        .storeAddress(initiator)
+        .storeRef(callbackPayload ?? DEFAULT_FAIL_CALLBACK_PAYLOAD)
+        .storeMaybeRef(inBody)
+        .endCell();
+}
+
+export function buildSuccessCallbackFp(
     queryId: bigint,
     depositAmount: bigint,
     vault: SandboxContract<Vault>,

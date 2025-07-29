@@ -13,7 +13,7 @@ fun fillDefaultReceiver(receiver: address, initiator: address) {
 }
 
 @pure
-fun createVaultNotificationParams(result: Result, initiator: address, callbackParams: Cell<CallbackParams>?, inBody: slice): VaultNotificationParams? {
+fun createVaultNotificationParams(result: Result, initiator: address, callbackParams: Cell<CallbackParams>?, inBody: slice): VaultNotificationParams {
     var callback: CallbackParams?;
     if(callbackParams == null) {
         callback = result == Result.Success() ? CallbackParams.defaultSuccess() : CallbackParams.defaultFailure();
@@ -30,16 +30,14 @@ fun createVaultNotificationParams(result: Result, initiator: address, callbackPa
 }
 
 @pure
-fun createForwardPayload(result: Result, initiator: address, callbackParams: Cell<CallbackParams>?, inBody: slice): Cell<VaultNotificationFp>? {
-    val params = createVaultNotificationParams(result, initiator, callbackParams, inBody);
-    return params != null ? VaultNotificationFp { vaultNotificationParams: params! }.toCell() : null;
+fun createForwardPayload(result: Result, initiator: address, callbackParams: Cell<CallbackParams>?, inBody: slice): Cell<VaultNotificationFp> {
+    return VaultNotificationFp { vaultNotificationParams: createVaultNotificationParams(result, initiator, callbackParams, inBody) }.toCell();
 }
 
 fun mint(initiator: address, queryId: QueryId, remainingValue: coins, receiver: address, shares: coins, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
     receiver = fillDefaultReceiver(receiver, initiator);
     val storage = lazy VaultStorage.load();
     val minterAddress = contract.getAddress();
-    val forwardPayload = createForwardPayload(result, initiator, callbackParams, inBody);
     val mintMsg = createMessage({
         bounce: true,
         dest: calcDeployedJettonWallet(receiver, minterAddress, storage.jettonWalletCode),
@@ -50,7 +48,7 @@ fun mint(initiator: address, queryId: QueryId, remainingValue: coins, receiver: 
             initiator: minterAddress,
             sendExcessesTo: receiver,
             forwardTonAmount: calcForwardTonAmount(callbackParams, remainingValue),
-            forwardPayload: forwardPayload
+            forwardPayload: createForwardPayload(result, initiator, callbackParams, inBody)
         },
     });
     mintMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
@@ -68,7 +66,6 @@ fun jettonTransfer(
     inBody: slice
 ) {
     receiver = fillDefaultReceiver(receiver, initiator);
-    val forwardPayload = createForwardPayload(result, initiator, callbackParams, inBody);
     val transferMsg = createMessage({
         bounce: true,
         dest: jettonWallet,
@@ -80,23 +77,21 @@ fun jettonTransfer(
             sendExcessesTo: receiver,
             customPayload: null,
             forwardTonAmount: calcForwardTonAmount(callbackParams, remainingValue),
-            forwardPayload: forwardPayload
+            forwardPayload: createForwardPayload(result, initiator, callbackParams, inBody)
         },
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun tonTransfer(initiator: address, queryId: QueryId, remainingValue: coins, receiver: address, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
-    val params = createVaultNotificationParams(result, initiator, callbackParams, inBody);
+fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, receiver: address, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
     val transferMsg = createMessage({
         bounce: true,
         dest: fillDefaultReceiver(receiver, initiator),
-        value: remainingValue, 
-        body: params != null ? 
-            VaultNotification {
+        value: sendingValue, 
+        body: VaultNotification {
                 queryId: queryId,
-                vaultNotificationParams: params!
-            } : null
+                vaultNotificationParams: createVaultNotificationParams(result, initiator, callbackParams, inBody)
+            }
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
