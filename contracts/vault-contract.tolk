@@ -40,14 +40,6 @@ fun onInternalMessage(in: InMessage) {
 
         BurnNotificationForMinter => {
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
-            if (inMsg.customPayload == null && inMsg.sendExcessesTo != null) {
-                val remainingValue = processBurnGas(in.valueCoins);
-                sendExcessesBack(inMsg.sendExcessesTo, inMsg.queryId, remainingValue);
-                storage.totalSupply = storage.totalSupply - inMsg.jettonAmount;
-                storage.save();
-                return;
-            }
-
             var burnPayload = inMsg.customPayload!.load();
             match (burnPayload) {
                 VaultWithdrawFp => {

@@ -19,8 +19,3 @@ fun processWithdrawGas(valueCoins: coins) {
     assert (valueCoins >= WITHDRAW_GAS) throw ERR_WITHDRAW_GAS_TOO_LOW;
     return valueCoins - WITHDRAW_GAS;
 }
-
-fun processBurnGas(valueCoins: coins) {
-    assert (valueCoins >= BURN_NOTIFICATION_FEE) throw ERR_BURN_GAS_TOO_LOW;
-    return valueCoins - BURN_NOTIFICATION_FEE;
-}

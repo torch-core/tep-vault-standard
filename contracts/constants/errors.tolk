@@ -17,4 +17,3 @@ const ERR_WITHDRAW_GAS_TOO_LOW = 3002;
 
 // Burn errors
 const ERR_UNAUTHORIZED_BURN = 4000;
-const ERR_BURN_GAS_TOO_LOW = 4001;

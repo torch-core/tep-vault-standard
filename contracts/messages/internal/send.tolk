@@ -88,16 +88,6 @@ fun tonTransfer(initiator: address, queryId: QueryId, remainingValue: coins, rec
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun sendExcessesBack(sendExcessesTo: address, queryId: QueryId, remainingValue: coins) {
-    val excessesMsg = createMessage({
-        bounce: false,
-        dest: sendExcessesTo,
-        value: remainingValue - BURN_NOTIFICATION_FEE,
-        body: ReturnExcessesBack { queryId: queryId }
-    });
-    excessesMsg.send(SEND_MODE_REGULAR);
-}
-
 fun requestJettonWalletAddress(jettonMaster: address, queryId: QueryId) {
     val requestMsg = createMessage({
         bounce: true,
