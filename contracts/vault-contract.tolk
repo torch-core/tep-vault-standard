@@ -56,19 +56,21 @@ fun onInternalMessage(in: InMessage) {
         }
 
         ResponseWalletAddress => {
-            var assetJettonInfo = storage.assetJettonInfo!.load();
-            assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
+            var assetJettonInfo = lazy storage.assetJettonInfo!.load();
+            // assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
             assetJettonInfo.walletAddress = inMsg.jettonWalletAddress;
             storage.assetJettonInfo = assetJettonInfo.toCell();
             storage.save();
+
+            var storage2 = lazy VaultStorage.load();
+            storage2.assetJettonInfo = storage.assetJettonInfo;
         }
 
         DeployVault => {
-            if(inMsg.jettonMaster != null) { 
+            if(storage.assetJettonInfo != null) { 
+                var assetJettonInfo = lazy storage.assetJettonInfo!.load();
                 assert (in.senderAddress == storage.adminAddress) throw ERR_NOT_ADMIN;
-                requestJettonWalletAddress(inMsg.jettonMaster!, inMsg.queryId);
-                storage.assetJettonInfo = AssetJettonInfo { masterAddress: inMsg.jettonMaster!, walletAddress: null }.toCell();
-                storage.save();
+                requestJettonWalletAddress(assetJettonInfo.masterAddress!, inMsg.queryId);
             }
         }
 

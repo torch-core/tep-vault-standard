@@ -56,19 +56,19 @@ fun handleDeposit(
         val shares = previewDeposit(depositAmount);
         assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
 
-        mint(initiator, queryId, remainingValue, depositParams.receiver!, shares, VaultResult.Success(), depositParams.vaultCallbacks.successCallback, inMsg);
-        emitDeposited(initiator, depositParams.receiver!, depositAmount, shares);
+        mint(initiator, queryId, remainingValue, depositParams.receiver, shares, VaultResult.Success(), depositParams.vaultCallbacks.successCallback, inMsg);
+        emitDeposited(initiator, depositParams.receiver, depositAmount, shares);
         return shares;
     } catch (e) {
         if (initiator == senderAddress) {
-            tonTransfer(initiator, queryId, remainingValue, depositParams.receiver!, VaultResult.Error(e), depositParams.vaultCallbacks.failureCallback, inMsg);
+            tonTransfer(initiator, queryId, remainingValue, depositParams.receiver, VaultResult.Error(e), depositParams.vaultCallbacks.failureCallback, inMsg);
         } else {
             jettonTransfer(
                 initiator, 
                 queryId, 
                 remainingValue, 
                 senderAddress, 
-                depositParams.receiver!,
+                depositParams.receiver,
                 depositAmount, 
                 VaultResult.Error(e), 
                 depositParams.vaultCallbacks.failureCallback, 
@@ -97,14 +97,14 @@ fun handleWithdraw(
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
 
         if (assetJettonWallet == null) {
-            tonTransfer(initiator, queryId, remainingValue, withdrawParams.receiver!, VaultResult.Success(), withdrawParams.vaultCallbacks.successCallback, inMsg);
+            tonTransfer(initiator, queryId, remainingValue, withdrawParams.receiver, VaultResult.Success(), withdrawParams.vaultCallbacks.successCallback, inMsg);
         } else {
             jettonTransfer(
                 initiator, 
                 queryId, 
                 remainingValue, 
                 assetJettonWallet, 
-                withdrawParams.receiver!, 
+                withdrawParams.receiver, 
                 withdrawAmount, 
                 VaultResult.Success(), 
                 withdrawParams.vaultCallbacks.successCallback, 
@@ -112,7 +112,7 @@ fun handleWithdraw(
             );
         }
 
-        emitWithdrawn(initiator, withdrawParams.receiver!, withdrawAmount, shares);
+        emitWithdrawn(initiator, withdrawParams.receiver, withdrawAmount, shares);
         return withdrawAmount;
     } catch (e) {
         mint(initiator, queryId, remainingValue, initiator, shares, VaultResult.Error(e), withdrawParams.vaultCallbacks.failureCallback, inMsg);

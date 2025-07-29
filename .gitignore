@@ -6,6 +6,7 @@ dist
 package.ts
 .env
 tmp.fc
+tep-vault-doc.pdf
 
 # VS Code
 .vscode/*

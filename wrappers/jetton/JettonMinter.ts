@@ -11,7 +11,7 @@ import {
     toNano,
 } from '@ton/core';
 import { JettonWallet } from './JettonWallet';
-import { JettonOp } from './JettonConstants';
+import { JettonOpcodes } from './JettonConstants';
 
 export type JettonMinterContent = {
     uri: string;
@@ -137,7 +137,7 @@ export class JettonMinter implements Contract {
         await provider.internal(via, {
             value,
             sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: beginCell().storeUint(JettonOp.top_up, 32).storeUint(0, 64).endCell(),
+            body: beginCell().storeUint(JettonOpcodes.TopUp, 32).storeUint(0, 64).endCell(),
         });
     }
 
@@ -151,7 +151,7 @@ export class JettonMinter implements Contract {
         total_ton_amount: bigint = 0n,
     ) {
         const mintMsg = beginCell()
-            .storeUint(JettonOp.internal_transfer, 32)
+            .storeUint(JettonOpcodes.InternalTransfer, 32)
             .storeUint(0, 64)
             .storeCoins(jetton_amount)
             .storeAddress(from)
@@ -160,7 +160,7 @@ export class JettonMinter implements Contract {
             .storeMaybeRef(customPayload)
             .endCell();
         return beginCell()
-            .storeUint(JettonOp.mint, 32)
+            .storeUint(JettonOpcodes.Mint, 32)
             .storeUint(0, 64) // op, queryId
             .storeAddress(to)
             .storeCoins(total_ton_amount)
@@ -170,7 +170,7 @@ export class JettonMinter implements Contract {
 
     static parseMintInternalMessage(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.internal_transfer) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.InternalTransfer) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         const jettonAmount = slice.loadCoins();
         const fromAddress = slice.loadAddress();
@@ -190,7 +190,7 @@ export class JettonMinter implements Contract {
 
     static parseMintMessage(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.mint) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.Mint) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         const toAddress = slice.loadAddress();
         const tonAmount = slice.loadCoins();
@@ -234,7 +234,7 @@ export class JettonMinter implements Contract {
      */
     static discoveryMessage(owner: Address, include_address: boolean) {
         return beginCell()
-            .storeUint(JettonOp.provide_wallet_address, 32)
+            .storeUint(JettonOpcodes.ProvideWalletAddress, 32)
             .storeUint(0, 64) // op, queryId
             .storeAddress(owner)
             .storeBit(include_address)
@@ -257,14 +257,14 @@ export class JettonMinter implements Contract {
 
     static topUpMessage() {
         return beginCell()
-            .storeUint(JettonOp.top_up, 32)
+            .storeUint(JettonOpcodes.TopUp, 32)
             .storeUint(0, 64) // op, queryId
             .endCell();
     }
 
     static parseTopUp(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.top_up) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.TopUp) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         endParse(slice);
         return {
@@ -282,7 +282,7 @@ export class JettonMinter implements Contract {
 
     static changeAdminMessage(newOwner: Address) {
         return beginCell()
-            .storeUint(JettonOp.change_admin, 32)
+            .storeUint(JettonOpcodes.ChangeAdmin, 32)
             .storeUint(0, 64) // op, queryId
             .storeAddress(newOwner)
             .endCell();
@@ -290,7 +290,7 @@ export class JettonMinter implements Contract {
 
     static parseChangeAdmin(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.change_admin) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.ChangeAdmin) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         const newAdminAddress = slice.loadAddress();
         endParse(slice);
@@ -309,12 +309,12 @@ export class JettonMinter implements Contract {
     }
 
     static claimAdminMessage(query_id: bigint = 0n) {
-        return beginCell().storeUint(JettonOp.claim_admin, 32).storeUint(query_id, 64).endCell();
+        return beginCell().storeUint(JettonOpcodes.ClaimAdmin, 32).storeUint(query_id, 64).endCell();
     }
 
     static parseClaimAdmin(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.claim_admin) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.ClaimAdmin) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         endParse(slice);
         return {
@@ -333,7 +333,7 @@ export class JettonMinter implements Contract {
     static changeContentMessage(content: Cell | JettonMinterContent) {
         const contentString = content instanceof Cell ? content.beginParse().loadStringTail() : content.uri;
         return beginCell()
-            .storeUint(JettonOp.change_metadata_url, 32)
+            .storeUint(JettonOpcodes.ChangeMetadataUrl, 32)
             .storeUint(0, 64) // op, queryId
             .storeStringTail(contentString)
             .endCell();
@@ -341,7 +341,7 @@ export class JettonMinter implements Contract {
 
     static parseChangeContent(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.change_metadata_url) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.ChangeMetadataUrl) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         const newMetadataUrl = slice.loadStringTail();
         endParse(slice);
@@ -361,19 +361,19 @@ export class JettonMinter implements Contract {
 
     static lockWalletMessage(lock_address: Address, lock: number, amount: bigint, query_id: bigint | number = 0) {
         return beginCell()
-            .storeUint(JettonOp.call_to, 32)
+            .storeUint(JettonOpcodes.CallTo, 32)
             .storeUint(query_id, 64)
             .storeAddress(lock_address)
             .storeCoins(amount)
             .storeRef(
-                beginCell().storeUint(JettonOp.set_status, 32).storeUint(query_id, 64).storeUint(lock, 4).endCell(),
+                beginCell().storeUint(JettonOpcodes.SetStatus, 32).storeUint(query_id, 64).storeUint(lock, 4).endCell(),
             )
             .endCell();
     }
 
     static parseSetStatus(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.set_status) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.SetStatus) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         const newStatus = slice.loadUint(4);
         endParse(slice);
@@ -385,7 +385,7 @@ export class JettonMinter implements Contract {
 
     static parseCallTo(slice: Slice, refPrser: (slice: Slice) => any) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.call_to) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.CallTo) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         const toAddress = slice.loadAddress();
         const tonAmount = slice.loadCoins();
@@ -435,7 +435,7 @@ export class JettonMinter implements Contract {
             forward_payload,
         );
         return beginCell()
-            .storeUint(JettonOp.call_to, 32)
+            .storeUint(JettonOpcodes.CallTo, 32)
             .storeUint(query_id, 64)
             .storeAddress(from)
             .storeCoins(value)
@@ -445,7 +445,7 @@ export class JettonMinter implements Contract {
 
     static parseTransfer(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.transfer) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.Transfer) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         const jettonAmount = slice.loadCoins();
         const toAddress = slice.loadAddress();
@@ -501,7 +501,7 @@ export class JettonMinter implements Contract {
         query_id: bigint | number = 0,
     ) {
         return beginCell()
-            .storeUint(JettonOp.call_to, 32)
+            .storeUint(JettonOpcodes.CallTo, 32)
             .storeUint(query_id, 64)
             .storeAddress(to)
             .storeCoins(value)
@@ -511,7 +511,7 @@ export class JettonMinter implements Contract {
 
     static parseBurn(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.burn) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.Burn) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         const jettonAmount = slice.loadCoins();
         const responseAddress = slice.loadAddress();
@@ -542,7 +542,7 @@ export class JettonMinter implements Contract {
 
     static upgradeMessage(new_code: Cell, new_data: Cell, query_id: bigint | number = 0) {
         return beginCell()
-            .storeUint(JettonOp.upgrade, 32)
+            .storeUint(JettonOpcodes.Upgrade, 32)
             .storeUint(query_id, 64)
             .storeRef(new_data)
             .storeRef(new_code)
@@ -551,7 +551,7 @@ export class JettonMinter implements Contract {
 
     static parseUpgrade(slice: Slice) {
         const op = slice.loadUint(32);
-        if (op !== JettonOp.upgrade) throw new Error('Invalid op');
+        if (op !== JettonOpcodes.Upgrade) throw new Error('Invalid op');
         const queryId = slice.loadUint(64);
         const newData = slice.loadRef();
         const newCode = slice.loadRef();

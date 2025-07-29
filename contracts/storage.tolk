@@ -2,8 +2,8 @@ import "constants/common-types"
 
 // ==== Vault Storage ====
 struct AssetJettonInfo {
-    masterAddress: address?
-    walletAddress: address?
+    masterAddress: address
+    walletAddress: address
 }
 
 struct VaultStorage {

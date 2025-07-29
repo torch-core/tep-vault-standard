@@ -1,33 +1,33 @@
-export abstract class JettonOp {
-    static transfer = 0xf8a7ea5;
-    static transfer_notification = 0x7362d09c;
-    static internal_transfer = 0x178d4519;
-    static excesses = 0xd53276db;
-    static burn = 0x595f07bc;
-    static burn_notification = 0x7bdd97de;
+export abstract class JettonOpcodes {
+    static Transfer = 0xf8a7ea5;
+    static TransferNotification = 0x7362d09c;
+    static InternalTransfer = 0x178d4519;
+    static Excesses = 0xd53276db;
+    static Burn = 0x595f07bc;
+    static BurnNotification = 0x7bdd97de;
 
-    static provide_wallet_address = 0x2c76b973;
-    static take_wallet_address = 0xd1735400;
-    static mint = 0x642b7d07;
-    static change_admin = 0x6501f354;
-    static claim_admin = 0xfb88e119;
-    static upgrade = 0x2508d66a;
-    static call_to = 0x235caf52;
-    static top_up = 0xd372158c;
-    static change_metadata_url = 0xcb862902;
-    static set_status = 0xeed236d3;
+    static ProvideWalletAddress = 0x2c76b973;
+    static TakeWalletAddress = 0xd1735400;
+    static Mint = 0x642b7d07;
+    static ChangeAdmin = 0x6501f354;
+    static ClaimAdmin = 0xfb88e119;
+    static Upgrade = 0x2508d66a;
+    static CallTo = 0x235caf52;
+    static TopUp = 0xd372158c;
+    static ChangeMetadataUrl = 0xcb862902;
+    static SetStatus = 0xeed236d3;
 }
 
 export abstract class JettonErrors {
-    static invalid_op = 72;
-    static wrong_op = 0xffff;
-    static not_owner = 73;
-    static not_valid_wallet = 74;
-    static wrong_workchain = 333;
+    static InvalidOp = 72;
+    static WrongOp = 0xffff;
+    static NotOwner = 73;
+    static NotValidWallet = 74;
+    static WrongWorkchain = 333;
 
-    static contract_locked = 45;
-    static balance_error = 47;
-    static not_enough_gas = 48;
-    static invalid_mesage = 49;
-    static discovery_fee_not_matched = 75;
+    static ContractLocked = 45;
+    static BalanceError = 47;
+    static NotEnoughGas = 48;
+    static InvalidMessage = 49;
+    static DiscoveryFeeNotMatched = 75;
 }

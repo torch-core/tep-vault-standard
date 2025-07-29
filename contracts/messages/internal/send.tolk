@@ -91,7 +91,7 @@ fun tonTransfer(initiator: address, queryId: QueryId, remainingValue: coins, rec
 fun requestJettonWalletAddress(jettonMaster: address, queryId: QueryId) {
     val requestMsg = createMessage({
         bounce: true,
-        dest: jettonMaster,
+        dest: jettonMaster, 
         value: REQUEST_JETTON_WALLET_ADDRESS_FEE,
         body: RequestWalletAddress { queryId: queryId, ownerAddress: contract.getAddress(), includeOwnerAddress: false }
     });

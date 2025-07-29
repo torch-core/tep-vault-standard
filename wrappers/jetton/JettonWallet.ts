@@ -9,7 +9,7 @@ import {
     SendMode,
     toNano,
 } from '@ton/core';
-import { JettonOp } from './JettonConstants';
+import { JettonOpcodes } from './JettonConstants';
 import { endParse } from './JettonMinter';
 
 export type JettonWalletConfig = {
@@ -96,7 +96,7 @@ export class JettonWallet implements Contract {
         forwardPayload: Cell | null,
     ) {
         return beginCell()
-            .storeUint(JettonOp.transfer, 32)
+            .storeUint(JettonOpcodes.Transfer, 32)
             .storeUint(0, 64) // op, queryId
             .storeCoins(jetton_amount)
             .storeAddress(to)
@@ -137,7 +137,7 @@ export class JettonWallet implements Contract {
     */
     static burnMessage(jetton_amount: bigint, responseAddress: Address | null, customPayload: Cell | null) {
         return beginCell()
-            .storeUint(JettonOp.burn, 32)
+            .storeUint(JettonOpcodes.Burn, 32)
             .storeUint(0, 64) // op, queryId
             .storeCoins(jetton_amount)
             .storeAddress(responseAddress)

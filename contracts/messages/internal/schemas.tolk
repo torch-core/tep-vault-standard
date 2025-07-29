@@ -73,7 +73,7 @@ struct VaultNotificationParams {
 
 // ===== DEPOSIT MESSAGES =====
 struct VaultDepositParams {
-    receiver: address?
+    receiver: address
     minShares: coins? = 0
     optionalVaultParams: Cell<OptionalVaultParams>? = null
     vaultCallbacks: VaultCallbacks
@@ -90,7 +90,7 @@ struct (0x97afc71b) VaultDepositFp {
 
 // ===== WITHDRAW MESSAGES =====
 struct (0xa1242cde) VaultWithdrawFp {
-    receiver: address?
+    receiver: address
     minWithdraw: coins? = 0
     optionalVaultParams: Cell<OptionalVaultParams>? = null
     vaultCallbacks: VaultCallbacks
@@ -109,7 +109,6 @@ struct (0xb00d7656) VaultNotificationFp {
 // ===== DEPLOY VAULT MESSAGES =====
 struct (0xe43f93a9) DeployVault {
     queryId: QueryId
-    jettonMaster: address?
 }
 
 const OP_VAULT_DEPOSIT = VaultDeposit.getDeclaredPackPrefix();
@@ -117,5 +116,6 @@ const OP_VAULT_DEPOSIT_FP = VaultDepositFp.getDeclaredPackPrefix();
 const OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT = TransferNotificationForRecipient.getDeclaredPackPrefix();
 const OP_BURN_NOTIFICATION_FOR_MINTER = BurnNotificationForMinter.getDeclaredPackPrefix();
 const OP_VAULT_WITHDRAW_FP = VaultWithdrawFp.getDeclaredPackPrefix();
+const OP_DEPLOY_VAULT = DeployVault.getDeclaredPackPrefix();
 
 type AllowedMessage = VaultDeposit | TransferNotificationForRecipient | BurnNotificationForMinter | DeployVault | ResponseWalletAddress;

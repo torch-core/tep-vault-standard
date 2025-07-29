@@ -10,7 +10,7 @@ fun fillDefaultCallbacks(callbacks: VaultCallbacks, defaultSuccess: CallbackPara
 }
 
 @pure
-fun fillDefaultReceiver(receiver: address?, initiator: address) {
+fun fillDefaultReceiver(receiver: address, initiator: address) {
     return receiver == null ? initiator : receiver;
 }
 
