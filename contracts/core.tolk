@@ -8,6 +8,7 @@ import "storage"
 import "messages/internal/schemas";
 import "messages/internal/send";
 import "messages/external/emit";
+import "messages/external/schemas"
 
 fun maxDeposit(optionalParams: OptionalParams? = null) {
     return MAX_COINS_VALUE;
@@ -56,8 +57,8 @@ fun handleDeposit(
         val shares = previewDeposit(depositAmount);
         assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
 
-        mint(initiator, queryId, remainingValue, depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback, inBody);
-        emitDeposited(initiator, depositParams.receiver, depositAmount, shares);
+        mint(initiator, queryId, remainingValue, mutate depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback, inBody);
+        emitDeposited(Deposited { initiator: initiator, receiver: depositParams.receiver, depositAmount: depositAmount, shares: shares });
         return shares;
     } catch (e) {
         if (initiator == senderAddress) {
@@ -111,11 +112,10 @@ fun handleWithdraw(
                 inBody
             );
         }
-
-        emitWithdrawn(initiator, withdrawParamsFp.receiver, withdrawAmount, shares);
+        emitWithdrawn(Withdrawn { initiator: initiator, receiver: withdrawParamsFp.receiver, withdrawAmount: withdrawAmount, shares: shares });
         return withdrawAmount;
     } catch (e) {
-        mint(initiator, queryId, remainingValue, initiator, shares, Result.Error(e), withdrawParamsFp.callbacks.failureCallback, inBody);
+        mint(initiator, queryId, remainingValue, mutate initiator, shares, Result.Error(e), withdrawParamsFp.callbacks.failureCallback, inBody);
         commitContractDataAndActions();
         throw e;
     }

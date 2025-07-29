@@ -1,14 +1,14 @@
 import "../../constants/common-types";
+import "../../constants/values"
 import "../../types/vault-result";
 import "../../types/asset";
 import "../../types/callback-params";
 import "../../storage";
 import "../../helper/jetton";
 import "schemas";
-import "../../constants/values"
 
 @pure
-fun fillDefaultReceiver(receiver: address, initiator: address) {
+fun resolveReceiver(receiver: address, initiator: address) {
     return receiver == createAddressNone() ? initiator : receiver;
 }
 
@@ -34,8 +34,8 @@ fun createForwardPayload(result: Result, initiator: address, callbackParams: Cel
     return VaultNotificationFp { vaultNotificationParams: createVaultNotificationParams(result, initiator, callbackParams, inBody) }.toCell();
 }
 
-fun mint(initiator: address, queryId: QueryId, remainingValue: coins, receiver: address, shares: coins, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
-    receiver = fillDefaultReceiver(receiver, initiator);
+fun mint(initiator: address, queryId: QueryId, remainingValue: coins, mutate receiver: address, shares: coins, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
+    receiver = resolveReceiver(receiver, initiator);
     val storage = lazy VaultStorage.load();
     val minterAddress = contract.getAddress();
     val mintMsg = createMessage({
@@ -65,7 +65,7 @@ fun jettonTransfer(
     callbackParams: Cell<CallbackParams>?, 
     inBody: slice
 ) {
-    receiver = fillDefaultReceiver(receiver, initiator);
+    receiver = resolveReceiver(receiver, initiator);
     val transferMsg = createMessage({
         bounce: true,
         dest: jettonWallet,
@@ -86,7 +86,7 @@ fun jettonTransfer(
 fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, receiver: address, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
     val transferMsg = createMessage({
         bounce: true,
-        dest: fillDefaultReceiver(receiver, initiator),
+        dest: resolveReceiver(receiver, initiator),
         value: sendingValue, 
         body: VaultNotification {
                 queryId: queryId,

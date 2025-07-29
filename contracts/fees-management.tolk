@@ -1,5 +1,4 @@
 import "constants/errors";
-import "constants/values"
 
 const DEPOSIT_TON_GAS = 10000;
 const DEPOSIT_JETTON_GAS = 10000;
