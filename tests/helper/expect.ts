@@ -91,7 +91,7 @@ export async function expectMintShares(
 // Successful Deposit Validation
 // =============================================================================
 
-export async function expectTONDeposit(
+export async function expectTONDepositTxs(
     depositResult: SendMessageResult,
     initiator: SandboxContract<TreasuryContract>,
     receiver: SandboxContract<TreasuryContract>,

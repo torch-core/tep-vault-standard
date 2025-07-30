@@ -1,11 +1,11 @@
-import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
-import { beginCell, toNano } from '@ton/core';
+import { beginCell, Cell, toNano } from '@ton/core';
 import { JettonWallet } from '../wrappers/mock-jetton/JettonWallet';
 import { buildSuccessCallbackFp } from './helper/callback';
-import { expectVaultSharesAndAssets, expectFailDepositTON, expectTONDeposit } from './helper/expect';
+import { expectVaultSharesAndAssets, expectFailDepositTON, expectTONDepositTxs } from './helper/expect';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emit';
 
@@ -22,7 +22,7 @@ describe('Deposit to TON Vault', () => {
     let tonVaultTONBalBefore: bigint;
     let tonVaultTonBalDelta: bigint;
     const queryId = 8n;
-    const DEFAULT_GAS_FEE = toNano('0.05');
+    const DEPOSIT_GAS = toNano('0.012');
 
     const { getTestContext, resetToInitSnapshot } = createTestEnvironment();
 
@@ -47,6 +47,70 @@ describe('Deposit to TON Vault', () => {
         expect(tonVaultTONBalanceAfter - tonVaultTonBalDelta).toBeGreaterThanOrEqual(tonVaultTONBalBefore);
     });
 
+    async function expectTonDepositorBalances(
+        depositor: SandboxContract<TreasuryContract>,
+        shareWallet: SandboxContract<JettonWallet>,
+        shareBalBefore: bigint,
+        tonBalBefore: bigint,
+        depositAmount: bigint,
+        increaseShares: bigint,
+    ) {
+        // Expect that depositor ton balance is decreased by depositAmount
+        const depositorTonBalanceAfter = await depositor.getBalance();
+        expect(depositorTonBalanceAfter).toBeLessThan(tonBalBefore - depositAmount - DEPOSIT_GAS);
+
+        // Expect that share wallet balance is increased by depositAmount
+        const shareBalanceAfter = await shareWallet.getJettonBalance();
+        expect(shareBalanceAfter).toBe(shareBalBefore + increaseShares);
+    }
+
+    async function expectTonVaultBalances(
+        vault: SandboxContract<Vault>,
+        tonBalBefore: bigint,
+        depositAmount: bigint,
+        increaseShares: bigint,
+    ) {
+        // Expect that vault ton balance is increased by depositAmount
+        const vaultTonBalanceAfter = (await blockchain.getContract(vault.address)).balance;
+        expect(vaultTonBalanceAfter).toBeGreaterThan(tonBalBefore + depositAmount - DEPOSIT_GAS);
+
+        // Expect that vault shares are increased by depositAmount
+        await expectVaultSharesAndAssets(vault, depositAmount, increaseShares);
+    }
+
+    async function expectTonDepositFlows(
+        depositResult: SendMessageResult,
+        depositor: SandboxContract<TreasuryContract>,
+        receiver: SandboxContract<TreasuryContract>,
+        depositorShareWallet: SandboxContract<JettonWallet>,
+        depositorShareBalBefore: bigint,
+        depositorTonBalBefore: bigint,
+        depositAmount: bigint,
+        successCallbackPayload?: Cell,
+    ) {
+        // Expect the deposit to be successful
+        await expectTONDepositTxs(depositResult, depositor, receiver, tonVault, successCallbackPayload);
+
+        // Expect that depositor shares and ton balances are updated
+        await expectTonDepositorBalances(
+            depositor,
+            depositorShareWallet,
+            depositorShareBalBefore,
+            depositorTonBalBefore,
+            depositAmount,
+            depositAmount,
+        );
+
+        // Expect that tonVault balance is increased by depositAmount and shares/assets are increased by depositAmount
+        await expectTonVaultBalances(tonVault, tonVaultTONBalBefore, depositAmount, depositAmount);
+
+        // Expect that deposited emit log is emitted
+        expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount);
+
+        // Update tonVaultTonBalDelta
+        tonVaultTonBalDelta = depositAmount;
+    }
+
     describe('Deposit success', () => {
         it('should handle basic deposit to depositor', async () => {
             // Maxey deposit 5 TON to TON Vault
@@ -58,28 +122,16 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful
-            await expectTONDeposit(
+            await expectTonDepositFlows(
                 depositResult,
                 maxey,
                 maxey,
-                tonVault,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyTonBalBefore,
+                depositAmount,
                 buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey),
             );
-
-            // Expect that maxey shares is depositAmount
-            const maxeyShareBalanceAfter = await maxeyShareWallet.getJettonBalance();
-            expect(maxeyShareBalanceAfter).toBe(maxeyShareBalBefore + depositAmount);
-
-            // Expect that tonVault balance is increased by depositAmount
-            const tonVaultBalanceAfter = (await blockchain.getContract(tonVault.address)).balance;
-            expect(tonVaultBalanceAfter).toBeGreaterThan(tonVaultTONBalBefore + depositAmount);
-
-            // Expect that vault storage is updated
-            await expectVaultSharesAndAssets(tonVault, depositAmount, depositAmount);
-
-            // Expect that deposited emit log is emitted
-            expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
-            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit to specified receiver', async () => {
@@ -95,24 +147,13 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful
-            await expectTONDeposit(
+            await expectTONDepositTxs(
                 depositResult,
                 maxey,
                 bob,
                 tonVault,
                 buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey),
             );
-
-            // Expect that bob shares is depositAmount
-            const bobShareBalanceAfter = await bobShareWallet.getJettonBalance();
-            expect(bobShareBalanceAfter).toBe(bobShareBalBefore + depositAmount);
-
-            // Expect that vault storage is updated
-            await expectVaultSharesAndAssets(tonVault, depositAmount, depositAmount);
-
-            // Expect that deposited emit log is emitted
-            expectDepositedEmitLog(depositResult, maxey.address, bob.address, depositAmount, depositAmount);
-            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit with success callback (body not included)', async () => {
@@ -134,20 +175,16 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful
-            await expectTONDeposit(
+            await expectTonDepositFlows(
                 depositResult,
                 maxey,
                 maxey,
-                tonVault,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyTonBalBefore,
+                depositAmount,
                 buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey, successCallbackPayload),
             );
-
-            // Expect that vault storage is updated
-            await expectVaultSharesAndAssets(tonVault, depositAmount, depositAmount);
-
-            // Expect that deposited emit log is emitted
-            expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
-            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit with success callback (body included)', async () => {
@@ -169,11 +206,14 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful with success callback and in body
-            await expectTONDeposit(
+            await expectTonDepositFlows(
                 depositResult,
                 maxey,
                 maxey,
-                tonVault,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyTonBalBefore,
+                depositAmount,
                 buildSuccessCallbackFp(
                     queryId,
                     depositAmount,
@@ -183,13 +223,6 @@ describe('Deposit to TON Vault', () => {
                     depositArgs.body,
                 ),
             );
-
-            // Expect that vault storage is updated
-            await expectVaultSharesAndAssets(tonVault, depositAmount, depositAmount);
-
-            // Expect that deposited emit log is emitted
-            expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
-            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit to receiver with success callback (body not included)', async () => {
@@ -212,20 +245,13 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful
-            await expectTONDeposit(
+            await expectTONDepositTxs(
                 depositResult,
                 maxey,
                 bob,
                 tonVault,
                 buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey, successCallbackPayload),
             );
-
-            // Expect that vault storage is updated
-            await expectVaultSharesAndAssets(tonVault, depositAmount, depositAmount);
-
-            // Expect that deposited emit log is emitted
-            expectDepositedEmitLog(depositResult, maxey.address, bob.address, depositAmount, depositAmount);
-            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle deposit to receiver with success callback (body included)', async () => {
@@ -248,7 +274,7 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful with success callback and in body
-            await expectTONDeposit(
+            await expectTONDepositTxs(
                 depositResult,
                 maxey,
                 bob,
@@ -262,13 +288,6 @@ describe('Deposit to TON Vault', () => {
                     depositArgs.body,
                 ),
             );
-
-            // Expect that vault storage is updated
-            await expectVaultSharesAndAssets(tonVault, depositAmount, depositAmount);
-
-            // Expect that deposited emit log is emitted
-            expectDepositedEmitLog(depositResult, maxey.address, bob.address, depositAmount, depositAmount);
-            tonVaultTonBalDelta = depositAmount;
         });
 
         it('should handle consecutive deposits correctly', async () => {
@@ -281,18 +300,13 @@ describe('Deposit to TON Vault', () => {
             const firstDepositResult = await maxey.send(firstDepositArgs);
 
             // Expect the first deposit to be successful
-            await expectTONDeposit(
+            await expectTONDepositTxs(
                 firstDepositResult,
                 maxey,
                 maxey,
                 tonVault,
                 buildSuccessCallbackFp(queryId, firstDepositAmount, tonVault, maxey),
             );
-
-            // Check shares and vault storage after first deposit
-            const maxeyShareBalanceAfterFirst = await maxeyShareWallet.getJettonBalance();
-            expect(maxeyShareBalanceAfterFirst).toBe(maxeyShareBalBefore + firstDepositAmount);
-            await expectVaultSharesAndAssets(tonVault, firstDepositAmount, firstDepositAmount);
 
             // Second deposit: Maxey deposit another 7 TON to TON Vault
             const secondDepositAmount = toNano('7');
@@ -304,29 +318,13 @@ describe('Deposit to TON Vault', () => {
             const secondDepositResult = await maxey.send(secondDepositArgs);
 
             // Expect the second deposit to be successful
-            await expectTONDeposit(
+            await expectTONDepositTxs(
                 secondDepositResult,
                 maxey,
                 maxey,
                 tonVault,
                 buildSuccessCallbackFp(secondQueryId, secondDepositAmount, tonVault, maxey),
             );
-
-            // Check final shares and vault storage after both deposits
-            const totalDepositAmount = firstDepositAmount + secondDepositAmount;
-            const maxeyShareBalanceAfterSecond = await maxeyShareWallet.getJettonBalance();
-            expect(maxeyShareBalanceAfterSecond).toBe(maxeyShareBalBefore + totalDepositAmount);
-            await expectVaultSharesAndAssets(tonVault, totalDepositAmount, totalDepositAmount);
-
-            // Expect that deposited emit log is emitted
-            expectDepositedEmitLog(
-                secondDepositResult,
-                maxey.address,
-                maxey.address,
-                secondDepositAmount,
-                secondDepositAmount,
-            );
-            tonVaultTonBalDelta = totalDepositAmount;
         });
     });
 
@@ -348,7 +346,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEPOSIT_GAS);
 
             // Expect that tonVault shares and total assets are not updated
             await expectVaultSharesAndAssets(tonVault, 0n, 0n);
@@ -372,7 +370,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEPOSIT_GAS);
 
             // Expect that tonVault shares and total assets are not updated
             await expectVaultSharesAndAssets(tonVault, 0n, 0n);
@@ -409,7 +407,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEPOSIT_GAS);
 
             // Expect that tonVault shares and total assets are not updated
             await expectVaultSharesAndAssets(tonVault, 0n, 0n);
@@ -447,7 +445,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEPOSIT_GAS);
 
             // Expect that tonVault shares and total assets are not updated
             await expectVaultSharesAndAssets(tonVault, 0n, 0n);
@@ -485,7 +483,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEPOSIT_GAS);
 
             // Expect that tonVault shares and total assets are not updated
             await expectVaultSharesAndAssets(tonVault, 0n, 0n);
@@ -524,7 +522,7 @@ describe('Deposit to TON Vault', () => {
 
             // Expect that maxey ton balance is only decreased by gas fee
             const maxeyTonBalanceAfter = await maxey.getBalance();
-            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEFAULT_GAS_FEE);
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEPOSIT_GAS);
 
             // Expect that tonVault shares and total assets are not updated
             await expectVaultSharesAndAssets(tonVault, 0n, 0n);
