@@ -121,7 +121,7 @@ describe('Deposit to TON Vault', () => {
         expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount);
 
         // Update tonVaultTonBalDelta
-        tonVaultTonBalDelta = depositAmount;
+        tonVaultTonBalDelta += depositAmount;
     }
 
     describe('Deposit success', () => {
@@ -359,8 +359,6 @@ describe('Deposit to TON Vault', () => {
                 firstDepositAmount,
                 firstDepositAmount,
             );
-            // Update tonVaultTonBalDelta
-            tonVaultTonBalDelta = firstDepositAmount + secondDepositAmount;
         });
     });
 
