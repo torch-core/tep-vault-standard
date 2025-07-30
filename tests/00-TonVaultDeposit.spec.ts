@@ -50,8 +50,8 @@ describe('Deposit to TON Vault', () => {
 
     async function expectTonDepositorBalances(
         depositor: SandboxContract<TreasuryContract>,
-        shareWallet: SandboxContract<JettonWallet>,
-        shareBalBefore: bigint,
+        receiverShareWallet: SandboxContract<JettonWallet>,
+        receiverShareBalBefore: bigint,
         tonBalBefore: bigint,
         depositAmount: bigint,
         increaseShares: bigint,
@@ -60,9 +60,9 @@ describe('Deposit to TON Vault', () => {
         const depositorTonBalanceAfter = await depositor.getBalance();
         expect(depositorTonBalanceAfter).toBeLessThan(tonBalBefore - depositAmount - DEPOSIT_GAS);
 
-        // Expect that share wallet balance is increased by depositAmount
-        const shareBalanceAfter = await shareWallet.getJettonBalance();
-        expect(shareBalanceAfter).toBe(shareBalBefore + increaseShares);
+        // Expect that receiver share wallet balance is increased by depositAmount
+        const receiverShareBalanceAfter = await receiverShareWallet.getJettonBalance();
+        expect(receiverShareBalanceAfter).toBe(receiverShareBalBefore + increaseShares);
     }
 
     async function expectTonVaultBalances(
@@ -83,8 +83,8 @@ describe('Deposit to TON Vault', () => {
         depositResult: SendMessageResult,
         depositor: SandboxContract<TreasuryContract>,
         receiver: SandboxContract<TreasuryContract>,
-        depositorShareWallet: SandboxContract<JettonWallet>,
-        depositorShareBalBefore: bigint,
+        receiverShareWallet: SandboxContract<JettonWallet>,
+        receiverShareBalBefore: bigint,
         depositorTonBalBefore: bigint,
         depositAmount: bigint,
         successCallbackPayload?: Cell,
@@ -95,8 +95,8 @@ describe('Deposit to TON Vault', () => {
         // Expect that depositor shares and ton balances are updated
         await expectTonDepositorBalances(
             depositor,
-            depositorShareWallet,
-            depositorShareBalBefore,
+            receiverShareWallet,
+            receiverShareBalBefore,
             depositorTonBalBefore,
             depositAmount,
             depositAmount,
@@ -148,11 +148,14 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful
-            await expectTONDepositTxs(
+            await expectTonDepositFlows(
                 depositResult,
                 maxey,
                 bob,
-                tonVault,
+                bobShareWallet,
+                bobShareBalBefore,
+                maxeyTonBalBefore,
+                depositAmount,
                 buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey),
             );
         });
@@ -246,11 +249,14 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful
-            await expectTONDepositTxs(
+            await expectTonDepositFlows(
                 depositResult,
                 maxey,
                 bob,
-                tonVault,
+                bobShareWallet,
+                bobShareBalBefore,
+                maxeyTonBalBefore,
+                depositAmount,
                 buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey, successCallbackPayload),
             );
         });
@@ -275,11 +281,14 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect the deposit to be successful with success callback and in body
-            await expectTONDepositTxs(
+            await expectTonDepositFlows(
                 depositResult,
                 maxey,
                 bob,
-                tonVault,
+                bobShareWallet,
+                bobShareBalBefore,
+                maxeyTonBalBefore,
+                depositAmount,
                 buildSuccessCallbackFp(
                     queryId,
                     depositAmount,
@@ -326,6 +335,9 @@ describe('Deposit to TON Vault', () => {
                 tonVault,
                 buildSuccessCallbackFp(secondQueryId, secondDepositAmount, tonVault, maxey),
             );
+
+            // Update tonVaultTonBalDelta
+            tonVaultTonBalDelta = firstDepositAmount + secondDepositAmount;
         });
     });
 
