@@ -5,10 +5,9 @@ import { createTestEnvironment } from './helper/setup';
 import { JettonMaster, JettonWallet } from '@ton/ton';
 import { expectJettonDepositTxs } from './helper/expectTxResults';
 import { expectDepositedEmitLog } from './helper/emitLog';
-import { expectVaultSharesAndAssets } from './helper/expectVault';
 import { expectJettonDepositorBalances, expectJettonVaultBalances } from './helper/expectBalances';
 import { buildSuccessCallbackFp } from './helper/callbackPayload';
-import { Cell } from '@ton/core';
+import { beginCell, Cell } from '@ton/core';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -73,6 +72,7 @@ describe('Deposit to Jetton Vault', () => {
             depositResult,
             depositor,
             depositorJettonWallet,
+            receiver,
             vault,
             vaultJettonWallet,
             successCallbackPayload,
@@ -100,8 +100,8 @@ describe('Deposit to Jetton Vault', () => {
         expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount);
     }
 
-    describe('Deposit success', () => {
-        it('should deposit successfully', async () => {
+    describe('Deposit Jetton success', () => {
+        it('should handle basic deposit to depositor', async () => {
             const depositAmount = 10000n;
             const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
                 queryId,
@@ -117,6 +117,68 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
                 buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey),
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                USDTVault,
+                vaultUSDTWallet,
+                vaultUSDTWalletBalBefore,
+            );
+        });
+
+        it('should handle deposit to specified receiver', async () => {
+            const depositAmount = 10000n;
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+                depositParams: {
+                    receiver: bob.address,
+                },
+            });
+            const depositResult = await maxey.send(depositArg);
+
+            // Expect that deposit is successful
+            await expectJettonDepositFlows(
+                depositResult,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                depositAmount,
+                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey),
+                bob,
+                bobShareWallet,
+                bobShareBalBefore,
+                USDTVault,
+                vaultUSDTWallet,
+                vaultUSDTWalletBalBefore,
+            );
+        });
+
+        it('should handle deposit with success callback (body not included)', async () => {
+            const depositAmount = 10000n;
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+                depositParams: {
+                    callbacks: {
+                        successCallback: {
+                            includeBody: false,
+                            payload: successCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArg);
+
+            // Expect that deposit is successful
+            await expectJettonDepositFlows(
+                depositResult,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                depositAmount,
+                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey, successCallbackPayload),
                 maxey,
                 maxeyShareWallet,
                 maxeyShareBalBefore,

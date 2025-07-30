@@ -88,7 +88,7 @@ describe('Deposit to TON Vault', () => {
         tonVaultTonBalDelta += depositAmount;
     }
 
-    describe('Deposit success', () => {
+    describe('Deposit TON success', () => {
         it('should handle basic deposit to depositor', async () => {
             // Maxey deposit 5 TON to TON Vault
             const depositAmount = toNano('5');

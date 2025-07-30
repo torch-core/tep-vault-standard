@@ -69,6 +69,7 @@ export async function expectJettonDepositTxs(
     depositResult: SendMessageResult,
     initiator: SandboxContract<TreasuryContract>,
     initiatorJettonWallet: SandboxContract<JettonWallet>,
+    receiver: SandboxContract<TreasuryContract>,
     vault: SandboxContract<Vault>,
     vaultJettonWallet: SandboxContract<JettonWallet>,
     callbackPayload: Cell,
@@ -106,7 +107,7 @@ export async function expectJettonDepositTxs(
     });
 
     // Validate share minting process
-    await expectMintShares(depositResult, vault, initiator, callbackPayload);
+    await expectMintShares(depositResult, vault, receiver, callbackPayload);
 }
 
 // =============================================================================
