@@ -363,7 +363,7 @@ describe('Deposit to TON Vault', () => {
     });
 
     describe('Deposit failure due to minimum shares not met and refund', () => {
-        beforeEach(async () => {
+        afterEach(async () => {
             // Bob share should be same
             const bobShareBalAfter = await bobShareWallet.getJettonBalance();
             expect(bobShareBalAfter).toBe(bobShareBalBefore);
