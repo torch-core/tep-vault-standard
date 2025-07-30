@@ -4,8 +4,8 @@ import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { JettonMaster, JettonWallet } from '@ton/ton';
 import { expectJettonDeposit } from './helper/expectTxResults';
-import { expectDepositedEmitLog } from './helper/emit';
-import { expectVaultSharesAndAssets } from './helper/check';
+import { expectDepositedEmitLog } from './helper/emitLog';
+import { expectVaultSharesAndAssets } from './helper/expectVault';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;

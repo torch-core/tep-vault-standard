@@ -5,7 +5,7 @@ import { Vault } from '../../wrappers/Vault';
 import { JettonMinter } from '../../wrappers/mock-jetton/JettonMinter';
 import { Opcodes } from '../../wrappers/constants/op';
 import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
-import { expectVaultStorage } from './check';
+import { expectVaultStorage } from './expectVault';
 
 export const createTestEnvironment = () => {
     // Blockchain

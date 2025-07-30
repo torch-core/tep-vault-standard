@@ -2,7 +2,7 @@ import { SandboxContract, SendMessageResult, TreasuryContract, Blockchain } from
 import { Vault, VaultStorage } from '../../wrappers/Vault';
 import { Cell } from '@ton/core';
 import { Opcodes } from '../../wrappers/constants/op';
-import { buildFailVaultNotification } from './callback';
+import { buildFailVaultNotification } from './callbackPayload';
 import { JettonWallet } from '@ton/ton';
 
 // =============================================================================

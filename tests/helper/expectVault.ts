@@ -30,10 +30,12 @@ export const expectVaultStorage = (storage: VaultStorage, expectedStorage: Vault
 
 export async function expectVaultSharesAndAssets(
     vault: SandboxContract<Vault>,
-    totalAssets: bigint,
-    totalSupply: bigint,
+    increaseAssets: bigint,
+    increaseSupply: bigint,
+    oldTotalAssets: bigint = 0n,
+    oldTotalSupply: bigint = 0n,
 ) {
     const vaultStorage = await vault.getStorage();
-    expect(vaultStorage.totalAssets).toBe(totalAssets);
-    expect(vaultStorage.totalSupply).toBe(totalSupply);
+    expect(vaultStorage.totalAssets).toBe(increaseAssets + oldTotalAssets);
+    expect(vaultStorage.totalSupply).toBe(increaseSupply + oldTotalSupply);
 }

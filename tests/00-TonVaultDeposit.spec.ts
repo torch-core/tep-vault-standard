@@ -4,11 +4,11 @@ import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, toNano } from '@ton/core';
 import { JettonWallet } from '../wrappers/mock-jetton/JettonWallet';
-import { buildSuccessCallbackFp } from './helper/callback';
+import { buildSuccessCallbackFp } from './helper/callbackPayload';
 import { expectFailDepositTON, expectTONDepositTxs } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
-import { expectDepositedEmitLog } from './helper/emit';
-import { expectVaultSharesAndAssets } from './helper/check';
+import { expectDepositedEmitLog } from './helper/emitLog';
+import { expectVaultSharesAndAssets } from './helper/expectVault';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
@@ -71,13 +71,15 @@ describe('Deposit to TON Vault', () => {
         tonBalBefore: bigint,
         depositAmount: bigint,
         increaseShares: bigint,
+        oldTotalAssets: bigint = 0n,
+        oldTotalSupply: bigint = 0n,
     ) {
         // Expect that vault ton balance is increased by depositAmount
         const vaultTonBalanceAfter = (await blockchain.getContract(vault.address)).balance;
         expect(vaultTonBalanceAfter).toBeGreaterThan(tonBalBefore + depositAmount - DEPOSIT_GAS);
 
         // Expect that vault shares are increased by depositAmount
-        await expectVaultSharesAndAssets(vault, depositAmount, increaseShares);
+        await expectVaultSharesAndAssets(vault, depositAmount, increaseShares, oldTotalAssets, oldTotalSupply);
     }
 
     async function expectTonDepositFlows(
@@ -89,6 +91,8 @@ describe('Deposit to TON Vault', () => {
         depositorTonBalBefore: bigint,
         depositAmount: bigint,
         successCallbackPayload?: Cell,
+        oldTotalAssets: bigint = 0n,
+        oldTotalSupply: bigint = 0n,
     ) {
         // Expect the deposit to be successful
         await expectTONDepositTxs(depositResult, depositor, receiver, tonVault, successCallbackPayload);
@@ -104,7 +108,14 @@ describe('Deposit to TON Vault', () => {
         );
 
         // Expect that tonVault balance is increased by depositAmount and shares/assets are increased by depositAmount
-        await expectTonVaultBalances(tonVault, tonVaultTONBalBefore, depositAmount, depositAmount);
+        await expectTonVaultBalances(
+            tonVault,
+            tonVaultTONBalBefore,
+            depositAmount,
+            depositAmount,
+            oldTotalAssets,
+            oldTotalSupply,
+        );
 
         // Expect that deposited emit log is emitted
         expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount);
@@ -311,13 +322,20 @@ describe('Deposit to TON Vault', () => {
             const firstDepositResult = await maxey.send(firstDepositArgs);
 
             // Expect the first deposit to be successful
-            await expectTONDepositTxs(
+            await expectTonDepositFlows(
                 firstDepositResult,
                 maxey,
                 maxey,
-                tonVault,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyTonBalBefore,
+                firstDepositAmount,
                 buildSuccessCallbackFp(queryId, firstDepositAmount, tonVault, maxey),
             );
+
+            // Update maxey share and ton balances
+            maxeyShareBalBefore = await maxeyShareWallet.getJettonBalance();
+            maxeyTonBalBefore = await maxey.getBalance();
 
             // Second deposit: Maxey deposit another 7 TON to TON Vault
             const secondDepositAmount = toNano('7');
@@ -329,14 +347,18 @@ describe('Deposit to TON Vault', () => {
             const secondDepositResult = await maxey.send(secondDepositArgs);
 
             // Expect the second deposit to be successful
-            await expectTONDepositTxs(
+            await expectTonDepositFlows(
                 secondDepositResult,
                 maxey,
                 maxey,
-                tonVault,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyTonBalBefore,
+                secondDepositAmount,
                 buildSuccessCallbackFp(secondQueryId, secondDepositAmount, tonVault, maxey),
+                firstDepositAmount,
+                firstDepositAmount,
             );
-
             // Update tonVaultTonBalDelta
             tonVaultTonBalDelta = firstDepositAmount + secondDepositAmount;
         });
