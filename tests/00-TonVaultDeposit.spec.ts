@@ -112,26 +112,6 @@ describe('Deposit to TON Vault', () => {
         tonVaultTonBalDelta = depositAmount;
     }
 
-    async function expectTonDepositFailureFlows(
-        depositResult: SendMessageResult,
-        depositor: SandboxContract<TreasuryContract>,
-        vault: SandboxContract<Vault>,
-        queryId: bigint,
-        exitCode: number,
-        depositorTonBalBefore: bigint,
-        failCallbackPayload?: Cell,
-        inBody?: Cell,
-    ) {
-        expectFailDepositTON(depositResult, depositor, vault, queryId, exitCode, failCallbackPayload, inBody);
-
-        // Expect that depositor ton balance is only decreased by gas fee
-        const depositorTonBalanceAfter = await depositor.getBalance();
-        expect(depositorTonBalanceAfter).toBeGreaterThan(depositorTonBalBefore - DEPOSIT_FAIL_GAS);
-
-        // Expect that tonVault shares and total assets are not updated
-        await expectVaultSharesAndAssets(vault, 0n, 0n);
-    }
-
     describe('Deposit success', () => {
         it('should handle basic deposit to depositor', async () => {
             // Maxey deposit 5 TON to TON Vault
@@ -350,6 +330,19 @@ describe('Deposit to TON Vault', () => {
     });
 
     describe('Deposit failure due to minimum shares not met and refund', () => {
+        beforeEach(async () => {
+            // Bob share should be same
+            const bobShareBalAfter = await bobShareWallet.getJettonBalance();
+            expect(bobShareBalAfter).toBe(bobShareBalBefore);
+
+            // Expect that maxey ton balance is only decreased by gas fee
+            const maxeyTonBalanceAfter = await maxey.getBalance();
+            expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEPOSIT_FAIL_GAS);
+
+            // Expect that tonVault shares and total assets are not updated
+            await expectVaultSharesAndAssets(tonVault, 0n, 0n);
+        });
+
         it('should handle basic deposit failure', async () => {
             // Maxey deposit 5 TON to TON Vault
             const depositAmount = toNano('5');
@@ -363,14 +356,7 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            await expectTonDepositFailureFlows(
-                depositResult,
-                maxey,
-                tonVault,
-                queryId,
-                VaultErrors.MinShareNotMet,
-                maxeyTonBalBefore,
-            );
+            expectFailDepositTON(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
         });
 
         it('should handle deposit failure with receiver', async () => {
@@ -387,14 +373,7 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            await expectTonDepositFailureFlows(
-                depositResult,
-                maxey,
-                tonVault,
-                queryId,
-                VaultErrors.MinShareNotMet,
-                maxeyTonBalBefore,
-            );
+            expectFailDepositTON(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
         });
 
         it('should handle deposit failure with failure callback (body not included)', async () => {
@@ -417,13 +396,12 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            await expectTonDepositFailureFlows(
+            expectFailDepositTON(
                 depositResult,
                 maxey,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,
-                maxeyTonBalBefore,
                 failCallbackPayload,
             );
         });
@@ -448,13 +426,12 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            await expectTonDepositFailureFlows(
+            expectFailDepositTON(
                 depositResult,
                 maxey,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,
-                maxeyTonBalBefore,
                 failCallbackPayload,
                 depositArgs.body,
             );
@@ -481,13 +458,12 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            await expectTonDepositFailureFlows(
+            expectFailDepositTON(
                 depositResult,
                 maxey,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,
-                maxeyTonBalBefore,
                 failCallbackPayload,
             );
         });
@@ -513,13 +489,12 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            await expectTonDepositFailureFlows(
+            expectFailDepositTON(
                 depositResult,
                 maxey,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,
-                maxeyTonBalBefore,
                 failCallbackPayload,
                 depositArgs.body,
             );
