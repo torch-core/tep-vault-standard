@@ -1,9 +1,8 @@
-import { beginCell, Cell } from '@ton/core';
+import { Address, beginCell, Cell, toNano } from '@ton/core';
 import { Blockchain, BlockchainSnapshot, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { compile } from '@ton/blueprint';
 import { Vault } from '../../wrappers/Vault';
 import { JettonMinter } from '../../wrappers/mock-jetton/JettonMinter';
-import { deployJettonMinter } from './jetton';
 import { Opcodes } from '../../wrappers/constants/op';
 import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 import { expectVaultStorage } from './expect';
@@ -142,6 +141,36 @@ export const createTestEnvironment = () => {
             tonVault,
             USDTVault,
         };
+    };
+
+    const deployJettonMinter = async (
+        blockchain: Blockchain,
+        deployer: SandboxContract<TreasuryContract>,
+        name: string,
+        admin?: Address,
+        decimals: number = 6,
+        premint: bigint = 1000_000_000_000n,
+    ) => {
+        const jettonMinterCode = await compile('JettonMinter');
+        const jettonWalletCode = await compile('JettonWallet');
+        let jetton: SandboxContract<JettonMinter>;
+        jetton = blockchain.openContract(
+            await JettonMinter.createFromConfig(
+                {
+                    admin: admin ?? deployer.address,
+                    wallet_code: jettonWalletCode,
+                    jetton_content: { uri: name },
+                },
+                jettonMinterCode,
+            ),
+        );
+
+        await jetton.sendDeploy(deployer.getSender(), toNano('1.5'));
+
+        // Mint some tokens to admin
+        await jetton.sendMint(deployer.getSender(), deployer.address, premint * BigInt(10 ** decimals));
+
+        return jetton;
     };
 
     return {
