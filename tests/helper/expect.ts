@@ -1,4 +1,4 @@
-import { SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { SandboxContract, SendMessageResult, TreasuryContract, Blockchain } from '@ton/sandbox';
 import { Vault, VaultStorage } from '../../wrappers/Vault';
 import { Cell } from '@ton/core';
 import { Opcodes } from '../../wrappers/constants/op';
@@ -113,30 +113,38 @@ export async function expectTONDeposit(
 export async function expectJettonDeposit(
     depositResult: SendMessageResult,
     initiator: SandboxContract<TreasuryContract>,
-    initiatorUSDTJettonWallet: SandboxContract<JettonWallet>,
+    initiatorJettonWallet: SandboxContract<JettonWallet>,
     vault: SandboxContract<Vault>,
-    vaultUSDTJettonWallet: SandboxContract<JettonWallet>,
+    vaultJettonWallet: SandboxContract<JettonWallet>,
     callbackPayload?: Cell,
 ) {
-    // Initiator transfers jettons from their wallet
+    // Initiator send OP_JETTON_TRANSFER to initiatorJettonWallet
     expect(depositResult.transactions).toHaveTransaction({
         from: initiator.address,
-        to: initiatorUSDTJettonWallet.address,
+        to: initiatorJettonWallet.address,
         op: Opcodes.Jetton.Transfer,
         success: true,
     });
 
-    // Jetton transfer between wallets
+    // initiatorJettonWallet send OP_JETTON_INTERNAL_TRANSFER to vaultJettonWallet
     expect(depositResult.transactions).toHaveTransaction({
-        from: initiatorUSDTJettonWallet.address,
-        to: vaultUSDTJettonWallet.address,
+        from: initiatorJettonWallet.address,
+        to: vaultJettonWallet.address,
         op: Opcodes.Jetton.InternalTransfer,
         success: true,
     });
 
-    // Vault's jetton wallet notifies vault about received jettons
+    // vaultJettonWallet send OP_EXCESSES to initiator
     expect(depositResult.transactions).toHaveTransaction({
-        from: vaultUSDTJettonWallet.address,
+        from: vaultJettonWallet.address,
+        to: initiator.address,
+        op: Opcodes.Jetton.Excesses,
+        success: true,
+    });
+
+    // vaultJettonWallet send OP_JETTON_TRANSFER_NOTIFICATION to vault
+    expect(depositResult.transactions).toHaveTransaction({
+        from: vaultJettonWallet.address,
         to: vault.address,
         op: Opcodes.Jetton.TransferNotification,
         success: true,

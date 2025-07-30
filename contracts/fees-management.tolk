@@ -1,17 +1,16 @@
 import "constants/errors";
 
-const DEPOSIT_TON_GAS = ton("0.012");
-const DEPOSIT_JETTON_GAS = 10000;
-const WITHDRAW_GAS = 10000;
+const DEPOSIT_GAS = ton("0.012");
+const WITHDRAW_GAS = ton("0.02");
 
 fun processTonDepositGas(valueCoins: coins, depositAmount: coins) {
-    assert (valueCoins >= depositAmount + DEPOSIT_TON_GAS) throw ERR_TON_DEPOSIT_GAS_TOO_LOW;
-    return valueCoins - depositAmount - DEPOSIT_TON_GAS;
+    assert (valueCoins >= depositAmount + DEPOSIT_GAS) throw ERR_TON_DEPOSIT_GAS_TOO_LOW;
+    return valueCoins - depositAmount - DEPOSIT_GAS;
 }
 
 fun processJettonDepositGas(valueCoins: coins) {
-    assert (valueCoins >= DEPOSIT_JETTON_GAS) throw ERR_JETTON_DEPOSIT_GAS_TOO_LOW;
-    return valueCoins - DEPOSIT_JETTON_GAS;
+    assert (valueCoins >= DEPOSIT_GAS) throw ERR_JETTON_DEPOSIT_GAS_TOO_LOW;
+    return valueCoins - DEPOSIT_GAS;
 }
 
 fun processWithdrawGas(valueCoins: coins) {

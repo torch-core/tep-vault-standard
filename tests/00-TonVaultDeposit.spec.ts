@@ -56,6 +56,7 @@ describe('Deposit to TON Vault', () => {
                 depositAmount,
             });
             const depositResult = await maxey.send(depositArgs);
+
             // Expect the deposit to be successful
             await expectTONDeposit(
                 depositResult,
@@ -68,6 +69,10 @@ describe('Deposit to TON Vault', () => {
             // Expect that maxey shares is depositAmount
             const maxeyShareBalanceAfter = await maxeyShareWallet.getJettonBalance();
             expect(maxeyShareBalanceAfter).toBe(maxeyShareBalBefore + depositAmount);
+
+            // Expect that tonVault balance is increased by depositAmount
+            const tonVaultBalanceAfter = (await blockchain.getContract(tonVault.address)).balance;
+            expect(tonVaultBalanceAfter).toBeGreaterThan(tonVaultTONBalBefore + depositAmount);
 
             // Expect that vault storage is updated
             await expectVaultSharesAndAssets(tonVault, depositAmount, depositAmount);

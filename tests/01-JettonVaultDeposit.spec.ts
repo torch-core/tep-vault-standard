@@ -4,6 +4,7 @@ import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { JettonMaster, JettonWallet } from '@ton/ton';
 import { expectVaultSharesAndAssets, expectJettonDeposit } from './helper/expect';
+import { expectDepositedEmitLog } from './helper/emit';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -16,8 +17,8 @@ describe('Deposit to Jetton Vault', () => {
     let maxeyShareBalBefore: bigint;
     let bobShareWallet: SandboxContract<JettonWallet>;
     let bobShareBalBefore: bigint;
-    let vaultJettonWallet: SandboxContract<JettonWallet>;
-    let vaultJettonWalletBalBefore: bigint;
+    let vaultUSDTWallet: SandboxContract<JettonWallet>;
+    let vaultUSDTWalletBalBefore: bigint;
     let vaultTonBalBefore: bigint;
 
     let maxeyUSDTWallet: SandboxContract<JettonWallet>;
@@ -36,13 +37,16 @@ describe('Deposit to Jetton Vault', () => {
         bobShareBalBefore = await bobShareWallet.getBalance();
 
         vaultTonBalBefore = (await blockchain.getContract(USDTVault.address)).balance;
-        vaultJettonWallet = blockchain.openContract(
-            JettonWallet.create(await USDT.getWalletAddress(USDTVault.address)),
-        );
-        vaultJettonWalletBalBefore = await vaultJettonWallet.getBalance();
+        vaultUSDTWallet = blockchain.openContract(JettonWallet.create(await USDT.getWalletAddress(USDTVault.address)));
+        vaultUSDTWalletBalBefore = await vaultUSDTWallet.getBalance();
 
         maxeyUSDTWallet = blockchain.openContract(JettonWallet.create(await USDT.getWalletAddress(maxey.address)));
         maxeyUSDTWalletBalBefore = await maxeyUSDTWallet.getBalance();
+    });
+
+    afterEach(async () => {
+        const vaultTonBalanceAfter = (await blockchain.getContract(USDTVault.address)).balance;
+        expect(vaultTonBalanceAfter).toBeGreaterThanOrEqual(vaultTonBalBefore);
     });
 
     describe('Deposit success', () => {
@@ -54,7 +58,8 @@ describe('Deposit to Jetton Vault', () => {
             });
             const depositResult = await maxey.send(depositArg);
 
-            await expectJettonDeposit(depositResult, maxey, maxeyUSDTWallet, USDTVault, vaultJettonWallet);
+            // Expect that deposit is successful
+            await expectJettonDeposit(depositResult, maxey, maxeyUSDTWallet, USDTVault, vaultUSDTWallet);
 
             // Expect that maxey share wallet balance is increased by depositAmount
             expect(await maxeyShareWallet.getBalance()).toBe(maxeyShareBalBefore + depositAmount);
@@ -63,9 +68,12 @@ describe('Deposit to Jetton Vault', () => {
             expect(await maxeyUSDTWallet.getBalance()).toBe(maxeyUSDTWalletBalBefore - depositAmount);
 
             // Expect that vault jetton wallet balance is increased by depositAmount
-            expect(await vaultJettonWallet.getBalance()).toBe(vaultJettonWalletBalBefore + depositAmount);
+            expect(await vaultUSDTWallet.getBalance()).toBe(vaultUSDTWalletBalBefore + depositAmount);
 
             await expectVaultSharesAndAssets(USDTVault, depositAmount, depositAmount);
+
+            // Expect that deposited emit log is emitted
+            expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
         });
     });
 });

@@ -16,7 +16,7 @@ export const DEFAULT_FAIL_CALLBACK_PAYLOAD = beginCell()
     .storeStringTail('Vault interaction failed')
     .endCell();
 
-export function buildJettonTransferNotificationPayload(
+export function buildTransferNotificationPayload(
     queryId: bigint,
     jettonAmount: bigint,
     receiver: Address,
@@ -63,5 +63,5 @@ export function buildSuccessCallbackFp(
         .storeRef(successCallbackPayload ?? DEFAULT_SUCCESS_CALLBACK_PAYLOAD)
         .storeMaybeRef(inBody)
         .endCell();
-    return buildJettonTransferNotificationPayload(queryId, depositAmount, vault.address, callbackPayload);
+    return buildTransferNotificationPayload(queryId, depositAmount, vault.address, callbackPayload);
 }
