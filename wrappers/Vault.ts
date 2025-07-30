@@ -108,7 +108,7 @@ export class Vault implements Contract {
         return beginCell().storeBit(params.includeBody).storeRef(params.payload).endCell();
     }
 
-    private storeVaultDepositParams(params?: VaultDepositParams) {
+    storeVaultDepositParams(params?: VaultDepositParams) {
         return (builder: Builder) => {
             return builder
                 .storeAddress(params?.receiver)

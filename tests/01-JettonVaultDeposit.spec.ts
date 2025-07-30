@@ -6,8 +6,10 @@ import { JettonMaster, JettonWallet } from '@ton/ton';
 import { expectJettonDepositTxs } from './helper/expectTxResults';
 import { expectDepositedEmitLog } from './helper/emitLog';
 import { expectJettonDepositorBalances, expectJettonVaultBalances } from './helper/expectBalances';
-import { buildSuccessCallbackFp } from './helper/callbackPayload';
+import { buildSuccessCallbackFp, buildTransferNotificationPayload } from './helper/callbackPayload';
 import { beginCell, Cell } from '@ton/core';
+import { Opcodes } from '../wrappers/constants/op';
+import { OPCODE_SIZE } from '../wrappers/constants/size';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -187,5 +189,135 @@ describe('Deposit to Jetton Vault', () => {
                 vaultUSDTWalletBalBefore,
             );
         });
+
+        it('should handle deposit with success callback (body included)', async () => {
+            const depositAmount = 10000n;
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositParams = {
+                callbacks: {
+                    successCallback: {
+                        includeBody: true,
+                        payload: successCallbackPayload,
+                    },
+                },
+            };
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+                depositParams,
+            });
+            const depositResult = await maxey.send(depositArg);
+
+            const inBody = buildTransferNotificationPayload(
+                queryId,
+                depositAmount,
+                maxey.address,
+                beginCell()
+                    .storeUint(Opcodes.Vault.DepositFp, OPCODE_SIZE)
+                    .store(USDTVault.storeVaultDepositParams(depositParams))
+                    .endCell(),
+            );
+
+            // Expect that deposit is successful
+            await expectJettonDepositFlows(
+                depositResult,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                depositAmount,
+                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey, successCallbackPayload, inBody),
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                USDTVault,
+                vaultUSDTWallet,
+                vaultUSDTWalletBalBefore,
+            );
+        });
+
+        it('should handle deposit to receiver with success callback (body not included)', async () => {
+            const depositAmount = 10000n;
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+                depositParams: {
+                    receiver: bob.address,
+                    callbacks: {
+                        successCallback: {
+                            includeBody: false,
+                            payload: successCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArg);
+
+            // Expect that deposit is successful
+            await expectJettonDepositFlows(
+                depositResult,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                depositAmount,
+                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey, successCallbackPayload),
+                bob,
+                bobShareWallet,
+                bobShareBalBefore,
+                USDTVault,
+                vaultUSDTWallet,
+                vaultUSDTWalletBalBefore,
+            );
+        });
+
+        it('should handle deposit to receiver with success callback (body included)', async () => {
+            const depositAmount = 10000n;
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositParams = {
+                receiver: bob.address,
+                callbacks: {
+                    successCallback: {
+                        includeBody: true,
+                        payload: successCallbackPayload,
+                    },
+                },
+            };
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+                depositParams,
+            });
+            const depositResult = await maxey.send(depositArg);
+
+            const inBody = buildTransferNotificationPayload(
+                queryId,
+                depositAmount,
+                maxey.address,
+                beginCell()
+                    .storeUint(Opcodes.Vault.DepositFp, OPCODE_SIZE)
+                    .store(USDTVault.storeVaultDepositParams(depositParams))
+                    .endCell(),
+            );
+
+            // Expect that deposit is successful
+            await expectJettonDepositFlows(
+                depositResult,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                depositAmount,
+                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey, successCallbackPayload, inBody),
+                bob,
+                bobShareWallet,
+                bobShareBalBefore,
+                USDTVault,
+                vaultUSDTWallet,
+                vaultUSDTWalletBalBefore,
+            );
+        });
+    });
+
+    describe('Deposit Jetton failure due to minimum shares not met and refund', () => {
+        // TODO
     });
 });

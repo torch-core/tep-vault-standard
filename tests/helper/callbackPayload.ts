@@ -19,14 +19,14 @@ export const DEFAULT_FAIL_CALLBACK_PAYLOAD = beginCell()
 export function buildTransferNotificationPayload(
     queryId: bigint,
     jettonAmount: bigint,
-    receiver: Address,
+    sender: Address,
     forwardPayload?: Cell,
 ) {
     return beginCell()
         .storeUint(JettonOpcodes.TransferNotification, OPCODE_SIZE)
         .storeUint(queryId, QUERY_ID_SIZE)
         .storeCoins(jettonAmount)
-        .storeAddress(receiver)
+        .storeAddress(sender)
         .storeMaybeRef(forwardPayload)
         .endCell();
 }
