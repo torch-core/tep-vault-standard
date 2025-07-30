@@ -5,19 +5,26 @@ import { Opcodes } from '../../wrappers/constants/op';
 import { buildFailVaultNotification } from './callback';
 import { JettonWallet } from '@ton/ton';
 
+// =============================================================================
+// Storage Validation Helpers
+// =============================================================================
+
 export const expectVaultStorage = (storage: VaultStorage, expectedStorage: VaultStorage) => {
+    // Basic storage fields
     expect(storage.adminAddress.equals(expectedStorage.adminAddress)).toBeTruthy();
     expect(storage.totalSupply).toBe(expectedStorage.totalSupply);
     expect(storage.totalAssets).toBe(expectedStorage.totalAssets);
     expect(storage.jettonWalletCode.equals(expectedStorage.jettonWalletCode)).toBeTruthy();
     expect(storage.content.equals(expectedStorage.content)).toBeTruthy();
 
+    // Optional jetton master validation
     if (expectedStorage.jettonMaster) {
         expect(storage.jettonMaster?.equals(expectedStorage.jettonMaster)).toBeTruthy();
     } else {
         expect(storage.jettonMaster).toBeNull();
     }
 
+    // Optional jetton wallet address validation
     if (expectedStorage.jettonWalletAddress) {
         expect(storage.jettonWalletAddress?.equals(expectedStorage.jettonWalletAddress)).toBeTruthy();
     } else {
@@ -25,14 +32,29 @@ export const expectVaultStorage = (storage: VaultStorage, expectedStorage: Vault
     }
 };
 
+export async function expectVaultSharesAndAssets(
+    vault: SandboxContract<Vault>,
+    totalAssets: bigint,
+    totalSupply: bigint,
+) {
+    const vaultStorage = await vault.getStorage();
+    expect(vaultStorage.totalAssets).toBe(totalAssets);
+    expect(vaultStorage.totalSupply).toBe(totalSupply);
+}
+
+// =============================================================================
+// Share Minting Validation
+// =============================================================================
+
 export async function expectMintShares(
     depositResult: SendMessageResult,
     vault: SandboxContract<Vault>,
     receiver: SandboxContract<TreasuryContract>,
     callbackPayload?: Cell,
 ) {
-    // Expect that vault send OP_INTERNAL_TRANSFER to receiver share jetton wallet
     const receiverShareWalletAddress = await vault.getWalletAddress(receiver.address);
+
+    // Vault sends shares to receiver's jetton wallet
     expect(depositResult.transactions).toHaveTransaction({
         from: vault.address,
         to: receiverShareWalletAddress,
@@ -40,7 +62,7 @@ export async function expectMintShares(
         success: true,
     });
 
-    // Expect that receiver share jetton wallet send OP_EXCESSES to receiver
+    // Share wallet returns excess gas to receiver
     expect(depositResult.transactions).toHaveTransaction({
         from: receiverShareWalletAddress,
         to: receiver.address,
@@ -48,7 +70,7 @@ export async function expectMintShares(
         success: true,
     });
 
-    // Expect that receiver share jetton wallet send OP_TRANSFER_NOTIFICATION to receiver
+    // Share wallet notifies receiver about the transfer
     if (callbackPayload) {
         expect(depositResult.transactions).toHaveTransaction({
             from: receiverShareWalletAddress,
@@ -65,6 +87,10 @@ export async function expectMintShares(
     }
 }
 
+// =============================================================================
+// Successful Deposit Validation
+// =============================================================================
+
 export async function expectTONDeposit(
     depositResult: SendMessageResult,
     initiator: SandboxContract<TreasuryContract>,
@@ -72,7 +98,7 @@ export async function expectTONDeposit(
     vault: SandboxContract<Vault>,
     callbackPayload?: Cell,
 ) {
-    // Expect that receiver send OP_DEPOSIT to vault
+    // Initiator sends TON deposit to vault
     expect(depositResult.transactions).toHaveTransaction({
         from: initiator.address,
         to: vault.address,
@@ -80,6 +106,7 @@ export async function expectTONDeposit(
         success: true,
     });
 
+    // Validate share minting process
     await expectMintShares(depositResult, vault, receiver, callbackPayload);
 }
 
@@ -91,7 +118,7 @@ export async function expectJettonDeposit(
     vaultUSDTJettonWallet: SandboxContract<JettonWallet>,
     callbackPayload?: Cell,
 ) {
-    // Expect that initiator send OP_TRANSFER to initiatorUSDTJettonWallet
+    // Initiator transfers jettons from their wallet
     expect(depositResult.transactions).toHaveTransaction({
         from: initiator.address,
         to: initiatorUSDTJettonWallet.address,
@@ -99,7 +126,7 @@ export async function expectJettonDeposit(
         success: true,
     });
 
-    // Expect that initiatorUSDTJettonWallet send OP_INTERNAL_TRANSFER to vaultUSDTJettonWallet
+    // Jetton transfer between wallets
     expect(depositResult.transactions).toHaveTransaction({
         from: initiatorUSDTJettonWallet.address,
         to: vaultUSDTJettonWallet.address,
@@ -107,7 +134,7 @@ export async function expectJettonDeposit(
         success: true,
     });
 
-    // Expect that vaultUSDTJettonWallet send OP_TRANSFER_NOTIFICATION to Vault
+    // Vault's jetton wallet notifies vault about received jettons
     expect(depositResult.transactions).toHaveTransaction({
         from: vaultUSDTJettonWallet.address,
         to: vault.address,
@@ -115,8 +142,13 @@ export async function expectJettonDeposit(
         success: true,
     });
 
+    // Validate share minting process
     await expectMintShares(depositResult, vault, initiator, callbackPayload);
 }
+
+// =============================================================================
+// Failed Deposit Validation
+// =============================================================================
 
 export function expectFailDepositTON(
     depositResult: SendMessageResult,
@@ -127,7 +159,7 @@ export function expectFailDepositTON(
     callbackPayload?: Cell,
     inBody?: Cell,
 ) {
-    // Expect that initiator send OP_DEPOSIT to vault and fail with ERR_MIN_SHARES_NOT_MET
+    // Deposit transaction fails with specified exit code
     expect(depositResult.transactions).toHaveTransaction({
         from: initiator.address,
         to: vault.address,
@@ -136,7 +168,7 @@ export function expectFailDepositTON(
         exitCode: exitCode,
     });
 
-    // Expect that Vault send OP_VAULT_NOTIFICATION to initiator
+    // Vault sends failure notification back to initiator
     expect(depositResult.transactions).toHaveTransaction({
         from: vault.address,
         to: initiator.address,
@@ -144,14 +176,4 @@ export function expectFailDepositTON(
         success: true,
         body: buildFailVaultNotification(queryId, exitCode, initiator.address, callbackPayload, inBody),
     });
-}
-
-export async function expectDepositedVaultStorage(
-    vault: SandboxContract<Vault>,
-    totalAssets: bigint,
-    totalSupply: bigint,
-) {
-    const vaultStorage = await vault.getStorage();
-    expect(vaultStorage.totalAssets).toBe(totalAssets);
-    expect(vaultStorage.totalSupply).toBe(totalSupply);
 }

@@ -3,7 +3,7 @@ import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { JettonMaster, JettonWallet } from '@ton/ton';
-import { expectDepositedVaultStorage, expectJettonDeposit } from './helper/expect';
+import { expectVaultSharesAndAssets, expectJettonDeposit } from './helper/expect';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -28,13 +28,17 @@ describe('Deposit to Jetton Vault', () => {
     beforeEach(async () => {
         await resetToInitSnapshot();
         ({ blockchain, maxey, bob, USDTVault: USDTVault, USDT } = getTestContext());
-        maxeyShareWallet = blockchain.openContract(JettonWallet.create(await USDTVault.getWalletAddress(maxey.address)));
+        maxeyShareWallet = blockchain.openContract(
+            JettonWallet.create(await USDTVault.getWalletAddress(maxey.address)),
+        );
         bobShareWallet = blockchain.openContract(JettonWallet.create(await USDTVault.getWalletAddress(bob.address)));
         maxeyShareBalBefore = await maxeyShareWallet.getBalance();
         bobShareBalBefore = await bobShareWallet.getBalance();
 
         vaultTonBalBefore = (await blockchain.getContract(USDTVault.address)).balance;
-        vaultJettonWallet = blockchain.openContract(JettonWallet.create(await USDT.getWalletAddress(USDTVault.address)));
+        vaultJettonWallet = blockchain.openContract(
+            JettonWallet.create(await USDT.getWalletAddress(USDTVault.address)),
+        );
         vaultJettonWalletBalBefore = await vaultJettonWallet.getBalance();
 
         maxeyUSDTWallet = blockchain.openContract(JettonWallet.create(await USDT.getWalletAddress(maxey.address)));
@@ -61,7 +65,7 @@ describe('Deposit to Jetton Vault', () => {
             // Expect that vault jetton wallet balance is increased by depositAmount
             expect(await vaultJettonWallet.getBalance()).toBe(vaultJettonWalletBalBefore + depositAmount);
 
-            await expectDepositedVaultStorage(USDTVault, depositAmount, depositAmount);
+            await expectVaultSharesAndAssets(USDTVault, depositAmount, depositAmount);
         });
     });
 });
