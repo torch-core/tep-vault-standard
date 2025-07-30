@@ -4,7 +4,7 @@ import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, toNano } from '@ton/core';
 import { buildSuccessCallbackFp } from './helper/callbackPayload';
-import { expectFailDepositTON, expectTONDepositTxs } from './helper/expectTxResults';
+import { expectFailDepositTONTxs, expectTONDepositTxs } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emitLog';
 import { expectVaultSharesAndAssets } from './helper/expectVault';
@@ -53,7 +53,7 @@ describe('Deposit to TON Vault', () => {
         receiverShareBalBefore: bigint,
         depositorTonBalBefore: bigint,
         depositAmount: bigint,
-        successCallbackPayload?: Cell,
+        successCallbackPayload: Cell,
         oldTotalAssets: bigint = 0n,
         oldTotalSupply: bigint = 0n,
     ) {
@@ -353,7 +353,7 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            expectFailDepositTON(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
+            expectFailDepositTONTxs(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
         });
 
         it('should handle deposit failure with receiver', async () => {
@@ -370,7 +370,7 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            expectFailDepositTON(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
+            expectFailDepositTONTxs(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
         });
 
         it('should handle deposit failure with failure callback (body not included)', async () => {
@@ -393,7 +393,7 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            expectFailDepositTON(
+            expectFailDepositTONTxs(
                 depositResult,
                 maxey,
                 tonVault,
@@ -423,7 +423,7 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            expectFailDepositTON(
+            expectFailDepositTONTxs(
                 depositResult,
                 maxey,
                 tonVault,
@@ -455,7 +455,7 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            expectFailDepositTON(
+            expectFailDepositTONTxs(
                 depositResult,
                 maxey,
                 tonVault,
@@ -486,7 +486,7 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            expectFailDepositTON(
+            expectFailDepositTONTxs(
                 depositResult,
                 maxey,
                 tonVault,

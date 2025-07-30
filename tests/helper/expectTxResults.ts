@@ -13,7 +13,7 @@ export async function expectMintShares(
     depositResult: SendMessageResult,
     vault: SandboxContract<Vault>,
     receiver: SandboxContract<TreasuryContract>,
-    callbackPayload?: Cell,
+    callbackPayload: Cell,
 ) {
     const receiverShareWalletAddress = await vault.getWalletAddress(receiver.address);
 
@@ -34,20 +34,12 @@ export async function expectMintShares(
     });
 
     // Share wallet notifies receiver about the transfer
-    if (callbackPayload) {
-        expect(depositResult.transactions).toHaveTransaction({
-            from: receiverShareWalletAddress,
-            to: receiver.address,
-            op: Opcodes.Jetton.TransferNotification,
-            body: callbackPayload,
-        });
-    } else {
-        expect(depositResult.transactions).toHaveTransaction({
-            from: receiverShareWalletAddress,
-            to: receiver.address,
-            op: Opcodes.Jetton.TransferNotification,
-        });
-    }
+    expect(depositResult.transactions).toHaveTransaction({
+        from: receiverShareWalletAddress,
+        to: receiver.address,
+        op: Opcodes.Jetton.TransferNotification,
+        body: callbackPayload,
+    });
 }
 
 // =============================================================================
@@ -59,7 +51,7 @@ export async function expectTONDepositTxs(
     initiator: SandboxContract<TreasuryContract>,
     receiver: SandboxContract<TreasuryContract>,
     vault: SandboxContract<Vault>,
-    callbackPayload?: Cell,
+    callbackPayload: Cell,
 ) {
     // Initiator sends TON deposit to vault
     expect(depositResult.transactions).toHaveTransaction({
@@ -73,13 +65,13 @@ export async function expectTONDepositTxs(
     await expectMintShares(depositResult, vault, receiver, callbackPayload);
 }
 
-export async function expectJettonDeposit(
+export async function expectJettonDepositTxs(
     depositResult: SendMessageResult,
     initiator: SandboxContract<TreasuryContract>,
     initiatorJettonWallet: SandboxContract<JettonWallet>,
     vault: SandboxContract<Vault>,
     vaultJettonWallet: SandboxContract<JettonWallet>,
-    callbackPayload?: Cell,
+    callbackPayload: Cell,
 ) {
     // Initiator send OP_JETTON_TRANSFER to initiatorJettonWallet
     expect(depositResult.transactions).toHaveTransaction({
@@ -121,7 +113,7 @@ export async function expectJettonDeposit(
 // Failed Deposit Validation
 // =============================================================================
 
-export function expectFailDepositTON(
+export function expectFailDepositTONTxs(
     depositResult: SendMessageResult,
     initiator: SandboxContract<TreasuryContract>,
     vault: SandboxContract<Vault>,

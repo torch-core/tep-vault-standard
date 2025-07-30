@@ -1,11 +1,14 @@
-import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { JettonMaster, JettonWallet } from '@ton/ton';
-import { expectJettonDeposit } from './helper/expectTxResults';
+import { expectJettonDepositTxs } from './helper/expectTxResults';
 import { expectDepositedEmitLog } from './helper/emitLog';
 import { expectVaultSharesAndAssets } from './helper/expectVault';
+import { expectJettonDepositorBalances, expectJettonVaultBalances } from './helper/expectBalances';
+import { buildSuccessCallbackFp } from './helper/callbackPayload';
+import { Cell } from '@ton/core';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -25,6 +28,7 @@ describe('Deposit to Jetton Vault', () => {
     let maxeyUSDTWallet: SandboxContract<JettonWallet>;
     let maxeyUSDTWalletBalBefore: bigint;
 
+    const queryId = 8n;
     const { getTestContext, resetToInitSnapshot } = createTestEnvironment();
 
     beforeEach(async () => {
@@ -50,31 +54,76 @@ describe('Deposit to Jetton Vault', () => {
         expect(vaultTonBalanceAfter).toBeGreaterThanOrEqual(vaultTonBalBefore);
     });
 
+    async function expectJettonDepositFlows(
+        depositResult: SendMessageResult,
+        depositor: SandboxContract<TreasuryContract>,
+        depositorJettonWallet: SandboxContract<JettonWallet>,
+        depositorJettonWalletBalBefore: bigint,
+        depositAmount: bigint,
+        successCallbackPayload: Cell,
+        receiver: SandboxContract<TreasuryContract>,
+        receiverShareWallet: SandboxContract<JettonWallet>,
+        receiverShareBalBefore: bigint,
+        vault: SandboxContract<Vault>,
+        vaultJettonWallet: SandboxContract<JettonWallet>,
+        vaultJettonWalletBalBefore: bigint,
+    ) {
+        // Expect that deposit is successful
+        await expectJettonDepositTxs(
+            depositResult,
+            depositor,
+            depositorJettonWallet,
+            vault,
+            vaultJettonWallet,
+            successCallbackPayload,
+        );
+
+        // Expect depositor balances
+        await expectJettonDepositorBalances(
+            depositorJettonWallet,
+            depositorJettonWalletBalBefore,
+            depositAmount,
+            receiverShareWallet,
+            receiverShareBalBefore,
+        );
+
+        // Expect vault balances
+        await expectJettonVaultBalances(
+            vault,
+            vaultJettonWallet,
+            vaultJettonWalletBalBefore,
+            depositAmount,
+            depositAmount,
+        );
+
+        // Expect that deposited emit log is emitted
+        expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount);
+    }
+
     describe('Deposit success', () => {
         it('should deposit successfully', async () => {
             const depositAmount = 10000n;
             const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
-                queryId: 8n,
+                queryId,
                 depositAmount,
             });
             const depositResult = await maxey.send(depositArg);
 
             // Expect that deposit is successful
-            await expectJettonDeposit(depositResult, maxey, maxeyUSDTWallet, USDTVault, vaultUSDTWallet);
-
-            // Expect that maxey share wallet balance is increased by depositAmount
-            expect(await maxeyShareWallet.getBalance()).toBe(maxeyShareBalBefore + depositAmount);
-
-            // Expect that maxey USDT wallet balance is decreased by depositAmount
-            expect(await maxeyUSDTWallet.getBalance()).toBe(maxeyUSDTWalletBalBefore - depositAmount);
-
-            // Expect that vault jetton wallet balance is increased by depositAmount
-            expect(await vaultUSDTWallet.getBalance()).toBe(vaultUSDTWalletBalBefore + depositAmount);
-
-            await expectVaultSharesAndAssets(USDTVault, depositAmount, depositAmount);
-
-            // Expect that deposited emit log is emitted
-            expectDepositedEmitLog(depositResult, maxey.address, maxey.address, depositAmount, depositAmount);
+            await expectJettonDepositFlows(
+                depositResult,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                depositAmount,
+                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey),
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                USDTVault,
+                vaultUSDTWallet,
+                vaultUSDTWalletBalBefore,
+            );
         });
     });
 });

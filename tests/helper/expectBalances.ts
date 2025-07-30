@@ -23,6 +23,20 @@ export async function expectTonDepositorBalances(
     expect(receiverShareBalanceAfter).toBe(receiverShareBalBefore + increaseShares);
 }
 
+export async function expectJettonDepositorBalances(
+    depositorJettonWallet: SandboxContract<JettonWallet>,
+    depositorJettonWalletBalBefore: bigint,
+    depositAmount: bigint,
+    receiverShareWallet: SandboxContract<JettonWallet>,
+    receiverShareWalletBalBefore: bigint,
+) {
+    // Expect that depositor jetton wallet balance is decreased by depositAmount
+    expect(await depositorJettonWallet.getBalance()).toBe(depositorJettonWalletBalBefore - depositAmount);
+
+    // Expect that receiver shares wallet balance is increased by depositAmount
+    expect(await receiverShareWallet.getBalance()).toBe(receiverShareWalletBalBefore + depositAmount);
+}
+
 export async function expectTonVaultBalances(
     blockchain: Blockchain,
     vault: SandboxContract<Vault>,
@@ -37,5 +51,21 @@ export async function expectTonVaultBalances(
     expect(vaultTonBalanceAfter).toBeGreaterThan(tonBalBefore + depositAmount - DEPOSIT_GAS);
 
     // Expect that vault shares are increased by depositAmount
+    await expectVaultSharesAndAssets(vault, depositAmount, increaseShares, oldTotalAssets, oldTotalSupply);
+}
+
+export async function expectJettonVaultBalances(
+    vault: SandboxContract<Vault>,
+    vaultJettonWallet: SandboxContract<JettonWallet>,
+    vaultJettonWalletBalBefore: bigint,
+    depositAmount: bigint,
+    increaseShares: bigint,
+    oldTotalAssets: bigint = 0n,
+    oldTotalSupply: bigint = 0n,
+) {
+    // Expect that vault jetton wallet balance is increased by depositAmount
+    expect(await vaultJettonWallet.getBalance()).toBe(vaultJettonWalletBalBefore + depositAmount);
+
+    // Expect that vault shares and assets are increased
     await expectVaultSharesAndAssets(vault, depositAmount, increaseShares, oldTotalAssets, oldTotalSupply);
 }
