@@ -5,9 +5,10 @@ import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, toNano } from '@ton/core';
 import { JettonWallet } from '../wrappers/mock-jetton/JettonWallet';
 import { buildSuccessCallbackFp } from './helper/callback';
-import { expectVaultSharesAndAssets, expectFailDepositTON, expectTONDepositTxs } from './helper/expect';
+import { expectFailDepositTON, expectTONDepositTxs } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emit';
+import { expectVaultSharesAndAssets } from './helper/check';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
