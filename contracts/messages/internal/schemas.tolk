@@ -63,7 +63,7 @@ struct Callbacks {
 struct VaultNotificationParams {
     result: Result
     initiator: address
-    callbackPayload: cell
+    callbackPayload: cell?
     inMsg: cell?
 }
 

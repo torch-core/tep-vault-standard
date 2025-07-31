@@ -43,7 +43,7 @@ export function buildFailVaultNotification(
         .storeUint(queryId, QUERY_ID_SIZE)
         .storeUint(errorCode, RESULT_SIZE)
         .storeAddress(initiator)
-        .storeRef(callbackPayload ?? DEFAULT_FAIL_CALLBACK_PAYLOAD)
+        .storeMaybeRef(callbackPayload ?? DEFAULT_FAIL_CALLBACK_PAYLOAD)
         .storeMaybeRef(inBody)
         .endCell();
 }
@@ -60,7 +60,7 @@ export function buildSuccessCallbackFp(
         .storeUint(Opcodes.Vault.VaultNotificationFp, OPCODE_SIZE)
         .storeUint(0, RESULT_SIZE)
         .storeAddress(initiator.address)
-        .storeRef(successCallbackPayload ?? DEFAULT_SUCCESS_CALLBACK_PAYLOAD)
+        .storeMaybeRef(successCallbackPayload ?? DEFAULT_SUCCESS_CALLBACK_PAYLOAD)
         .storeMaybeRef(inBody)
         .endCell();
     return buildTransferNotificationPayload(queryId, depositAmount, vault.address, callbackPayload);
