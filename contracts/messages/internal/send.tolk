@@ -6,6 +6,7 @@ import "../../types/callback-params";
 import "../../storage";
 import "../../helper/jetton";
 import "schemas";
+import "../../constants/errors"
 
 @pure
 fun resolveReceiver(receiver: address, initiator: address) {
@@ -94,6 +95,27 @@ fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, recei
             }
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
+}
+
+fun transferAsset(
+    isNativeTransfer: bool,
+    initiator: address, 
+    queryId: QueryId, 
+    remainingValue: coins, 
+    transferAmount: coins,
+    receiver: address, 
+    result: Result, 
+    callbackParams: Cell<CallbackParams>?, 
+    inBody: slice,
+    assetJettonWallet: address? = null
+) {
+    if (isNativeTransfer) {
+        tonTransfer(initiator, queryId, remainingValue + transferAmount, receiver, result, callbackParams, inBody);
+        return;
+    } 
+
+    assert (assetJettonWallet != null) throw ERR_NULL_ASSET_JETTON_WALLET;
+    jettonTransfer(initiator, queryId, remainingValue, assetJettonWallet!, receiver, transferAmount, result, callbackParams, inBody);   
 }
 
 fun requestJettonWalletAddress(jettonMaster: address, queryId: QueryId) {

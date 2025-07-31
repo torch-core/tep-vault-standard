@@ -41,15 +41,7 @@ fun previewWithdraw(shares: coins, optionalParams: OptionalParams? = null) {
     return convertToAssets(shares, RoundingType.Up());
 }
 
-fun handleDeposit(
-    initiator: address, 
-    queryId: QueryId, 
-    remainingValue: coins,
-    senderAddress: address, 
-    depositAmount: coins, 
-    depositParams: DepositParams, 
-    inBody: slice
-) {
+fun handleDeposit(initiator: address, queryId: QueryId, remainingValue: coins, senderAddress: address, depositAmount: coins, depositParams: DepositParams, inBody: slice) {
     try {
         val maxDepositAmount = maxDeposit();
         assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
@@ -61,61 +53,47 @@ fun handleDeposit(
         emitDeposited(Deposited { initiator: initiator, receiver: depositParams.receiver, depositAmount: depositAmount, shares: shares });
         return shares;
     } catch (e) {
-        if (initiator == senderAddress) {
-            tonTransfer(initiator, queryId, remainingValue + depositAmount, initiator, Result.Error(e), depositParams.callbacks.failureCallback, inBody);
-        } else {
-            jettonTransfer(
-                initiator, 
-                queryId, 
-                remainingValue, 
-                senderAddress, 
-                depositParams.receiver,
-                depositAmount, 
-                Result.Error(e), 
-                depositParams.callbacks.failureCallback, 
-                inBody
-            );
-        }
+        transferAsset(
+            initiator == senderAddress,
+            initiator, 
+            queryId, 
+            remainingValue, 
+            depositAmount, 
+            initiator, 
+            Result.Error(e), 
+            depositParams.callbacks.failureCallback, 
+            inBody, 
+            senderAddress
+        );   
         commitContractDataAndActions();
         throw e;
     }
 }
 
-fun handleWithdraw(
-    initiator: address, 
-    queryId: QueryId, 
-    remainingValue: coins, 
-    shares: coins, 
-    withdrawParamsFp: WithdrawParamsFp, 
-    inBody: slice, 
-    assetJettonWallet: address? = null
-) {
+fun handleWithdraw(initiator: address, queryId: QueryId, remainingValue: coins, shares: coins, withdrawParams: WithdrawParamsFp, inBody: slice, assetJettonWallet: address? = null) {
     try {
         val maxWithdrawShares = maxWithdraw();
         assert (shares <= maxWithdrawShares) throw ERR_MAX_WITHDRAW_EXCEEDED;
 
         val withdrawAmount = previewWithdraw(shares);
-        assert (withdrawAmount >= withdrawParamsFp.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
-
-        if (assetJettonWallet == null) {
-            tonTransfer(initiator, queryId, remainingValue, withdrawParamsFp.receiver, Result.Success(), withdrawParamsFp.callbacks.successCallback, inBody);
-        } else {
-            jettonTransfer(
-                initiator, 
-                queryId, 
-                remainingValue, 
-                assetJettonWallet, 
-                withdrawParamsFp.receiver, 
-                withdrawAmount, 
-                Result.Success(), 
-                withdrawParamsFp.callbacks.successCallback, 
-                inBody
-            );
-        }
-        emitWithdrawn(Withdrawn { initiator: initiator, receiver: withdrawParamsFp.receiver, withdrawAmount: withdrawAmount, shares: shares });
+        assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
+        
+        transferAsset(
+            assetJettonWallet == null,
+            initiator, 
+            queryId, 
+            remainingValue, 
+            withdrawAmount, 
+            withdrawParams.receiver, 
+            Result.Success(), 
+            withdrawParams.callbacks.successCallback, 
+            inBody, 
+            assetJettonWallet
+        );
+        emitWithdrawn(Withdrawn { initiator: initiator, receiver: withdrawParams.receiver, withdrawAmount: withdrawAmount, shares: shares });
         return withdrawAmount;
     } catch (e) {
-        mint(initiator, queryId, remainingValue, mutate initiator, shares, Result.Error(e), withdrawParamsFp.callbacks.failureCallback, inBody);
+        mint(initiator, queryId, remainingValue, mutate initiator, shares, Result.Error(e), withdrawParams.callbacks.failureCallback, inBody);
         commitContractDataAndActions();
         throw e;
     }

@@ -47,13 +47,13 @@ fun onInternalMessage(in: InMessage) {
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
 
             assert (inMsg.customPayload != null) throw ERR_NULL_CUSTOM_PAYLOAD;
-            var withdrawParamsFp = inMsg.customPayload!.load();
+            val burnPayload = inMsg.customPayload!.load();
             
-            match (withdrawParamsFp) {
+            match (burnPayload) {
                 WithdrawParamsFp => {
                     val remainingValue = processWithdrawGas(in.valueCoins);
                     val assetJettonWallet = storage.assetJettonInfo != null ? storage.assetJettonInfo!.load().walletAddress : null;
-                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, withdrawParamsFp, in.body, assetJettonWallet);
+                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, burnPayload, in.body, assetJettonWallet);
 
                     storage.totalSupply = storage.totalSupply - inMsg.shares; 
                     storage.totalAssets = storage.totalAssets - withdrawAmount;
