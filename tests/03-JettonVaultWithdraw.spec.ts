@@ -15,6 +15,7 @@ import { beginCell, Cell } from '@ton/core';
 import { expectVaultSharesAndAssets } from './helper/expectVault';
 import { expectWithdrawnEmitLog } from './helper/emitLog';
 import { VaultErrors } from '../wrappers/constants/error';
+import { Opcodes } from '../wrappers/constants/op';
 
 describe('Withdraw from Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -485,6 +486,23 @@ describe('Withdraw from Jetton Vault', () => {
                 failCallbackPayload,
                 inBody,
             );
+        });
+    });
+
+    describe('Other failure cases', () => {
+        it('should throw INVALID_BURN_AMOUNT when burn shares is 0', async () => {
+            const burnShares = 0n;
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares);
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            // Expect that USDTVault share wallet send OP_BURN_NOTIFICATION to vault but throw INVALID_BURN_AMOUNT
+            expect(withdrawResult.transactions).toHaveTransaction({
+                from: maxeyShareWallet.address,
+                to: USDTVault.address,
+                op: Opcodes.Jetton.BurnNotification,
+                success: false,
+                exitCode: VaultErrors.InvalidBurnAmount,
+            });
         });
     });
 });
