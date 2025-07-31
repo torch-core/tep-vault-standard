@@ -58,7 +58,7 @@ describe('Deposit to TON Vault', () => {
         oldTotalSupply: bigint = 0n,
     ) {
         // Expect the deposit to be successful
-        await expectTONDepositTxs(depositResult, depositor, receiver, tonVault, successCallbackPayload);
+        await expectTONDepositTxs(depositResult, depositor.address, receiver.address, tonVault, successCallbackPayload);
 
         // Expect that depositor shares and ton balances are updated
         await expectTonDepositorBalances(
@@ -194,7 +194,15 @@ describe('Deposit to TON Vault', () => {
                 maxeyShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey, successCallbackPayload, depositArgs.body),
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    tonVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    successCallbackPayload,
+                    depositArgs.body,
+                ),
             );
         });
 
@@ -258,7 +266,15 @@ describe('Deposit to TON Vault', () => {
                 bobShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey, successCallbackPayload, depositArgs.body),
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    tonVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    successCallbackPayload,
+                    depositArgs.body,
+                ),
             );
         });
 
@@ -341,7 +357,7 @@ describe('Deposit to TON Vault', () => {
             // Expect that deposit fail
             expectFailDepositTONTxs(
                 depositResult,
-                maxey,
+                maxey.address,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,
@@ -365,7 +381,7 @@ describe('Deposit to TON Vault', () => {
             // Expect that deposit fail
             expectFailDepositTONTxs(
                 depositResult,
-                maxey,
+                maxey.address,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,
@@ -395,7 +411,7 @@ describe('Deposit to TON Vault', () => {
             // Expect that deposit fail
             expectFailDepositTONTxs(
                 depositResult,
-                maxey,
+                maxey.address,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,
@@ -425,7 +441,7 @@ describe('Deposit to TON Vault', () => {
             // Expect that deposit fail
             expectFailDepositTONTxs(
                 depositResult,
-                maxey,
+                maxey.address,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,
@@ -457,7 +473,7 @@ describe('Deposit to TON Vault', () => {
             // Expect that deposit fail
             expectFailDepositTONTxs(
                 depositResult,
-                maxey,
+                maxey.address,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,
@@ -488,7 +504,7 @@ describe('Deposit to TON Vault', () => {
             // Expect that deposit fail
             expectFailDepositTONTxs(
                 depositResult,
-                maxey,
+                maxey.address,
                 tonVault,
                 queryId,
                 VaultErrors.MinShareNotMet,

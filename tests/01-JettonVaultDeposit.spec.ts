@@ -7,7 +7,7 @@ import { expectJettonDepositTxs } from './helper/expectTxResults';
 import { expectDepositedEmitLog } from './helper/emitLog';
 import { expectJettonDepositorBalances, expectJettonVaultBalances } from './helper/expectBalances';
 import { buildCallbackFp, buildTransferNotificationPayload, SUCCESS_RESULT } from './helper/callbackPayload';
-import { beginCell, Cell } from '@ton/core';
+import { Address, beginCell, Cell } from '@ton/core';
 import { Opcodes } from '../wrappers/constants/op';
 import { OPCODE_SIZE } from '../wrappers/constants/size';
 
@@ -57,12 +57,12 @@ describe('Deposit to Jetton Vault', () => {
 
     async function expectJettonDepositFlows(
         depositResult: SendMessageResult,
-        depositor: SandboxContract<TreasuryContract>,
+        depositor: Address,
         depositorJettonWallet: SandboxContract<JettonWallet>,
         depositorJettonWalletBalBefore: bigint,
         depositAmount: bigint,
         successCallbackPayload: Cell,
-        receiver: SandboxContract<TreasuryContract>,
+        receiver: Address,
         receiverShareWallet: SandboxContract<JettonWallet>,
         receiverShareBalBefore: bigint,
         vault: SandboxContract<Vault>,
@@ -73,10 +73,10 @@ describe('Deposit to Jetton Vault', () => {
         await expectJettonDepositTxs(
             depositResult,
             depositor,
-            depositorJettonWallet,
+            depositorJettonWallet.address,
             receiver,
             vault,
-            vaultJettonWallet,
+            vaultJettonWallet.address,
             successCallbackPayload,
         );
 
@@ -99,7 +99,7 @@ describe('Deposit to Jetton Vault', () => {
         );
 
         // Expect that deposited emit log is emitted
-        expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount);
+        expectDepositedEmitLog(depositResult, depositor, receiver, depositAmount, depositAmount);
     }
 
     describe('Deposit Jetton success', () => {
@@ -114,12 +114,12 @@ describe('Deposit to Jetton Vault', () => {
             // Expect that deposit is successful
             await expectJettonDepositFlows(
                 depositResult,
-                maxey,
+                maxey.address,
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
                 buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey),
-                maxey,
+                maxey.address,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
                 USDTVault,
@@ -142,12 +142,12 @@ describe('Deposit to Jetton Vault', () => {
             // Expect that deposit is successful
             await expectJettonDepositFlows(
                 depositResult,
-                maxey,
+                maxey.address,
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
                 buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey),
-                bob,
+                bob.address,
                 bobShareWallet,
                 bobShareBalBefore,
                 USDTVault,
@@ -176,12 +176,12 @@ describe('Deposit to Jetton Vault', () => {
             // Expect that deposit is successful
             await expectJettonDepositFlows(
                 depositResult,
-                maxey,
+                maxey.address,
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
                 buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey, successCallbackPayload),
-                maxey,
+                maxey.address,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
                 USDTVault,
@@ -221,7 +221,7 @@ describe('Deposit to Jetton Vault', () => {
             // Expect that deposit is successful
             await expectJettonDepositFlows(
                 depositResult,
-                maxey,
+                maxey.address,
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
@@ -234,7 +234,7 @@ describe('Deposit to Jetton Vault', () => {
                     successCallbackPayload,
                     inBody,
                 ),
-                maxey,
+                maxey.address,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
                 USDTVault,
@@ -264,12 +264,12 @@ describe('Deposit to Jetton Vault', () => {
             // Expect that deposit is successful
             await expectJettonDepositFlows(
                 depositResult,
-                maxey,
+                maxey.address,
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
                 buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey, successCallbackPayload),
-                bob,
+                bob.address,
                 bobShareWallet,
                 bobShareBalBefore,
                 USDTVault,
@@ -310,7 +310,7 @@ describe('Deposit to Jetton Vault', () => {
             // Expect that deposit is successful
             await expectJettonDepositFlows(
                 depositResult,
-                maxey,
+                maxey.address,
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
@@ -323,7 +323,7 @@ describe('Deposit to Jetton Vault', () => {
                     successCallbackPayload,
                     inBody,
                 ),
-                bob,
+                bob.address,
                 bobShareWallet,
                 bobShareBalBefore,
                 USDTVault,
@@ -346,8 +346,6 @@ describe('Deposit to Jetton Vault', () => {
             const depositResult = await maxey.send(depositArg);
 
             printTransactionFees(depositResult.transactions);
-
-            
         });
     });
 });

@@ -12,10 +12,10 @@ import { JettonWallet } from '@ton/ton';
 export async function expectMintShares(
     depositResult: SendMessageResult,
     vault: SandboxContract<Vault>,
-    receiver: SandboxContract<TreasuryContract>,
+    receiver: Address,
     callbackPayload: Cell,
 ) {
-    const receiverShareWalletAddress = await vault.getWalletAddress(receiver.address);
+    const receiverShareWalletAddress = await vault.getWalletAddress(receiver);
 
     // Vault sends shares to receiver's jetton wallet
     expect(depositResult.transactions).toHaveTransaction({
@@ -28,7 +28,7 @@ export async function expectMintShares(
     // Share wallet returns excess gas to receiver
     expect(depositResult.transactions).toHaveTransaction({
         from: receiverShareWalletAddress,
-        to: receiver.address,
+        to: receiver,
         op: Opcodes.Jetton.Excesses,
         success: true,
     });
@@ -36,7 +36,7 @@ export async function expectMintShares(
     // Share wallet notifies receiver about the transfer
     expect(depositResult.transactions).toHaveTransaction({
         from: receiverShareWalletAddress,
-        to: receiver.address,
+        to: receiver,
         op: Opcodes.Jetton.TransferNotification,
         body: callbackPayload,
     });
@@ -48,14 +48,14 @@ export async function expectMintShares(
 
 export async function expectTONDepositTxs(
     depositResult: SendMessageResult,
-    initiator: SandboxContract<TreasuryContract>,
-    receiver: SandboxContract<TreasuryContract>,
+    initiator: Address,
+    receiver: Address,
     vault: SandboxContract<Vault>,
     callbackPayload: Cell,
 ) {
     // Initiator sends TON deposit to vault
     expect(depositResult.transactions).toHaveTransaction({
-        from: initiator.address,
+        from: initiator,
         to: vault.address,
         op: Opcodes.Vault.Deposit,
         success: true,
@@ -98,23 +98,18 @@ export async function expectJettonTransferTxs(
 
 export async function expectJettonDepositTxs(
     depositResult: SendMessageResult,
-    initiator: SandboxContract<TreasuryContract>,
-    initiatorJettonWallet: SandboxContract<JettonWallet>,
-    receiver: SandboxContract<TreasuryContract>,
+    initiator: Address,
+    initiatorJettonWallet: Address,
+    receiver: Address,
     vault: SandboxContract<Vault>,
-    vaultJettonWallet: SandboxContract<JettonWallet>,
+    vaultJettonWallet: Address,
     callbackPayload: Cell,
 ) {
-    await expectJettonTransferTxs(
-        depositResult,
-        initiator.address,
-        initiatorJettonWallet.address,
-        vaultJettonWallet.address,
-    );
+    await expectJettonTransferTxs(depositResult, initiator, initiatorJettonWallet, vaultJettonWallet);
 
     // vaultJettonWallet send OP_JETTON_TRANSFER_NOTIFICATION to vault
     expect(depositResult.transactions).toHaveTransaction({
-        from: vaultJettonWallet.address,
+        from: vaultJettonWallet,
         to: vault.address,
         op: Opcodes.Jetton.TransferNotification,
         success: true,
@@ -130,7 +125,7 @@ export async function expectJettonDepositTxs(
 
 export function expectFailDepositTONTxs(
     depositResult: SendMessageResult,
-    initiator: SandboxContract<TreasuryContract>,
+    initiator: Address,
     vault: SandboxContract<Vault>,
     queryId: bigint,
     exitCode: number,
@@ -139,7 +134,7 @@ export function expectFailDepositTONTxs(
 ) {
     // Deposit transaction fails with specified exit code
     expect(depositResult.transactions).toHaveTransaction({
-        from: initiator.address,
+        from: initiator,
         to: vault.address,
         op: Opcodes.Vault.Deposit,
         success: true,
@@ -149,31 +144,31 @@ export function expectFailDepositTONTxs(
     // Vault sends failure notification back to initiator
     expect(depositResult.transactions).toHaveTransaction({
         from: vault.address,
-        to: initiator.address,
+        to: initiator,
         op: Opcodes.Vault.VaultNotification,
         success: true,
-        body: buildVaultNotification(queryId, exitCode, initiator.address, callbackPayload, inBody),
+        body: buildVaultNotification(queryId, exitCode, initiator, callbackPayload, inBody),
     });
 }
 
 export async function expectFailDepositJettonTxs(
     depositResult: SendMessageResult,
-    initiator: SandboxContract<TreasuryContract>,
-    initiatorJettonWallet: SandboxContract<JettonWallet>,
-    vaultJettonWallet: SandboxContract<JettonWallet>,
+    initiator: Address,
+    initiatorJettonWallet: Address,
+    vaultJettonWallet: Address,
     vault: SandboxContract<Vault>,
     exitCode: number,
 ) {
     await expectJettonTransferTxs(
         depositResult,
-        initiator.address,
-        initiatorJettonWallet.address,
-        vaultJettonWallet.address,
+        initiator,
+        initiatorJettonWallet,
+        vaultJettonWallet,
     );
 
     // vaultJettonWallet send OP_JETTON_TRANSFER_NOTIFICATION to vault
     expect(depositResult.transactions).toHaveTransaction({
-        from: vaultJettonWallet.address,
+        from: vaultJettonWallet,
         to: vault.address,
         op: Opcodes.Jetton.TransferNotification,
         success: true,
@@ -183,8 +178,8 @@ export async function expectFailDepositJettonTxs(
     await expectJettonTransferTxs(
         depositResult,
         vault.address,
-        vaultJettonWallet.address,
-        initiatorJettonWallet.address,
+        vaultJettonWallet,
+        initiatorJettonWallet,
     );
 }
 
@@ -194,14 +189,14 @@ export async function expectFailDepositJettonTxs(
 
 export async function expectBurnTxs(
     burnResult: SendMessageResult,
-    initiator: SandboxContract<TreasuryContract>,
+    initiator: Address,
     vault: SandboxContract<Vault>,
     exitCode?: number,
 ) {
     // Expect burner send OP_BURN to burner share wallet
-    const burnerShareWalletAddress = await vault.getWalletAddress(initiator.address);
+    const burnerShareWalletAddress = await vault.getWalletAddress(initiator);
     expect(burnResult.transactions).toHaveTransaction({
-        from: initiator.address,
+        from: initiator,
         to: burnerShareWalletAddress,
         op: Opcodes.Jetton.Burn,
         success: true,
@@ -228,8 +223,8 @@ export async function expectBurnTxs(
 
 export async function expectWithdrawTONTxs(
     withdrawResult: SendMessageResult,
-    initiator: SandboxContract<TreasuryContract>,
-    receiver: SandboxContract<TreasuryContract>,
+    initiator: Address,
+    receiver: Address,
     vault: SandboxContract<Vault>,
     callbackPayload: Cell,
 ) {
@@ -238,7 +233,7 @@ export async function expectWithdrawTONTxs(
     // Expect vault send OP_VAULT_NOTIFICATION to burner
     expect(withdrawResult.transactions).toHaveTransaction({
         from: vault.address,
-        to: receiver.address,
+        to: receiver,
         op: Opcodes.Vault.VaultNotification,
         success: true,
         body: callbackPayload,

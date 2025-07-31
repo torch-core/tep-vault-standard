@@ -80,8 +80,8 @@ describe('Withdraw from TON Vault', () => {
         // Expect withdraw messages is successful
         await expectWithdrawTONTxs(
             withdrawResult,
-            initiator,
-            receiver,
+            initiator.address,
+            receiver.address,
             tonVault,
             buildVaultNotification(queryId, 0, initiator.address, callbackPayload, inBody),
         );
@@ -114,12 +114,12 @@ describe('Withdraw from TON Vault', () => {
         inBody?: Cell,
         errorCode: number = VaultErrors.MinWithdrawNotMet,
     ) {
-        await expectBurnTxs(withdrawResult, initiator, tonVault, errorCode);
+        await expectBurnTxs(withdrawResult, initiator.address, tonVault, errorCode);
 
         await expectMintShares(
             withdrawResult,
             tonVault,
-            initiator,
+            initiator.address,
             buildCallbackFp(queryId, expectedWithdrawAmount, tonVault, errorCode, initiator, callbackPayload, inBody),
         );
     }
