@@ -1,4 +1,4 @@
-import { Blockchain, printTransactionFees, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, printTransactionFees, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
@@ -10,12 +10,16 @@ import {
     SUCCESS_RESULT,
 } from './helper/callbackPayload';
 import { expectWithdrawJettonTxs } from './helper/expectTxResults';
-import { beginCell } from '@ton/core';
+import { beginCell, Cell } from '@ton/core';
+import { expectVaultSharesAndAssets } from './helper/expectVault';
+import { expectWithdrawnEmitLog } from './helper/emitLog';
 
 describe('Withdraw from Jetton Vault', () => {
     let blockchain: Blockchain;
     let USDT: SandboxContract<JettonMaster>;
     let USDTVault: SandboxContract<Vault>;
+    let vaultTotalSupplyBefore: bigint;
+    let vaultTotalAssetsBefore: bigint;
 
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;
@@ -63,12 +67,70 @@ describe('Withdraw from Jetton Vault', () => {
         vaultUSDTWalletBalBefore = await vaultUSDTWallet.getBalance();
         maxeyUSDTWalletBalBefore = await maxeyUSDTWallet.getBalance();
         vaultTonBalBefore = (await blockchain.getContract(USDTVault.address)).balance;
+
+        const storage = await USDTVault.getStorage();
+        vaultTotalSupplyBefore = storage.totalSupply;
+        vaultTotalAssetsBefore = storage.totalAssets;
     });
 
     afterEach(async () => {
         const vaultTonBalanceAfter = (await blockchain.getContract(USDTVault.address)).balance;
         expect(vaultTonBalanceAfter).toBeGreaterThanOrEqual(vaultTonBalBefore);
     });
+
+    async function expectWithdrawJettonFlows(
+        withdrawResult: SendMessageResult,
+        initiator: SandboxContract<TreasuryContract>,
+        initiatorShareWallet: SandboxContract<JettonWallet>,
+        initiatorShareBalBefore: bigint,
+        receiver: SandboxContract<TreasuryContract>,
+        receiverJettonWallet: SandboxContract<JettonWallet>,
+        receiverJettonWalletBalBefore: bigint,
+        burnShares: bigint,
+        expectedWithdrawAmount: bigint,
+        callbackPayload: Cell,
+        inBody?: Cell,
+    ) {
+        await expectWithdrawJettonTxs(
+            withdrawResult,
+            initiator.address,
+            receiver.address,
+            receiverJettonWallet.address,
+            vaultUSDTWallet.address,
+            USDTVault,
+            buildCallbackFp(
+                queryId,
+                expectedWithdrawAmount,
+                USDTVault,
+                SUCCESS_RESULT,
+                initiator,
+                callbackPayload,
+                inBody,
+            ),
+            initiator.address,
+        );
+
+        // Expect that initiator's share balance is decreased
+        expect(await initiatorShareWallet.getBalance()).toBe(initiatorShareBalBefore - burnShares);
+
+        // Expect that receiver's jetton balance is increased
+        expect(await receiverJettonWallet.getBalance()).toBe(receiverJettonWalletBalBefore + expectedWithdrawAmount);
+
+        // Expect that vault's jetton balance is decreased
+        expect(await vaultUSDTWallet.getBalance()).toBe(vaultUSDTWalletBalBefore - expectedWithdrawAmount);
+
+        // Expect that vault's totalSupply and totalAssets are decreased
+        await expectVaultSharesAndAssets(
+            USDTVault,
+            -expectedWithdrawAmount,
+            -burnShares,
+            vaultTotalAssetsBefore,
+            vaultTotalSupplyBefore,
+        );
+
+        // Expect withdraw emit log
+        expectWithdrawnEmitLog(withdrawResult, initiator.address, receiver.address, expectedWithdrawAmount, burnShares);
+    }
 
     describe('Withdraw Jetton success', () => {
         it('should handle basic withdraw', async () => {
@@ -77,22 +139,18 @@ describe('Withdraw from Jetton Vault', () => {
             const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares);
             const withdrawResult = await maxey.send(withdrawArgs);
 
-            await expectWithdrawJettonTxs(
+            // Expect withdraw flows is success
+            await expectWithdrawJettonFlows(
                 withdrawResult,
-                maxey.address,
-                maxey.address,
-                maxeyUSDTWallet.address,
-                vaultUSDTWallet.address,
-                USDTVault,
-                buildCallbackFp(
-                    queryId,
-                    expectedWithdrawAmount,
-                    USDTVault,
-                    SUCCESS_RESULT,
-                    maxey,
-                    DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
-                ),
-                maxey.address,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
             );
         });
 
@@ -103,22 +161,18 @@ describe('Withdraw from Jetton Vault', () => {
                 receiver: bob.address,
             });
             const withdrawResult = await maxey.send(withdrawArgs);
-            await expectWithdrawJettonTxs(
+
+            await expectWithdrawJettonFlows(
                 withdrawResult,
-                maxey.address,
-                bob.address,
-                bobUSDTWallet.address,
-                vaultUSDTWallet.address,
-                USDTVault,
-                buildCallbackFp(
-                    queryId,
-                    expectedWithdrawAmount,
-                    USDTVault,
-                    SUCCESS_RESULT,
-                    maxey,
-                    DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
-                ),
-                maxey.address,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                bob,
+                bobUSDTWallet,
+                bobUSDTWalletBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
             );
         });
 
@@ -136,22 +190,18 @@ describe('Withdraw from Jetton Vault', () => {
             });
             const withdrawResult = await maxey.send(withdrawArgs);
 
-            await expectWithdrawJettonTxs(
+            // Expect withdraw flows is success
+            await expectWithdrawJettonFlows(
                 withdrawResult,
-                maxey.address,
-                maxey.address,
-                maxeyUSDTWallet.address,
-                vaultUSDTWallet.address,
-                USDTVault,
-                buildCallbackFp(
-                    queryId,
-                    expectedWithdrawAmount,
-                    USDTVault,
-                    SUCCESS_RESULT,
-                    maxey,
-                    successCallbackPayload,
-                ),
-                maxey.address,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                successCallbackPayload,
             );
         });
 
@@ -178,23 +228,19 @@ describe('Withdraw from Jetton Vault', () => {
                 beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
             );
 
-            await expectWithdrawJettonTxs(
+            // Expect withdraw flows is success
+            await expectWithdrawJettonFlows(
                 withdrawResult,
-                maxey.address,
-                maxey.address,
-                maxeyUSDTWallet.address,
-                vaultUSDTWallet.address,
-                USDTVault,
-                buildCallbackFp(
-                    queryId,
-                    expectedWithdrawAmount,
-                    USDTVault,
-                    SUCCESS_RESULT,
-                    maxey,
-                    successCallbackPayload,
-                    inBody,
-                ),
-                maxey.address,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                successCallbackPayload,
+                inBody,
             );
         });
 
@@ -213,22 +259,18 @@ describe('Withdraw from Jetton Vault', () => {
             });
             const withdrawResult = await maxey.send(withdrawArgs);
 
-            await expectWithdrawJettonTxs(
+            // Expect withdraw flows is success
+            await expectWithdrawJettonFlows(
                 withdrawResult,
-                maxey.address,
-                bob.address,
-                bobUSDTWallet.address,
-                vaultUSDTWallet.address,
-                USDTVault,
-                buildCallbackFp(
-                    queryId,
-                    expectedWithdrawAmount,
-                    USDTVault,
-                    SUCCESS_RESULT,
-                    maxey,
-                    successCallbackPayload,
-                ),
-                maxey.address,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                bob,
+                bobUSDTWallet,
+                bobUSDTWalletBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                successCallbackPayload,
             );
         });
 
@@ -256,23 +298,19 @@ describe('Withdraw from Jetton Vault', () => {
                 beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
             );
 
-            await expectWithdrawJettonTxs(
+            // Expect withdraw flows is success
+            await expectWithdrawJettonFlows(
                 withdrawResult,
-                maxey.address,
-                bob.address,
-                bobUSDTWallet.address,
-                vaultUSDTWallet.address,
-                USDTVault,
-                buildCallbackFp(
-                    queryId,
-                    expectedWithdrawAmount,
-                    USDTVault,
-                    SUCCESS_RESULT,
-                    maxey,
-                    successCallbackPayload,
-                    inBody,
-                ),
-                maxey.address,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                bob,
+                bobUSDTWallet,
+                bobUSDTWalletBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                successCallbackPayload,
+                inBody,
             );
         });
     });
