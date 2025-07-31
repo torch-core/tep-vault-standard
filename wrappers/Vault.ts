@@ -60,7 +60,7 @@ export interface Callbacks {
     failureCallback?: CallbackParams;
 }
 
-export interface VaultDepositParams {
+export interface DepositParams {
     receiver?: Address;
     minShares?: bigint;
     optionalParams?: OptionalParams;
@@ -70,7 +70,14 @@ export interface VaultDepositParams {
 export interface Deposit {
     queryId: bigint;
     depositAmount: bigint;
-    depositParams?: VaultDepositParams;
+    depositParams?: DepositParams;
+}
+
+export interface WithdrawParams {
+    receiver?: Address;
+    minWithdraw?: bigint;
+    optionalParams?: OptionalParams;
+    callbacks?: Callbacks;
 }
 
 export interface JettonTransferParams {
@@ -81,6 +88,13 @@ export interface JettonTransferParams {
     customPayload?: Maybe<Cell>;
     forwardAmount?: bigint;
     forwardPayload?: Maybe<Cell>;
+}
+
+export interface JettonBurnParams {
+    queryId: bigint;
+    amount: bigint;
+    responseDst?: Address;
+    customPayload?: Maybe<Cell>;
 }
 
 export class Vault implements Contract {
@@ -108,7 +122,7 @@ export class Vault implements Contract {
         return beginCell().storeBit(params.includeBody).storeRef(params.payload).endCell();
     }
 
-    storeVaultDepositParams(params?: VaultDepositParams) {
+    storeVaultDepositParams(params?: DepositParams) {
         return (builder: Builder) => {
             return builder
                 .storeAddress(params?.receiver)
@@ -139,6 +153,18 @@ export class Vault implements Contract {
                 .storeMaybeRef(params.customPayload ?? null)
                 .storeCoins(params.forwardAmount ?? 0)
                 .storeMaybeRef(params.forwardPayload ?? null)
+                .endCell();
+        };
+    }
+
+    private storeJettonBurnMessage(params: JettonBurnParams): (builder: Builder) => void {
+        return (builder: Builder) => {
+            return builder
+                .storeUint(Opcodes.Jetton.Burn, OPCODE_SIZE)
+                .storeUint(params.queryId, QUERY_ID_SIZE)
+                .storeCoins(params.amount)
+                .storeAddress(params.responseDst)
+                .storeMaybeRef(params.customPayload ?? null)
                 .endCell();
         };
     }
@@ -178,25 +204,65 @@ export class Vault implements Contract {
         }
         const jettonMaster = provider.open(JettonMaster.create(this.jettonMaster));
         const jettonWalletAddress = await jettonMaster.getWalletAddress(depositor);
-        const transferBody = beginCell()
-            .store(
-                this.storeJettonTransferMessage({
-                    queryId: deposit.queryId,
-                    amount: deposit.depositAmount,
-                    recipient: this.address,
-                    responseDst: depositor,
-                    forwardAmount,
-                    forwardPayload: beginCell()
-                        .storeUint(Opcodes.Vault.DepositFp, OPCODE_SIZE)
-                        .store(this.storeVaultDepositParams(deposit.depositParams))
-                        .endCell(),
-                }),
-            )
-            .endCell();
         return {
             to: jettonWalletAddress,
             value: toNano('0.07') + forwardAmount,
-            body: transferBody,
+            body: beginCell()
+                .store(
+                    this.storeJettonTransferMessage({
+                        queryId: deposit.queryId,
+                        amount: deposit.depositAmount,
+                        recipient: this.address,
+                        responseDst: depositor,
+                        forwardAmount,
+                        forwardPayload: beginCell()
+                            .storeUint(Opcodes.Vault.DepositFp, OPCODE_SIZE)
+                            .store(this.storeVaultDepositParams(deposit.depositParams))
+                            .endCell(),
+                    }),
+                )
+                .endCell(),
+        };
+    }
+
+    async getWithdrawArg(
+        provider: ContractProvider,
+        burner: Address,
+        shares: bigint,
+        withdrawParams?: WithdrawParams,
+        queryId?: bigint,
+    ) {
+        const jettonMaster = provider.open(JettonMaster.create(this.address));
+        const jettonWalletAddress = await jettonMaster.getWalletAddress(burner);
+        console.log('jettonWalletAddress', jettonWalletAddress);
+        return {
+            to: jettonWalletAddress,
+            value: toNano('0.3'),
+            body: beginCell()
+                .store(
+                    this.storeJettonBurnMessage({
+                        queryId: queryId ?? 8n,
+                        amount: shares,
+                        responseDst: burner,
+                        customPayload: beginCell()
+                            .storeUint(Opcodes.Vault.WithdrawFp, OPCODE_SIZE)
+                            .storeAddress(withdrawParams?.receiver ?? burner)
+                            .storeCoins(withdrawParams?.minWithdraw ?? 0n)
+                            .storeMaybeRef(this.optionalVaultParamsToCell(withdrawParams?.optionalParams))
+                            .storeMaybeRef(
+                                withdrawParams?.callbacks?.successCallback
+                                    ? this.callbackParamsToCell(withdrawParams?.callbacks.successCallback)
+                                    : null,
+                            )
+                            .storeMaybeRef(
+                                withdrawParams?.callbacks?.failureCallback
+                                    ? this.callbackParamsToCell(withdrawParams?.callbacks.failureCallback)
+                                    : null,
+                            )
+                            .endCell(),
+                    }),
+                )
+                .endCell(),
         };
     }
 

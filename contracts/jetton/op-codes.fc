@@ -14,8 +14,9 @@ const op::top_up = 0xd372158c;
 
 const error::invalid_op = 72;
 const error::wrong_op = 0xffff;
-const error::not_owner = 73;
+const error::not_owner_or_master = 73;
 const error::not_valid_wallet = 74;
+const error::not_owner = 75;
 const error::wrong_workchain = 333;
 
 ;; jetton-minter

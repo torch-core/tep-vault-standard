@@ -47,7 +47,7 @@
     int is_from_master = equal_slices_bits(jetton_master_address, sender_address);
     int outgoing_transfers_unlocked = ((status & 1) == 0);
     throw_unless(error::contract_locked, outgoing_transfers_unlocked | is_from_master);
-    throw_unless(error::not_owner, equal_slices_bits(owner_address, sender_address) | is_from_master);
+    throw_unless(error::not_owner_or_master, equal_slices_bits(owner_address, sender_address) | is_from_master);
 
     balance -= jetton_amount;
     throw_unless(error::balance_error, balance >= 0);
@@ -150,12 +150,12 @@
     int query_id = in_msg_body~load_query_id();
     int jetton_amount = in_msg_body~load_coins();
     slice response_address = in_msg_body~load_msg_addr();
-    in_msg_body~skip_maybe_ref(); ;; custom_payload
+    cell custom_payload = in_msg_body~load_maybe_ref();
     in_msg_body.end_parse();
 
     balance -= jetton_amount;
-    int is_from_master = equal_slices_bits(jetton_master_address, sender_address);
-    throw_unless(error::not_owner, is_from_master);
+    int is_from_owner_or_master = equal_slices_bits(owner_address, sender_address) | equal_slices_bits(jetton_master_address, sender_address);
+    throw_unless(error::not_owner_or_master, is_from_owner_or_master);
     throw_unless(error::balance_error, balance >= 0);
 
     ;; see burn_notification TL-B layout in jetton.tlb
@@ -165,6 +165,7 @@
     .store_coins(jetton_amount)
     .store_slice(owner_address)
     .store_slice(response_address)
+    .store_maybe_ref(custom_payload)
     .end_cell();
 
     ;; build MessageRelaxed, see TL-B layout in stdlib.fc#L733
