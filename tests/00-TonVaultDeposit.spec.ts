@@ -3,7 +3,7 @@ import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, toNano } from '@ton/core';
-import { buildSuccessCallbackFp, DEFAULT_FAIL_CALLBACK_PAYLOAD } from './helper/callbackPayload';
+import { buildCallbackFp, DEFAULT_FAIL_CALLBACK_PAYLOAD, SUCCESS_RESULT } from './helper/callbackPayload';
 import { expectFailDepositTONTxs, expectTONDepositTxs } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emitLog';
@@ -107,7 +107,7 @@ describe('Deposit to TON Vault', () => {
                 maxeyShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey),
+                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey),
             );
         });
 
@@ -132,7 +132,7 @@ describe('Deposit to TON Vault', () => {
                 bobShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey),
+                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey),
             );
         });
 
@@ -163,7 +163,7 @@ describe('Deposit to TON Vault', () => {
                 maxeyShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey, successCallbackPayload),
+                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey, successCallbackPayload),
             );
         });
 
@@ -194,14 +194,7 @@ describe('Deposit to TON Vault', () => {
                 maxeyShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(
-                    queryId,
-                    depositAmount,
-                    tonVault,
-                    maxey,
-                    successCallbackPayload,
-                    depositArgs.body,
-                ),
+                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey, successCallbackPayload, depositArgs.body),
             );
         });
 
@@ -233,7 +226,7 @@ describe('Deposit to TON Vault', () => {
                 bobShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, tonVault, maxey, successCallbackPayload),
+                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey, successCallbackPayload),
             );
         });
 
@@ -265,14 +258,7 @@ describe('Deposit to TON Vault', () => {
                 bobShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(
-                    queryId,
-                    depositAmount,
-                    tonVault,
-                    maxey,
-                    successCallbackPayload,
-                    depositArgs.body,
-                ),
+                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey, successCallbackPayload, depositArgs.body),
             );
         });
 
@@ -294,7 +280,7 @@ describe('Deposit to TON Vault', () => {
                 maxeyShareBalBefore,
                 maxeyTonBalBefore,
                 firstDepositAmount,
-                buildSuccessCallbackFp(queryId, firstDepositAmount, tonVault, maxey),
+                buildCallbackFp(queryId, firstDepositAmount, tonVault, SUCCESS_RESULT, maxey),
             );
 
             // Update maxey share and ton balances
@@ -319,7 +305,7 @@ describe('Deposit to TON Vault', () => {
                 maxeyShareBalBefore,
                 maxeyTonBalBefore,
                 secondDepositAmount,
-                buildSuccessCallbackFp(secondQueryId, secondDepositAmount, tonVault, maxey),
+                buildCallbackFp(secondQueryId, secondDepositAmount, tonVault, SUCCESS_RESULT, maxey),
                 firstDepositAmount,
                 firstDepositAmount,
             );

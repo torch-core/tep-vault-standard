@@ -156,16 +156,15 @@ export function expectFailDepositTONTxs(
 // Withdraw Validation
 // =============================================================================
 
-export async function expectWithdrawTONTxs(
-    withdrawResult: SendMessageResult,
+export async function expectBurnTxs(
+    burnResult: SendMessageResult,
     initiator: SandboxContract<TreasuryContract>,
-    receiver: SandboxContract<TreasuryContract>,
     vault: SandboxContract<Vault>,
-    callbackPayload: Cell,
+    exitCode?: number,
 ) {
     // Expect burner send OP_BURN to burner share wallet
     const burnerShareWalletAddress = await vault.getWalletAddress(initiator.address);
-    expect(withdrawResult.transactions).toHaveTransaction({
+    expect(burnResult.transactions).toHaveTransaction({
         from: initiator.address,
         to: burnerShareWalletAddress,
         op: Opcodes.Jetton.Burn,
@@ -173,12 +172,32 @@ export async function expectWithdrawTONTxs(
     });
 
     // Expect burner share wallet send OP_BURN_NOTIFICATION to vault
-    expect(withdrawResult.transactions).toHaveTransaction({
-        from: burnerShareWalletAddress,
-        to: vault.address,
-        op: Opcodes.Jetton.BurnNotification,
-        success: true,
-    });
+    if (exitCode) {
+        expect(burnResult.transactions).toHaveTransaction({
+            from: burnerShareWalletAddress,
+            to: vault.address,
+            op: Opcodes.Jetton.BurnNotification,
+            success: true,
+            exitCode: exitCode,
+        });
+    } else {
+        expect(burnResult.transactions).toHaveTransaction({
+            from: burnerShareWalletAddress,
+            to: vault.address,
+            op: Opcodes.Jetton.BurnNotification,
+            success: true,
+        });
+    }
+}
+
+export async function expectWithdrawTONTxs(
+    withdrawResult: SendMessageResult,
+    initiator: SandboxContract<TreasuryContract>,
+    receiver: SandboxContract<TreasuryContract>,
+    vault: SandboxContract<Vault>,
+    callbackPayload: Cell,
+) {
+    await expectBurnTxs(withdrawResult, initiator, vault);
 
     // Expect vault send OP_VAULT_NOTIFICATION to burner
     expect(withdrawResult.transactions).toHaveTransaction({

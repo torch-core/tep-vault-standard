@@ -6,6 +6,8 @@ import { Vault } from '../../wrappers/Vault';
 import { TreasuryContract } from '@ton/sandbox';
 import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 
+export const SUCCESS_RESULT = 0;
+
 export const DEFAULT_SUCCESS_CALLBACK_PAYLOAD = beginCell()
     .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
     .storeStringTail('Vault interaction successful')
@@ -65,20 +67,21 @@ export function buildVaultNotification(
         .endCell();
 }
 
-export function buildSuccessCallbackFp(
+export function buildCallbackFp(
     queryId: bigint,
-    depositAmount: bigint,
+    transferAmount: bigint,
     vault: SandboxContract<Vault>,
+    result: number,
     initiator: SandboxContract<TreasuryContract>,
-    successCallbackPayload?: Cell,
+    callbackPayload?: Cell,
     inBody?: Cell,
 ) {
-    const callbackPayload = beginCell()
+    const fowardPayload = beginCell()
         .storeUint(Opcodes.Vault.VaultNotificationFp, OPCODE_SIZE)
-        .storeUint(0, RESULT_SIZE)
+        .storeUint(result, RESULT_SIZE)
         .storeAddress(initiator.address)
-        .storeMaybeRef(successCallbackPayload ?? DEFAULT_SUCCESS_CALLBACK_PAYLOAD)
+        .storeMaybeRef(callbackPayload ?? DEFAULT_SUCCESS_CALLBACK_PAYLOAD)
         .storeMaybeRef(inBody)
         .endCell();
-    return buildTransferNotificationPayload(queryId, depositAmount, vault.address, callbackPayload);
+    return buildTransferNotificationPayload(queryId, transferAmount, vault.address, fowardPayload);
 }

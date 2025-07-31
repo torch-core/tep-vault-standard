@@ -6,7 +6,7 @@ import { JettonMaster, JettonWallet } from '@ton/ton';
 import { expectJettonDepositTxs } from './helper/expectTxResults';
 import { expectDepositedEmitLog } from './helper/emitLog';
 import { expectJettonDepositorBalances, expectJettonVaultBalances } from './helper/expectBalances';
-import { buildSuccessCallbackFp, buildTransferNotificationPayload } from './helper/callbackPayload';
+import { buildCallbackFp, buildTransferNotificationPayload, SUCCESS_RESULT } from './helper/callbackPayload';
 import { beginCell, Cell } from '@ton/core';
 import { Opcodes } from '../wrappers/constants/op';
 import { OPCODE_SIZE } from '../wrappers/constants/size';
@@ -118,7 +118,7 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey),
+                buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey),
                 maxey,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
@@ -146,7 +146,7 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey),
+                buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey),
                 bob,
                 bobShareWallet,
                 bobShareBalBefore,
@@ -180,7 +180,7 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey, successCallbackPayload),
+                buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey, successCallbackPayload),
                 maxey,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
@@ -225,7 +225,15 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey, successCallbackPayload, inBody),
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    USDTVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    successCallbackPayload,
+                    inBody,
+                ),
                 maxey,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
@@ -260,7 +268,7 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey, successCallbackPayload),
+                buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey, successCallbackPayload),
                 bob,
                 bobShareWallet,
                 bobShareBalBefore,
@@ -306,7 +314,15 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
-                buildSuccessCallbackFp(queryId, depositAmount, USDTVault, maxey, successCallbackPayload, inBody),
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    USDTVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    successCallbackPayload,
+                    inBody,
+                ),
                 bob,
                 bobShareWallet,
                 bobShareBalBefore,
