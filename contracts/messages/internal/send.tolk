@@ -26,7 +26,7 @@ fun createVaultNotificationParams(result: Result, initiator: address, callbackPa
         result: result,
         initiator: initiator,
         callbackPayload: callback.payload,
-        inMsg: callback.includeBody ? inBody.toCell() : null
+        inBody: callback.includeBody ? inBody.toCell() : null
     };
 }
 

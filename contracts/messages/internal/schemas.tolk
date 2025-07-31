@@ -64,7 +64,7 @@ struct VaultNotificationParams {
     result: Result
     initiator: address
     callbackPayload: cell?
-    inMsg: cell?
+    inBody: cell?
 }
 
 // ===== DEPOSIT MESSAGES =====
