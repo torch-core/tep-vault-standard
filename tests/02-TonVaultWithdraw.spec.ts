@@ -2,10 +2,15 @@ import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
-import { Cell, JettonWallet, toNano } from '@ton/ton';
+import { beginCell, Cell, JettonWallet, toNano } from '@ton/ton';
 import { expectWithdrawTONTxs } from './helper/expectTxResults';
 import { expectVaultSharesAndAssets } from './helper/expectVault';
-import { buildVaultNotification, DEFAULT_SUCCESS_CALLBACK_PAYLOAD } from './helper/callbackPayload';
+import {
+    buildBurnNotificationPayload,
+    buildVaultNotification,
+    DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+} from './helper/callbackPayload';
+import { expectWithdrawnEmitLog } from './helper/emitLog';
 
 describe('Withdraw from TON Vault', () => {
     let blockchain: Blockchain;
@@ -16,6 +21,7 @@ describe('Withdraw from TON Vault', () => {
     let maxeyTonBalBefore: bigint;
     let bobShareWallet: SandboxContract<JettonWallet>;
     let bobShareBalBefore: bigint;
+    let bobTonBalBefore: bigint;
     let tonVault: SandboxContract<Vault>;
     let tonVaultTONBalBefore: bigint;
     let tonVaultTonBalDelta: bigint;
@@ -31,7 +37,8 @@ describe('Withdraw from TON Vault', () => {
         ({ blockchain, maxey, bob, tonVault } = getTestContext());
         maxeyShareWallet = blockchain.openContract(JettonWallet.create(await tonVault.getWalletAddress(maxey.address)));
         bobShareWallet = blockchain.openContract(JettonWallet.create(await tonVault.getWalletAddress(bob.address)));
-
+        bobShareBalBefore = await bobShareWallet.getBalance();
+        bobTonBalBefore = await bob.getBalance();
         // Maxey deposit 5 TON to TON Vault
         const depositAmount = toNano('5');
         const depositArgs = await tonVault.getTonDepositArg({
@@ -42,7 +49,6 @@ describe('Withdraw from TON Vault', () => {
 
         maxeyShareBalBefore = await maxeyShareWallet.getBalance();
         maxeyTonBalBefore = await maxey.getBalance();
-        bobShareBalBefore = await bobShareWallet.getBalance();
         tonVaultTONBalBefore = (await blockchain.getContract(tonVault.address)).balance;
         tonVaultTonBalDelta = 0n;
         const storage = await tonVault.getStorage();
@@ -60,6 +66,7 @@ describe('Withdraw from TON Vault', () => {
         burnShares: bigint,
         expectedWithdrawAmount: bigint,
         callbackPayload: Cell,
+        inBody?: Cell,
     ) {
         // Expect withdraw messages is successful
         await expectWithdrawTONTxs(
@@ -67,7 +74,7 @@ describe('Withdraw from TON Vault', () => {
             initiator,
             receiver,
             tonVault,
-            buildVaultNotification(queryId, 0, initiator.address, callbackPayload),
+            buildVaultNotification(queryId, 0, initiator.address, callbackPayload, inBody),
         );
 
         // Expect initiator share balance is decreased burnShares
@@ -85,9 +92,17 @@ describe('Withdraw from TON Vault', () => {
             tonVaultTotalAssetsBefore,
             tonVaultTotalSupplyBefore,
         );
+
+        // Expect withdraw emit log
+        expectWithdrawnEmitLog(withdrawResult, initiator.address, receiver.address, expectedWithdrawAmount, burnShares);
     }
 
     describe('Withdraw TON success', () => {
+        afterEach(async () => {
+            // Bob's share should be same
+            expect(await bobShareWallet.getBalance()).toBe(bobShareBalBefore);
+        });
+
         it('should handle basic withdraw', async () => {
             const burnShares = maxeyShareBalBefore / 2n;
             const expectedWithdrawAmount = await tonVault.getPreviewWithdraw(burnShares);
@@ -105,6 +120,162 @@ describe('Withdraw from TON Vault', () => {
                 burnShares,
                 expectedWithdrawAmount,
                 DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+            );
+        });
+
+        it('should handle withdraw with receiver', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const expectedWithdrawAmount = await tonVault.getPreviewWithdraw(burnShares);
+            const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares, {
+                receiver: bob.address,
+            });
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            // Expect withdraw is successful
+            await expectWithdrawTONFlows(
+                withdrawResult,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                bob,
+                bobTonBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+            );
+        });
+
+        it('should handle withdraw with success callback (body not included)', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const expectedWithdrawAmount = await tonVault.getPreviewWithdraw(burnShares);
+            const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares, {
+                callbacks: {
+                    successCallback: {
+                        includeBody: false,
+                        payload: successCallbackPayload,
+                    },
+                },
+            });
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            // Expect withdraw is successful
+            await expectWithdrawTONFlows(
+                withdrawResult,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxey,
+                maxeyTonBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                successCallbackPayload,
+            );
+        });
+
+        it('should handle withdraw with success callback (body included)', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const expectedWithdrawAmount = await tonVault.getPreviewWithdraw(burnShares);
+            const withdrawParams = {
+                callbacks: {
+                    successCallback: {
+                        includeBody: true,
+                        payload: successCallbackPayload,
+                    },
+                },
+            };
+            const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares, withdrawParams);
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            const inBody = buildBurnNotificationPayload(
+                queryId,
+                burnShares,
+                maxey.address,
+                maxey.address,
+                beginCell().store(tonVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+            );
+
+            // Expect withdraw is successful
+            await expectWithdrawTONFlows(
+                withdrawResult,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxey,
+                maxeyTonBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                successCallbackPayload,
+                inBody,
+            );
+        });
+
+        it('should handle withdraw to receiver with success callback (body not included)', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const expectedWithdrawAmount = await tonVault.getPreviewWithdraw(burnShares);
+            const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares, {
+                receiver: bob.address,
+                callbacks: {
+                    successCallback: {
+                        includeBody: false,
+                        payload: successCallbackPayload,
+                    },
+                },
+            });
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            // Expect withdraw is successful
+            await expectWithdrawTONFlows(
+                withdrawResult,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                bob,
+                bobTonBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                successCallbackPayload,
+            );
+        });
+
+        it('should handle withdraw to receiver with success callback (body included)', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const expectedWithdrawAmount = await tonVault.getPreviewWithdraw(burnShares);
+            const withdrawParams = {
+                receiver: bob.address,
+                callbacks: {
+                    successCallback: {
+                        includeBody: true,
+                        payload: successCallbackPayload,
+                    },
+                },
+            };
+            const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares, withdrawParams);
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            const inBody = buildBurnNotificationPayload(
+                queryId,
+                burnShares,
+                maxey.address,
+                maxey.address,
+                beginCell().store(tonVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+            );
+
+            // Expect withdraw is successful
+            await expectWithdrawTONFlows(
+                withdrawResult,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                bob,
+                bobTonBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                successCallbackPayload,
+                inBody,
             );
         });
     });

@@ -21,3 +21,22 @@ export function expectDepositedEmitLog(
     expect(extBody.loadCoins()).toBe(depositAmount);
     expect(extBody.loadCoins()).toBe(shares);
 }
+
+export function expectWithdrawnEmitLog(
+    result: SendMessageResult,
+    initiator: Address,
+    receiver: Address,
+    withdrawAmount: bigint,
+    burnShares: bigint,
+    withdrawAsset?: Cell,
+) {
+    expect(result.externals[0].info.dest?.value).toBe(BigInt(Topics.Withdrawn));
+    const extBody = result.externals[0].body.beginParse();
+
+    expect(extBody.loadUint(OPCODE_SIZE)).toBe(Topics.Withdrawn);
+    expect(extBody.loadAddress().equals(initiator)).toBeTruthy();
+    expect(extBody.loadMaybeAddress()?.equals(receiver)).toBeTruthy();
+    expect(extBody.loadMaybeRef()).toBe(withdrawAsset ?? null);
+    expect(extBody.loadCoins()).toBe(withdrawAmount);
+    expect(extBody.loadCoins()).toBe(burnShares);
+}

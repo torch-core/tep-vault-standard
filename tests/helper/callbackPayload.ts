@@ -31,6 +31,23 @@ export function buildTransferNotificationPayload(
         .endCell();
 }
 
+export function buildBurnNotificationPayload(
+    queryId: bigint,
+    burnAmount: bigint,
+    burner: Address,
+    responseAddress: Address,
+    customPayload?: Cell,
+) {
+    return beginCell()
+        .storeUint(JettonOpcodes.BurnNotification, OPCODE_SIZE)
+        .storeUint(queryId, QUERY_ID_SIZE)
+        .storeCoins(burnAmount)
+        .storeAddress(burner)
+        .storeAddress(responseAddress)
+        .storeMaybeRef(customPayload)
+        .endCell();
+}
+
 export function buildVaultNotification(
     queryId: bigint,
     result: number,

@@ -90,7 +90,7 @@ fun handleWithdraw(initiator: address, queryId: QueryId, remainingValue: coins, 
             inBody, 
             assetJettonWallet
         );
-        emitWithdrawn(Withdrawn { initiator: initiator, receiver: withdrawParams.receiver, withdrawAmount: withdrawAmount, shares: shares });
+        emitWithdrawn(Withdrawn { initiator: initiator, receiver: withdrawParams.receiver, withdrawAmount: withdrawAmount, burnedShares: shares });
         return withdrawAmount;
     } catch (e) {
         mint(initiator, queryId, remainingValue, mutate initiator, shares, Result.Error(e), withdrawParams.callbacks.failureCallback, inBody);

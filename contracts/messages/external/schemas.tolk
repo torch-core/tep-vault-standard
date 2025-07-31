@@ -13,7 +13,7 @@ struct (0xedfb416d) Withdrawn {
     receiver: address
     withdrawAsset: Cell<Asset>? = null
     withdrawAmount: coins
-    shares: coins
+    burnedShares: coins
 }
 
 const TOPIC_DEPOSITED = Deposited.getDeclaredPackPrefix();

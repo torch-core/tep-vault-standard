@@ -142,6 +142,27 @@ export class Vault implements Contract {
         };
     }
 
+    storeVaultWithdrawParams(burner: Address, withdrawParams?: WithdrawParams) {
+        return (builder: Builder) => {
+            return builder
+                .storeUint(Opcodes.Vault.WithdrawFp, OPCODE_SIZE)
+                .storeAddress(withdrawParams?.receiver ?? burner)
+                .storeCoins(withdrawParams?.minWithdraw ?? 0n)
+                .storeMaybeRef(this.optionalVaultParamsToCell(withdrawParams?.optionalParams))
+                .storeMaybeRef(
+                    withdrawParams?.callbacks?.successCallback
+                        ? this.callbackParamsToCell(withdrawParams?.callbacks.successCallback)
+                        : null,
+                )
+                .storeMaybeRef(
+                    withdrawParams?.callbacks?.failureCallback
+                        ? this.callbackParamsToCell(withdrawParams?.callbacks.failureCallback)
+                        : null,
+                )
+                .endCell();
+        };
+    }
+
     private storeJettonTransferMessage(params: JettonTransferParams): (builder: Builder) => void {
         return (builder: Builder) => {
             return builder
@@ -245,20 +266,7 @@ export class Vault implements Contract {
                         amount: shares,
                         responseDst: burner,
                         customPayload: beginCell()
-                            .storeUint(Opcodes.Vault.WithdrawFp, OPCODE_SIZE)
-                            .storeAddress(withdrawParams?.receiver ?? burner)
-                            .storeCoins(withdrawParams?.minWithdraw ?? 0n)
-                            .storeMaybeRef(this.optionalVaultParamsToCell(withdrawParams?.optionalParams))
-                            .storeMaybeRef(
-                                withdrawParams?.callbacks?.successCallback
-                                    ? this.callbackParamsToCell(withdrawParams?.callbacks.successCallback)
-                                    : null,
-                            )
-                            .storeMaybeRef(
-                                withdrawParams?.callbacks?.failureCallback
-                                    ? this.callbackParamsToCell(withdrawParams?.callbacks.failureCallback)
-                                    : null,
-                            )
+                            .store(this.storeVaultWithdrawParams(burner, withdrawParams))
                             .endCell(),
                     }),
                 )
