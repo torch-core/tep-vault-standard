@@ -68,9 +68,6 @@ fun onInternalMessage(in: InMessage) {
             assetJettonInfo.walletAddress = inMsg.jettonWalletAddress;
             storage.assetJettonInfo = assetJettonInfo.toCell();
             storage.save();
-
-            var storage2 = lazy VaultStorage.load();
-            storage2.assetJettonInfo = storage.assetJettonInfo;
         }
 
         DeployVault => {
