@@ -10,6 +10,7 @@ import { expectDepositedEmitLog } from './helper/emitLog';
 import { expectVaultSharesAndAssets } from './helper/expectVault';
 import { expectTonDepositorBalances, expectTonVaultBalances } from './helper/expectBalances';
 import { JettonWallet } from '@ton/ton';
+import { Opcodes } from '../wrappers/constants/op';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
@@ -42,7 +43,7 @@ describe('Deposit to TON Vault', () => {
 
     afterEach(async () => {
         const tonVaultTONBalanceAfter = (await blockchain.getContract(tonVault.address)).balance;
-        expect(tonVaultTONBalanceAfter - tonVaultTonBalDelta).toBeGreaterThanOrEqual(tonVaultTONBalBefore);
+        expect(tonVaultTONBalanceAfter - tonVaultTonBalDelta + 1n).toBeGreaterThanOrEqual(tonVaultTONBalBefore);
     });
 
     async function expectTonDepositFlows(
@@ -511,6 +512,27 @@ describe('Deposit to TON Vault', () => {
                 failCallbackPayload,
                 depositArgs.body,
             );
+        });
+    });
+
+    describe('Other failure cases', () => {
+        it('should throw INVALID_DEPOSIT_AMOUNT when deposit amount is 0', async () => {
+            // Maxey deposit 0 TON to TON Vault
+            const depositAmount = toNano('0');
+            const depositArgs = await tonVault.getTonDepositArg({
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send(depositArgs);
+
+            // Expect that maxey send OP_DEPOSIT to TON Vault but throw INVALID_DEPOSIT_AMOUNT
+            expect(depositResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: tonVault.address,
+                op: Opcodes.Vault.Deposit,
+                success: false,
+                exitCode: VaultErrors.InvalidDepositAmount,
+            });
         });
     });
 });

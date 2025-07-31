@@ -571,4 +571,24 @@ describe('Deposit to Jetton Vault', () => {
             );
         });
     });
+
+    describe('Other failure cases', () => {
+        it('should throw INVALID_DEPOSIT_AMOUNT when deposit amount is 0', async () => {
+            const depositAmount = 0n;
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send(depositArg);
+
+            // Expect that vault jetton wallet send OP_TRANSFER_NOTIFICATION_FOR_MINTER but throw INVALID_DEPOSIT_AMOUNT
+            expect(depositResult.transactions).toHaveTransaction({
+                from: vaultUSDTWallet.address,
+                to: USDTVault.address,
+                op: Opcodes.Jetton.TransferNotification,
+                success: false,
+                exitCode: VaultErrors.InvalidDepositAmount,
+            });
+        });
+    });
 });

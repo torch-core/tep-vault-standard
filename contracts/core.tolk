@@ -25,12 +25,13 @@ fun totalAssets(optionalParams: OptionalParams? = null) {
 
 fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalParams: OptionalParams? = null) {
     var storage = lazy VaultStorage.load();
-    return storage.totalSupply == 0 ? depositAmount : roundedMulDiv(depositAmount, storage.totalSupply, totalAssets(), rounding) as coins;
+    val totalAssets = totalAssets();
+    return totalAssets == 0 ? depositAmount : roundedMulDiv(depositAmount, storage.totalSupply, totalAssets, rounding) as coins;
 }
 
 fun convertToAssets(shares: coins, rounding: RoundingType, optionalParams: OptionalParams? = null) {
     var storage = lazy VaultStorage.load();
-    return roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding) as coins;
+    return (storage.totalSupply == 0 ? 0 : roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding)) as coins;
 }
 
 fun previewDeposit(depositAmount: coins, optionalParams: OptionalParams? = null) {

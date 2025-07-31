@@ -14,6 +14,9 @@ fun onInternalMessage(in: InMessage) {
 
     match (inMsg) {
         Deposit => {
+            // Deposit Amount must > 0
+            assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
+
             val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
             val shares = handleDeposit(in.senderAddress, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, inMsg.depositParams, in.body);
 
@@ -26,6 +29,9 @@ fun onInternalMessage(in: InMessage) {
             // Sender must be the vault's deposit asset jetton wallet
             var assetJettonInfo = lazy storage.assetJettonInfo!.load();
             assert (in.senderAddress == assetJettonInfo.walletAddress!) throw ERR_INVALID_JETTON_MASTER;
+
+            // Transfer Amount must > 0
+            assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
 
             assert (inMsg.forwardPayload != null) throw ERR_NULL_FORWARD_PAYLOAD;
             val forwardPayload = inMsg.forwardPayload!.load();
@@ -45,6 +51,9 @@ fun onInternalMessage(in: InMessage) {
         BurnNotificationForMinter => {
             // Sender must be the initiator's vault share jetton wallet
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
+
+            // Burn shares must > 0
+            assert (inMsg.shares > 0) throw ERR_INVALID_BURN_AMOUNT;
 
             assert (inMsg.customPayload != null) throw ERR_NULL_CUSTOM_PAYLOAD;
             val burnPayload = inMsg.customPayload!.load();
