@@ -276,6 +276,23 @@ export class Vault implements Contract {
         return res.stack.readAddress();
     }
 
+    async getPreviewWithdraw(provider: ContractProvider, shares: bigint, optionalParams?: OptionalParams) {
+        const res = await provider.get('getPreviewWithdraw', [
+            {
+                type: 'int',
+                value: shares,
+            },
+            optionalParams
+                ? {
+                      type: 'cell',
+                      cell: this.optionalVaultParamsToCell(optionalParams)!,
+                  }
+                : { type: 'null' },
+        ]);
+
+        return res.stack.readBigNumber();
+    }
+
     async getStorage(provider: ContractProvider) {
         const { state } = await provider.getState();
         if (state.type !== 'active' || !state.code || !state.data) {

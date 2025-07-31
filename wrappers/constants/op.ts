@@ -14,5 +14,6 @@ export const Opcodes = {
         InternalTransfer: 0x178d4519,
         Excesses: 0xd53276db,
         Burn: 0x595f07bc,
+        BurnNotification: 0x7bdd97de,
     },
 };

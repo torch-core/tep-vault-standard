@@ -31,9 +31,9 @@ export function buildTransferNotificationPayload(
         .endCell();
 }
 
-export function buildFailVaultNotification(
+export function buildVaultNotification(
     queryId: bigint,
-    errorCode: number,
+    result: number,
     initiator: Address,
     callbackPayload?: Cell,
     inBody?: Cell,
@@ -41,9 +41,9 @@ export function buildFailVaultNotification(
     return beginCell()
         .storeUint(Opcodes.Vault.VaultNotification, OPCODE_SIZE)
         .storeUint(queryId, QUERY_ID_SIZE)
-        .storeUint(errorCode, RESULT_SIZE)
+        .storeUint(result, RESULT_SIZE)
         .storeAddress(initiator)
-        .storeMaybeRef(callbackPayload ?? DEFAULT_FAIL_CALLBACK_PAYLOAD)
+        .storeMaybeRef(callbackPayload)
         .storeMaybeRef(inBody)
         .endCell();
 }

@@ -3,7 +3,7 @@ import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, toNano } from '@ton/core';
-import { buildSuccessCallbackFp } from './helper/callbackPayload';
+import { buildSuccessCallbackFp, DEFAULT_FAIL_CALLBACK_PAYLOAD } from './helper/callbackPayload';
 import { expectFailDepositTONTxs, expectTONDepositTxs } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emitLog';
@@ -353,7 +353,14 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            expectFailDepositTONTxs(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
+            expectFailDepositTONTxs(
+                depositResult,
+                maxey,
+                tonVault,
+                queryId,
+                VaultErrors.MinShareNotMet,
+                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+            );
         });
 
         it('should handle deposit failure with receiver', async () => {
@@ -370,7 +377,14 @@ describe('Deposit to TON Vault', () => {
             const depositResult = await maxey.send(depositArgs);
 
             // Expect that deposit fail
-            expectFailDepositTONTxs(depositResult, maxey, tonVault, queryId, VaultErrors.MinShareNotMet);
+            expectFailDepositTONTxs(
+                depositResult,
+                maxey,
+                tonVault,
+                queryId,
+                VaultErrors.MinShareNotMet,
+                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+            );
         });
 
         it('should handle deposit failure with failure callback (body not included)', async () => {

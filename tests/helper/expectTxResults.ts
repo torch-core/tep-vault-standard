@@ -2,7 +2,7 @@ import { SandboxContract, SendMessageResult, TreasuryContract, Blockchain } from
 import { Vault, VaultStorage } from '../../wrappers/Vault';
 import { Cell } from '@ton/core';
 import { Opcodes } from '../../wrappers/constants/op';
-import { buildFailVaultNotification } from './callbackPayload';
+import { buildVaultNotification } from './callbackPayload';
 import { JettonWallet } from '@ton/ton';
 
 // =============================================================================
@@ -138,6 +138,44 @@ export function expectFailDepositTONTxs(
         to: initiator.address,
         op: Opcodes.Vault.VaultNotification,
         success: true,
-        body: buildFailVaultNotification(queryId, exitCode, initiator.address, callbackPayload, inBody),
+        body: buildVaultNotification(queryId, exitCode, initiator.address, callbackPayload, inBody),
+    });
+}
+
+// =============================================================================
+// Withdraw Validation
+// =============================================================================
+
+export async function expectWithdrawTONTxs(
+    withdrawResult: SendMessageResult,
+    initiator: SandboxContract<TreasuryContract>,
+    receiver: SandboxContract<TreasuryContract>,
+    vault: SandboxContract<Vault>,
+    callbackPayload: Cell,
+) {
+    // Expect burner send OP_BURN to burner share wallet
+    const burnerShareWalletAddress = await vault.getWalletAddress(initiator.address);
+    expect(withdrawResult.transactions).toHaveTransaction({
+        from: initiator.address,
+        to: burnerShareWalletAddress,
+        op: Opcodes.Jetton.Burn,
+        success: true,
+    });
+
+    // Expect burner share wallet send OP_BURN_NOTIFICATION to vault
+    expect(withdrawResult.transactions).toHaveTransaction({
+        from: burnerShareWalletAddress,
+        to: vault.address,
+        op: Opcodes.Jetton.BurnNotification,
+        success: true,
+    });
+
+    // Expect vault send OP_VAULT_NOTIFICATION to burner
+    expect(withdrawResult.transactions).toHaveTransaction({
+        from: vault.address,
+        to: receiver.address,
+        op: Opcodes.Vault.VaultNotification,
+        success: true,
+        body: callbackPayload,
     });
 }
