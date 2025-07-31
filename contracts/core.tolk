@@ -72,8 +72,8 @@ fun handleDeposit(initiator: address, queryId: QueryId, remainingValue: coins, s
 
 fun handleWithdraw(initiator: address, queryId: QueryId, remainingValue: coins, shares: coins, withdrawParams: WithdrawParamsFp, inBody: slice, assetJettonWallet: address? = null) {
     try {
-        val maxWithdrawShares = maxWithdraw();
-        assert (shares <= maxWithdrawShares) throw ERR_MAX_WITHDRAW_EXCEEDED;
+        val maxShares = maxWithdraw();
+        assert (shares <= maxShares) throw ERR_MAX_WITHDRAW_EXCEEDED;
 
         val withdrawAmount = previewWithdraw(shares);
         assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
