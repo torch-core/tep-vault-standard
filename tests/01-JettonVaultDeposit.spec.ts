@@ -1,4 +1,4 @@
-import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, printTransactionFees, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
@@ -12,7 +12,7 @@ import {
     DEFAULT_FAIL_CALLBACK_PAYLOAD,
     SUCCESS_RESULT,
 } from './helper/callbackPayload';
-import { Address, beginCell, Cell } from '@ton/core';
+import { Address, beginCell, Cell, toNano } from '@ton/core';
 import { Opcodes } from '../wrappers/constants/op';
 import { OPCODE_SIZE } from '../wrappers/constants/size';
 import { VaultErrors } from '../wrappers/constants/error';
@@ -37,7 +37,7 @@ describe('Deposit to Jetton Vault', () => {
     let maxeyUSDTWalletBalBefore: bigint;
 
     const queryId = 8n;
-    const { getTestContext, resetToInitSnapshot } = createTestEnvironment();
+    const { getTestContext, resetToInitSnapshot, deployJettonMinter } = createTestEnvironment();
 
     beforeEach(async () => {
         await resetToInitSnapshot();
@@ -588,6 +588,64 @@ describe('Deposit to Jetton Vault', () => {
                 op: Opcodes.Jetton.TransferNotification,
                 success: false,
                 exitCode: VaultErrors.InvalidDepositAmount,
+            });
+        });
+
+        it('should throw INVALID_JETTON_WALLET when jetton master is not the vault', async () => {
+            // Deploy fake jetton master
+            const fakeJetton = await deployJettonMinter(blockchain, maxey, 'Fake Jetton');
+            const maxeyFakeJettonWalletAddress = await fakeJetton.getWalletAddress(maxey.address);
+            const depositAmount = 10000n;
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send({
+                to: maxeyFakeJettonWalletAddress,
+                value: depositArg.value,
+                body: depositArg.body,
+            });
+
+            // Expect that vault fake jetton wallet send OP_TRANSFER_NOTIFICATION_FOR_MINTER but throw INVALID_JETTON_WALLET
+            const vaultFakeJettonWalletAddress = await fakeJetton.getWalletAddress(USDTVault.address);
+            expect(depositResult.transactions).toHaveTransaction({
+                from: vaultFakeJettonWalletAddress,
+                to: USDTVault.address,
+                op: Opcodes.Jetton.TransferNotification,
+                success: false,
+                exitCode: VaultErrors.InvalidJettonWallet,
+            });
+        });
+
+        it('should throw NULL_FORWARD_PAYLOAD when forward payload is null', async () => {
+            const depositAmount = 10000n;
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send({
+                to: depositArg.to,
+                value: depositArg.value,
+                body: beginCell()
+                    .store(
+                        USDTVault.storeJettonTransferMessage({
+                            queryId,
+                            amount: depositAmount,
+                            recipient: USDTVault.address,
+                            responseDst: maxey.address,
+                            forwardAmount: toNano('0.05'),
+                        }),
+                    )
+                    .endCell(),
+            });
+
+            // Expect that vault jetton wallet send OP_TRANSFER_NOTIFICATION_FOR_MINTER but throw NULL_FORWARD_PAYLOAD
+            expect(depositResult.transactions).toHaveTransaction({
+                from: vaultUSDTWallet.address,
+                to: USDTVault.address,
+                op: Opcodes.Jetton.TransferNotification,
+                success: false,
+                exitCode: VaultErrors.NullForwardPayload,
             });
         });
     });

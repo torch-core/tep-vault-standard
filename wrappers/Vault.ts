@@ -163,7 +163,7 @@ export class Vault implements Contract {
         };
     }
 
-    private storeJettonTransferMessage(params: JettonTransferParams): (builder: Builder) => void {
+    storeJettonTransferMessage(params: JettonTransferParams): (builder: Builder) => void {
         return (builder: Builder) => {
             return builder
                 .storeUint(Opcodes.Jetton.Transfer, OPCODE_SIZE)

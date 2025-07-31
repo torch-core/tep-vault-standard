@@ -28,7 +28,7 @@ fun onInternalMessage(in: InMessage) {
         TransferNotificationForRecipient => {
             // Sender must be the vault's deposit asset jetton wallet
             var assetJettonInfo = lazy storage.assetJettonInfo!.load();
-            assert (in.senderAddress == assetJettonInfo.walletAddress!) throw ERR_INVALID_JETTON_MASTER;
+            assert (in.senderAddress == assetJettonInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
 
             // Transfer Amount must > 0
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
@@ -73,7 +73,7 @@ fun onInternalMessage(in: InMessage) {
 
         ResponseWalletAddress => {
             var assetJettonInfo = lazy storage.assetJettonInfo!.load();
-            assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
+            assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_WALLET; 
             assetJettonInfo.walletAddress = inMsg.jettonWalletAddress;
             storage.assetJettonInfo = assetJettonInfo.toCell();
             storage.save();

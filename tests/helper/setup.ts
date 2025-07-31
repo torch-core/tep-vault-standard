@@ -174,7 +174,8 @@ export const createTestEnvironment = () => {
     };
 
     return {
-        resetToInitSnapshot: resetToInitSnapshot,
+        resetToInitSnapshot,
         getTestContext,
+        deployJettonMinter,
     };
 };
