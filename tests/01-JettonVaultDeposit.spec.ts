@@ -1,4 +1,4 @@
-import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, printTransactionFees, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
@@ -334,6 +334,20 @@ describe('Deposit to Jetton Vault', () => {
     });
 
     describe('Deposit Jetton failure due to minimum shares not met and refund', () => {
-        // TODO
+        it('should handle basic deposit failure', async () => {
+            const depositAmount = 10000n;
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+                depositParams: {
+                    minShares: depositAmount + 1n,
+                },
+            });
+            const depositResult = await maxey.send(depositArg);
+
+            printTransactionFees(depositResult.transactions);
+
+            
+        });
     });
 });

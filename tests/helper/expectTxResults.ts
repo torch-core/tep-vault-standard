@@ -1,6 +1,6 @@
 import { SandboxContract, SendMessageResult, TreasuryContract, Blockchain } from '@ton/sandbox';
 import { Vault, VaultStorage } from '../../wrappers/Vault';
-import { Cell } from '@ton/core';
+import { Address, Cell } from '@ton/core';
 import { Opcodes } from '../../wrappers/constants/op';
 import { buildVaultNotification } from './callbackPayload';
 import { JettonWallet } from '@ton/ton';
@@ -67,31 +67,30 @@ export async function expectTONDepositTxs(
 
 export async function expectJettonTransferTxs(
     transferResult: SendMessageResult,
-    initiator: SandboxContract<TreasuryContract>,
-    initiatorJettonWallet: SandboxContract<JettonWallet>,
-    vault: SandboxContract<Vault>,
-    vaultJettonWallet: SandboxContract<JettonWallet>,
+    initiator: Address,
+    initiatorJettonWallet: Address,
+    recieverJettonWallet: Address,
 ) {
     // Initiator send OP_JETTON_TRANSFER to initiatorJettonWallet
     expect(transferResult.transactions).toHaveTransaction({
-        from: initiator.address,
-        to: initiatorJettonWallet.address,
+        from: initiator,
+        to: initiatorJettonWallet,
         op: Opcodes.Jetton.Transfer,
         success: true,
     });
 
-    // initiatorJettonWallet send OP_JETTON_INTERNAL_TRANSFER to vaultJettonWallet
+    // initiatorJettonWallet send OP_JETTON_INTERNAL_TRANSFER to recieverJettonWallet
     expect(transferResult.transactions).toHaveTransaction({
-        from: initiatorJettonWallet.address,
-        to: vaultJettonWallet.address,
+        from: initiatorJettonWallet,
+        to: recieverJettonWallet,
         op: Opcodes.Jetton.InternalTransfer,
         success: true,
     });
 
-    // vaultJettonWallet send OP_EXCESSES to initiator
+    // recieverJettonWallet send OP_EXCESSES to initiator
     expect(transferResult.transactions).toHaveTransaction({
-        from: vaultJettonWallet.address,
-        to: initiator.address,
+        from: recieverJettonWallet,
+        to: initiator,
         op: Opcodes.Jetton.Excesses,
         success: true,
     });
@@ -106,7 +105,12 @@ export async function expectJettonDepositTxs(
     vaultJettonWallet: SandboxContract<JettonWallet>,
     callbackPayload: Cell,
 ) {
-    await expectJettonTransferTxs(depositResult, initiator, initiatorJettonWallet, vault, vaultJettonWallet);
+    await expectJettonTransferTxs(
+        depositResult,
+        initiator.address,
+        initiatorJettonWallet.address,
+        vaultJettonWallet.address,
+    );
 
     // vaultJettonWallet send OP_JETTON_TRANSFER_NOTIFICATION to vault
     expect(depositResult.transactions).toHaveTransaction({
@@ -150,6 +154,38 @@ export function expectFailDepositTONTxs(
         success: true,
         body: buildVaultNotification(queryId, exitCode, initiator.address, callbackPayload, inBody),
     });
+}
+
+export async function expectFailDepositJettonTxs(
+    depositResult: SendMessageResult,
+    initiator: SandboxContract<TreasuryContract>,
+    initiatorJettonWallet: SandboxContract<JettonWallet>,
+    vaultJettonWallet: SandboxContract<JettonWallet>,
+    vault: SandboxContract<Vault>,
+    exitCode: number,
+) {
+    await expectJettonTransferTxs(
+        depositResult,
+        initiator.address,
+        initiatorJettonWallet.address,
+        vaultJettonWallet.address,
+    );
+
+    // vaultJettonWallet send OP_JETTON_TRANSFER_NOTIFICATION to vault
+    expect(depositResult.transactions).toHaveTransaction({
+        from: vaultJettonWallet.address,
+        to: vault.address,
+        op: Opcodes.Jetton.TransferNotification,
+        success: true,
+        exitCode: exitCode,
+    });
+
+    await expectJettonTransferTxs(
+        depositResult,
+        vault.address,
+        vaultJettonWallet.address,
+        initiatorJettonWallet.address,
+    );
 }
 
 // =============================================================================
