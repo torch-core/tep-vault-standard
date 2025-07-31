@@ -21,7 +21,7 @@ fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jett
 
 @pure
 fun calcForwardTonAmount(callbackParams: Cell<CallbackParams>?, sendingValue: coins) {
-    return (callbackParams == null ? 1 : sendingValue - JETTON_TRANSFER_FEE) as coins;
+    return (callbackParams == null ? DEFAULT_JETTON_NOTIFICATION_FEE : sendingValue - JETTON_TRANSFER_FEE) as coins;
 }
 
 fun buildAddressOfJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell) {

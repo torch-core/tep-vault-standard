@@ -1,7 +1,7 @@
 import "constants/errors";
 
 const DEPOSIT_GAS = ton("0.012");
-const WITHDRAW_GAS = ton("0.02");
+const WITHDRAW_GAS = ton("0.012");
 
 fun processTonDepositGas(valueCoins: coins, depositAmount: coins) {
     assert (valueCoins >= depositAmount + DEPOSIT_GAS) throw ERR_TON_DEPOSIT_GAS_TOO_LOW;
