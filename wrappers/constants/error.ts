@@ -5,4 +5,5 @@ export const VaultErrors = {
     InvalidBurnAmount: 3004,
     InvalidJettonWallet: 1003,
     NullForwardPayload: 2000,
+    UnauthorizedBurn: 4000,
 };

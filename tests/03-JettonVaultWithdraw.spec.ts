@@ -504,5 +504,30 @@ describe('Withdraw from Jetton Vault', () => {
                 exitCode: VaultErrors.InvalidBurnAmount,
             });
         });
+
+        it('should throw UNAUTHORIZED_BURN when burn shares is not from the vault', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares);
+            const withdrawResult = await maxey.send({
+                to: USDTVault.address,
+                value: withdrawArgs.value,
+                body: buildBurnNotificationPayload(
+                    queryId,
+                    burnShares,
+                    maxey.address,
+                    maxey.address,
+                    beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address)).endCell(),
+                ),
+            });
+
+            // Expect that USDTVault share wallet send OP_BURN_NOTIFICATION to vault but throw UNAUTHORIZED_BURN
+            expect(withdrawResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: USDTVault.address,
+                op: Opcodes.Jetton.BurnNotification,
+                success: false,
+                exitCode: VaultErrors.UnauthorizedBurn,
+            });
+        });
     });
 });

@@ -473,5 +473,30 @@ describe('Withdraw from TON Vault', () => {
                 exitCode: VaultErrors.InvalidBurnAmount,
             });
         });
+
+        it('should throw UNAUTHORIZED_BURN when burn shares is not from the vault', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares);
+            const withdrawResult = await maxey.send({
+                to: tonVault.address,
+                value: withdrawArgs.value,
+                body: buildBurnNotificationPayload(
+                    queryId,
+                    burnShares,
+                    maxey.address,
+                    maxey.address,
+                    beginCell().store(tonVault.storeVaultWithdrawParams(maxey.address)).endCell(),
+                ),
+            });
+
+            // Expect that ton vault share wallet send OP_BURN_NOTIFICATION to vault but throw UNAUTHORIZED_BURN
+            expect(withdrawResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: tonVault.address,
+                op: Opcodes.Jetton.BurnNotification,
+                success: false,
+                exitCode: VaultErrors.UnauthorizedBurn,
+            });
+        });
     });
 });
