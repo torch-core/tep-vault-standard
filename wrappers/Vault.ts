@@ -178,7 +178,7 @@ export class Vault implements Contract {
         };
     }
 
-    private storeJettonBurnMessage(params: JettonBurnParams): (builder: Builder) => void {
+    storeJettonBurnMessage(params: JettonBurnParams): (builder: Builder) => void {
         return (builder: Builder) => {
             return builder
                 .storeUint(Opcodes.Jetton.Burn, OPCODE_SIZE)

@@ -498,5 +498,32 @@ describe('Withdraw from TON Vault', () => {
                 exitCode: VaultErrors.UnauthorizedBurn,
             });
         });
+
+        it('should throw NULL_CUSTOM_PAYLOAD when custom payload is null', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares);
+            const withdrawResult = await maxey.send({
+                to: withdrawArgs.to,
+                value: withdrawArgs.value,
+                body: beginCell()
+                    .store(
+                        tonVault.storeJettonBurnMessage({
+                            queryId: queryId ?? 8n,
+                            amount: burnShares,
+                            responseDst: maxey.address,
+                        }),
+                    )
+                    .endCell(),
+            });
+
+            // Expect that ton vault share wallet send OP_BURN_NOTIFICATION to vault but throw NULL_CUSTOM_PAYLOAD
+            expect(withdrawResult.transactions).toHaveTransaction({
+                from: maxeyShareWallet.address,
+                to: tonVault.address,
+                op: Opcodes.Jetton.BurnNotification,
+                success: false,
+                exitCode: VaultErrors.NullCustomPayload,
+            });
+        });
     });
 });

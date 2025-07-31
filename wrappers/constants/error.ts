@@ -6,4 +6,5 @@ export const VaultErrors = {
     InvalidJettonWallet: 1003,
     NullForwardPayload: 2000,
     UnauthorizedBurn: 4000,
+    NullCustomPayload: 3000,
 };

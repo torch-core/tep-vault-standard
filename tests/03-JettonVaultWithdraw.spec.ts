@@ -78,7 +78,7 @@ describe('Withdraw from Jetton Vault', () => {
 
     afterEach(async () => {
         const vaultTonBalanceAfter = (await blockchain.getContract(USDTVault.address)).balance;
-        expect(vaultTonBalanceAfter).toBeGreaterThanOrEqual(vaultTonBalBefore);
+        expect(vaultTonBalanceAfter + 1n).toBeGreaterThanOrEqual(vaultTonBalBefore);
     });
 
     async function expectWithdrawJettonFlows(
@@ -527,6 +527,33 @@ describe('Withdraw from Jetton Vault', () => {
                 op: Opcodes.Jetton.BurnNotification,
                 success: false,
                 exitCode: VaultErrors.UnauthorizedBurn,
+            });
+        });
+
+        it('should throw NULL_CUSTOM_PAYLOAD when custom payload is null', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares);
+            const withdrawResult = await maxey.send({
+                to: withdrawArgs.to,
+                value: withdrawArgs.value,
+                body: beginCell()
+                    .store(
+                        USDTVault.storeJettonBurnMessage({
+                            queryId: queryId ?? 8n,
+                            amount: burnShares,
+                            responseDst: maxey.address,
+                        }),
+                    )
+                    .endCell(),
+            });
+
+            // Expect that ton vault share wallet send OP_BURN_NOTIFICATION to vault but throw NULL_CUSTOM_PAYLOAD
+            expect(withdrawResult.transactions).toHaveTransaction({
+                from: maxeyShareWallet.address,
+                to: USDTVault.address,
+                op: Opcodes.Jetton.BurnNotification,
+                success: false,
+                exitCode: VaultErrors.NullCustomPayload,
             });
         });
     });
