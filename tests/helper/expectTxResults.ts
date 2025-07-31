@@ -4,6 +4,7 @@ import { Address, Cell } from '@ton/core';
 import { Opcodes } from '../../wrappers/constants/op';
 import { buildVaultNotification } from './callbackPayload';
 import { JettonWallet } from '@ton/ton';
+import { VaultErrors } from '../../wrappers/constants/error';
 
 // =============================================================================
 // Share Minting Validation
@@ -70,6 +71,7 @@ export async function expectJettonTransferTxs(
     initiator: Address,
     initiatorJettonWallet: Address,
     recieverJettonWallet: Address,
+    sendExcessesTo?: Address,
 ) {
     // Initiator send OP_JETTON_TRANSFER to initiatorJettonWallet
     expect(transferResult.transactions).toHaveTransaction({
@@ -90,7 +92,7 @@ export async function expectJettonTransferTxs(
     // recieverJettonWallet send OP_EXCESSES to initiator
     expect(transferResult.transactions).toHaveTransaction({
         from: recieverJettonWallet,
-        to: initiator,
+        to: sendExcessesTo ?? initiator,
         op: Opcodes.Jetton.Excesses,
         success: true,
     });
@@ -157,14 +159,10 @@ export async function expectFailDepositJettonTxs(
     initiatorJettonWallet: Address,
     vaultJettonWallet: Address,
     vault: SandboxContract<Vault>,
-    exitCode: number,
+    callbackPayload: Cell,
+    exitCode: number = VaultErrors.MinShareNotMet,
 ) {
-    await expectJettonTransferTxs(
-        depositResult,
-        initiator,
-        initiatorJettonWallet,
-        vaultJettonWallet,
-    );
+    await expectJettonTransferTxs(depositResult, initiator, initiatorJettonWallet, vaultJettonWallet);
 
     // vaultJettonWallet send OP_JETTON_TRANSFER_NOTIFICATION to vault
     expect(depositResult.transactions).toHaveTransaction({
@@ -175,12 +173,15 @@ export async function expectFailDepositJettonTxs(
         exitCode: exitCode,
     });
 
-    await expectJettonTransferTxs(
-        depositResult,
-        vault.address,
-        vaultJettonWallet,
-        initiatorJettonWallet,
-    );
+    await expectJettonTransferTxs(depositResult, vault.address, vaultJettonWallet, initiatorJettonWallet, initiator);
+
+    // initiatorJettonWallet send OP_JETTON_TRANSFER_NOTIFICATION to initiator
+    expect(depositResult.transactions).toHaveTransaction({
+        from: initiatorJettonWallet,
+        to: initiator,
+        op: Opcodes.Jetton.TransferNotification,
+        body: callbackPayload,
+    });
 }
 
 // =============================================================================
