@@ -75,7 +75,7 @@ fun jettonTransfer(
             queryId: queryId,
             jettonAmount: transferAmount,
             transferRecipient: receiver,
-            sendExcessesTo: receiver,
+            sendExcessesTo: initiator,
             customPayload: null,
             forwardTonAmount: calcForwardTonAmount(callbackParams, remainingValue),
             forwardPayload: createForwardPayload(result, initiator, callbackParams, inBody)

@@ -1,4 +1,4 @@
-import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, printTransactionFees, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
@@ -277,6 +277,18 @@ describe('Withdraw from TON Vault', () => {
                 successCallbackPayload,
                 inBody,
             );
+        });
+    });
+
+    describe('Withdraw TON failure due to minimum withdraw not met', () => {
+        it('should handle basic withdraw', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const expectedWithdrawAmount = await tonVault.getPreviewWithdraw(burnShares);
+            const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares, {
+                minWithdraw: expectedWithdrawAmount + 1n,
+            });
+            const withdrawResult = await maxey.send(withdrawArgs);
+            printTransactionFees(withdrawResult.transactions);
         });
     });
 });

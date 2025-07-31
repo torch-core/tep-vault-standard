@@ -255,7 +255,6 @@ export class Vault implements Contract {
     ) {
         const jettonMaster = provider.open(JettonMaster.create(this.address));
         const jettonWalletAddress = await jettonMaster.getWalletAddress(burner);
-        console.log('jettonWalletAddress', jettonWalletAddress);
         return {
             to: jettonWalletAddress,
             value: toNano('0.3'),
