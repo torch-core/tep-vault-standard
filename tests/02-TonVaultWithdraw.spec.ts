@@ -331,7 +331,7 @@ describe('Withdraw from TON Vault', () => {
             await expectVaultSharesAndAssets(tonVault, 0n, 0n, tonVaultTotalAssetsBefore, tonVaultTotalSupplyBefore);
         });
 
-        it('should handle basic withdraw', async () => {
+        it('should handle basic withdraw failure', async () => {
             const burnShares = maxeyShareBalBefore / 2n;
             const expectedWithdrawAmount = await tonVault.getPreviewWithdraw(burnShares);
             const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares, {

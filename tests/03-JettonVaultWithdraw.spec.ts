@@ -6,13 +6,15 @@ import { JettonMaster, JettonWallet } from '@ton/ton';
 import {
     buildBurnNotificationPayload,
     buildCallbackFp,
+    DEFAULT_FAIL_CALLBACK_PAYLOAD,
     DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
     SUCCESS_RESULT,
 } from './helper/callbackPayload';
-import { expectWithdrawJettonTxs } from './helper/expectTxResults';
+import { expectBurnTxs, expectMintShares, expectWithdrawJettonTxs } from './helper/expectTxResults';
 import { beginCell, Cell } from '@ton/core';
 import { expectVaultSharesAndAssets } from './helper/expectVault';
 import { expectWithdrawnEmitLog } from './helper/emitLog';
+import { VaultErrors } from '../wrappers/constants/error';
 
 describe('Withdraw from Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -130,6 +132,24 @@ describe('Withdraw from Jetton Vault', () => {
 
         // Expect withdraw emit log
         expectWithdrawnEmitLog(withdrawResult, initiator.address, receiver.address, expectedWithdrawAmount, burnShares);
+    }
+
+    async function expectWithdrawJettonFailure(
+        withdrawResult: SendMessageResult,
+        initiator: SandboxContract<TreasuryContract>,
+        expectedWithdrawAmount: bigint,
+        callbackPayload: Cell,
+        inBody?: Cell,
+        errorCode: number = VaultErrors.MinWithdrawNotMet,
+    ) {
+        await expectBurnTxs(withdrawResult, initiator.address, USDTVault, errorCode);
+
+        await expectMintShares(
+            withdrawResult,
+            USDTVault,
+            initiator.address,
+            buildCallbackFp(queryId, expectedWithdrawAmount, USDTVault, errorCode, initiator, callbackPayload, inBody),
+        );
     }
 
     describe('Withdraw Jetton success', () => {
@@ -310,6 +330,159 @@ describe('Withdraw from Jetton Vault', () => {
                 burnShares,
                 expectedWithdrawAmount,
                 successCallbackPayload,
+                inBody,
+            );
+        });
+    });
+
+    describe('Withdraw Jetton failure due to minimum withdraw not met', () => {
+        afterEach(async () => {
+            // Maxey's share should be same
+            expect(await maxeyShareWallet.getBalance()).toBe(maxeyShareBalBefore);
+
+            // Maxey's jetton balance should be same
+            expect(await maxeyUSDTWallet.getBalance()).toBe(maxeyUSDTWalletBalBefore);
+
+            // Bob Jetton Balance should be same
+            expect(await bobUSDTWallet.getBalance()).toBe(bobUSDTWalletBalBefore);
+
+            // Vault Assets and total supply should be same
+            await expectVaultSharesAndAssets(USDTVault, 0n, 0n, vaultTotalAssetsBefore, vaultTotalSupplyBefore);
+        });
+
+        it('should handle basic withdraw failure', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const expectedWithdrawAmount = await USDTVault.getPreviewWithdraw(burnShares);
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares, {
+                minWithdraw: expectedWithdrawAmount + 1n,
+            });
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            await expectWithdrawJettonFailure(
+                withdrawResult,
+                maxey,
+                expectedWithdrawAmount,
+                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+            );
+        });
+
+        it('should handle withdraw failure with receiver', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const expectedWithdrawAmount = await USDTVault.getPreviewWithdraw(burnShares);
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares, {
+                receiver: bob.address,
+                minWithdraw: expectedWithdrawAmount + 1n,
+            });
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            await expectWithdrawJettonFailure(
+                withdrawResult,
+                maxey,
+                expectedWithdrawAmount,
+                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+            );
+        });
+
+        it('should handle withdraw failure with failure callback (body not included)', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const expectedWithdrawAmount = await USDTVault.getPreviewWithdraw(burnShares);
+            const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares, {
+                minWithdraw: expectedWithdrawAmount + 1n,
+                callbacks: {
+                    failureCallback: {
+                        includeBody: false,
+                        payload: failCallbackPayload,
+                    },
+                },
+            });
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            await expectWithdrawJettonFailure(withdrawResult, maxey, expectedWithdrawAmount, failCallbackPayload);
+        });
+
+        it('should handle withdraw failure with failure callback (body included)', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const expectedWithdrawAmount = await USDTVault.getPreviewWithdraw(burnShares);
+            const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const withdrawParams = {
+                minWithdraw: expectedWithdrawAmount + 1n,
+                callbacks: {
+                    failureCallback: {
+                        includeBody: true,
+                        payload: failCallbackPayload,
+                    },
+                },
+            };
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares, withdrawParams);
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            const inBody = buildBurnNotificationPayload(
+                queryId,
+                burnShares,
+                maxey.address,
+                maxey.address,
+                beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+            );
+
+            await expectWithdrawJettonFailure(
+                withdrawResult,
+                maxey,
+                expectedWithdrawAmount,
+                failCallbackPayload,
+                inBody,
+            );
+        });
+
+        it('should handle withdraw failure with receiver and failure callback (body not included)', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const expectedWithdrawAmount = await USDTVault.getPreviewWithdraw(burnShares);
+            const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares, {
+                receiver: bob.address,
+                minWithdraw: expectedWithdrawAmount + 1n,
+                callbacks: {
+                    failureCallback: {
+                        includeBody: false,
+                        payload: failCallbackPayload,
+                    },
+                },
+            });
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            await expectWithdrawJettonFailure(withdrawResult, maxey, expectedWithdrawAmount, failCallbackPayload);
+        });
+
+        it('should handle withdraw failure with receiver and failure callback (body included)', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const expectedWithdrawAmount = await USDTVault.getPreviewWithdraw(burnShares);
+            const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const withdrawParams = {
+                receiver: bob.address,
+                minWithdraw: expectedWithdrawAmount + 1n,
+                callbacks: {
+                    failureCallback: {
+                        includeBody: true,
+                        payload: failCallbackPayload,
+                    },
+                },
+            };
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares, withdrawParams);
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            const inBody = buildBurnNotificationPayload(
+                queryId,
+                burnShares,
+                maxey.address,
+                maxey.address,
+                beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+            );
+
+            await expectWithdrawJettonFailure(
+                withdrawResult,
+                maxey,
+                expectedWithdrawAmount,
+                failCallbackPayload,
                 inBody,
             );
         });
