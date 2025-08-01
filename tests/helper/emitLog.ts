@@ -10,6 +10,7 @@ export function expectDepositedEmitLog(
     depositAmount: bigint,
     shares: bigint,
     depositAsset?: Cell,
+    optionalDepositLogs?: Cell,
 ) {
     expect(result.externals[0].info.dest?.value).toBe(BigInt(Topics.Deposited));
     const extBody = result.externals[0].body.beginParse();
@@ -20,6 +21,7 @@ export function expectDepositedEmitLog(
     expect(extBody.loadMaybeRef()).toBe(depositAsset ?? null);
     expect(extBody.loadCoins()).toBe(depositAmount);
     expect(extBody.loadCoins()).toBe(shares);
+    expect(extBody.loadMaybeRef()).toBe(optionalDepositLogs ?? null);
 }
 
 export function expectWithdrawnEmitLog(
@@ -29,6 +31,7 @@ export function expectWithdrawnEmitLog(
     withdrawAmount: bigint,
     burnShares: bigint,
     withdrawAsset?: Cell,
+    optionalWithdrawLogs?: Cell,
 ) {
     expect(result.externals[0].info.dest?.value).toBe(BigInt(Topics.Withdrawn));
     const extBody = result.externals[0].body.beginParse();
@@ -39,4 +42,5 @@ export function expectWithdrawnEmitLog(
     expect(extBody.loadMaybeRef()).toBe(withdrawAsset ?? null);
     expect(extBody.loadCoins()).toBe(withdrawAmount);
     expect(extBody.loadCoins()).toBe(burnShares);
+    expect(extBody.loadMaybeRef()).toBe(optionalWithdrawLogs ?? null);
 }
