@@ -1,5 +1,4 @@
 import "schemas";
-import "../internal/send"
 
 fun emitDeposited(depositedParams: Deposited) {
     val emitMsg = createExternalLogMessage({
