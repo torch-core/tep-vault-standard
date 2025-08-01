@@ -1,9 +1,8 @@
-import { SandboxContract, SendMessageResult, TreasuryContract, Blockchain } from '@ton/sandbox';
-import { Vault, VaultStorage } from '../../wrappers/Vault';
+import { SandboxContract, SendMessageResult } from '@ton/sandbox';
+import { Vault } from '../../wrappers/Vault';
 import { Address, Cell } from '@ton/core';
 import { Opcodes } from '../../wrappers/constants/op';
 import { buildVaultNotification } from './callbackPayload';
-import { JettonWallet } from '@ton/ton';
 import { VaultErrors } from '../../wrappers/constants/error';
 
 // =============================================================================

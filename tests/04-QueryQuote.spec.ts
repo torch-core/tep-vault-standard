@@ -1,0 +1,261 @@
+import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { Vault } from '../wrappers/Vault';
+import '@ton/test-utils';
+import { createTestEnvironment } from './helper/setup';
+import { Address, beginCell, Cell, toNano } from '@ton/core';
+import { Opcodes } from '../wrappers/constants/op';
+import { OPCODE_SIZE, QUERY_ID_SIZE, TIMESTAMP_SIZE } from '../wrappers/constants/size';
+
+describe('Deposit to TON Vault', () => {
+    let blockchain: Blockchain;
+    let contractToQuery: SandboxContract<TreasuryContract>;
+    let bob: SandboxContract<TreasuryContract>;
+    let tonVault: SandboxContract<Vault>;
+    let USDTVault: SandboxContract<Vault>;
+    let tonVaultTotalSupply: bigint;
+    let tonVaultTotalAssets: bigint;
+    let USDTVaultTotalSupply: bigint;
+    let USDTVaultTotalAssets: bigint;
+    const queryId = 8n;
+    const forwardPayload = beginCell().storeUint(1, 32).endCell();
+    const { getTestContext, resetToInitSnapshot } = createTestEnvironment();
+
+    beforeEach(async () => {
+        await resetToInitSnapshot();
+        ({ blockchain, maxey: contractToQuery, USDTVault, tonVault, bob } = getTestContext());
+        blockchain.now = Math.floor(Date.now() / 1000);
+
+        // Deposit 1 TON to tonVault
+        const tonDepositArgs = await tonVault.getTonDepositArg({
+            queryId,
+            depositAmount: toNano('1'),
+            depositParams: {
+                receiver: USDTVault.address,
+            },
+        });
+        await bob.send(tonDepositArgs);
+
+        const tonVaultStorage = await tonVault.getStorage();
+        tonVaultTotalSupply = tonVaultStorage.totalSupply;
+        tonVaultTotalAssets = tonVaultStorage.totalAssets;
+
+        // Deposit 1000 JT to USDTVault
+        const jettonDepositArgs = await USDTVault.getJettonDepositArg(bob.address, {
+            queryId,
+            depositAmount: toNano('1000'),
+        });
+        await bob.send(jettonDepositArgs);
+
+        const USDTVaultStorage = await USDTVault.getStorage();
+        USDTVaultTotalSupply = USDTVaultStorage.totalSupply;
+        USDTVaultTotalAssets = USDTVaultStorage.totalAssets;
+    });
+
+    function buildProvideQuotePayload(
+        queryId: bigint,
+        receiver: Address,
+        forwardPayload?: Cell,
+        optionalQuoteParams?: Cell,
+    ) {
+        return beginCell()
+            .storeUint(Opcodes.Vault.ProvideQuote, OPCODE_SIZE)
+            .storeUint(queryId, QUERY_ID_SIZE)
+            .storeAddress(receiver)
+            .storeMaybeRef(optionalQuoteParams)
+            .storeMaybeRef(forwardPayload)
+            .endCell();
+    }
+
+    function buildTakeQuotePayload(
+        queryId: bigint,
+        initiator: Address,
+        totalSupply: bigint,
+        totalAssets: bigint,
+        timestamp: number,
+        forwardPayload?: Cell,
+    ) {
+        return beginCell()
+            .storeUint(Opcodes.Vault.TakeQuote, OPCODE_SIZE)
+            .storeUint(queryId, QUERY_ID_SIZE)
+            .storeAddress(initiator)
+            .storeCoins(totalSupply)
+            .storeCoins(totalAssets)
+            .storeUint(timestamp, TIMESTAMP_SIZE)
+            .storeMaybeRef(forwardPayload)
+            .endCell();
+    }
+
+    function expectProvideQuoteFlows(
+        provideQuoteResult: SendMessageResult,
+        vaultAddress: Address,
+        receiver?: Address,
+        body?: Cell,
+    ) {
+        // Expect contractToQuery sent ProvideQuote message to tonVault
+        expect(provideQuoteResult.transactions).toHaveTransaction({
+            from: contractToQuery.address,
+            to: vaultAddress,
+            op: Opcodes.Vault.ProvideQuote,
+            success: true,
+        });
+
+        if (body) {
+            // Expect tonVault sent TakeQuote message to contractToQuery
+            expect(provideQuoteResult.transactions).toHaveTransaction({
+                from: vaultAddress,
+                to: receiver ?? contractToQuery.address,
+                op: Opcodes.Vault.TakeQuote,
+                success: true,
+                body,
+            });
+        } else {
+            // Expect tonVault sent TakeQuote message to contractToQuery
+            expect(provideQuoteResult.transactions).toHaveTransaction({
+                from: vaultAddress,
+                to: receiver ?? contractToQuery.address,
+                op: Opcodes.Vault.TakeQuote,
+                success: true,
+            });
+        }
+    }
+
+    describe('Provide Quote from TON Vault', () => {
+        it('should provide quote from TON Vault', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, contractToQuery.address);
+            const provideQuoteResult = await contractToQuery.send({
+                to: tonVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(provideQuoteResult, tonVault.address, contractToQuery.address);
+        });
+
+        it('should provide quote from TON Vault with receiver', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, bob.address);
+            const provideQuoteResult = await contractToQuery.send({
+                to: tonVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(provideQuoteResult, tonVault.address, bob.address);
+        });
+
+        it('should provide quote from TON Vault with forward payload', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, contractToQuery.address, forwardPayload);
+            const provideQuoteResult = await contractToQuery.send({
+                to: tonVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                tonVault.address,
+                contractToQuery.address,
+                buildTakeQuotePayload(
+                    queryId,
+                    contractToQuery.address,
+                    tonVaultTotalSupply,
+                    tonVaultTotalAssets,
+                    blockchain.now!,
+                    forwardPayload,
+                ),
+            );
+        });
+
+        it('should provide quote from TON Vault with forward payload and receiver', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, bob.address, forwardPayload);
+            const provideQuoteResult = await contractToQuery.send({
+                to: tonVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                tonVault.address,
+                bob.address,
+                buildTakeQuotePayload(
+                    queryId,
+                    contractToQuery.address,
+                    tonVaultTotalSupply,
+                    tonVaultTotalAssets,
+                    blockchain.now!,
+                    forwardPayload,
+                ),
+            );
+        });
+    });
+
+    describe('Provide Quote from USDT Vault', () => {
+        it('should provide quote from USDT Vault', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, contractToQuery.address);
+            const provideQuoteResult = await contractToQuery.send({
+                to: USDTVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(provideQuoteResult, USDTVault.address, contractToQuery.address);
+        });
+
+        it('should provide quote from USDT Vault with receiver', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, bob.address);
+            const provideQuoteResult = await contractToQuery.send({
+                to: USDTVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(provideQuoteResult, USDTVault.address, bob.address);
+        });
+
+        it('should provide quote from USDT Vault with forward payload', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, bob.address, forwardPayload);
+            const provideQuoteResult = await contractToQuery.send({
+                to: USDTVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                USDTVault.address,
+                bob.address,
+                buildTakeQuotePayload(
+                    queryId,
+                    contractToQuery.address,
+                    USDTVaultTotalSupply,
+                    USDTVaultTotalAssets,
+                    blockchain.now!,
+                    forwardPayload,
+                ),
+            );
+        });
+
+        it('should provide quote from USDT Vault with forward payload and receiver', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, bob.address, forwardPayload);
+            const provideQuoteResult = await contractToQuery.send({
+                to: USDTVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                USDTVault.address,
+                bob.address,
+                buildTakeQuotePayload(
+                    queryId,
+                    contractToQuery.address,
+                    USDTVaultTotalSupply,
+                    USDTVaultTotalAssets,
+                    blockchain.now!,
+                    forwardPayload,
+                ),
+            );
+        });
+    });
+});
