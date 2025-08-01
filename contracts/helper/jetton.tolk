@@ -1,7 +1,7 @@
 import "../constants/values";
 import "../storage"
 import "../types/callback-params"
-import "../types/WalletStatus"
+import "../types/wallet-status"
 
 @pure
 fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell): AutoDeployAddress {

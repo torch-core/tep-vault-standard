@@ -1,4 +1,4 @@
-import "types/WalletStatus"
+import "types/wallet-status"
 
 
 // ==== Vault Storage ====
