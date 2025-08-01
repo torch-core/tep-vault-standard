@@ -1,4 +1,5 @@
-import "constants/common-types"
+import "types/WalletStatus"
+
 
 // ==== Vault Storage ====
 struct AssetJettonInfo {

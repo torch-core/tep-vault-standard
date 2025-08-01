@@ -1,11 +1,12 @@
 import "../constants/values";
 import "../storage"
 import "../types/callback-params"
+import "../types/WalletStatus"
 
 @pure
 fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell): AutoDeployAddress {
     val emptyWalletStorage: WalletStorage = {
-        status: 0,
+        status: WalletStatus.unlocked(),
         jettonBalance: 0,
         ownerAddress,
         minterAddress,
