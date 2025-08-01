@@ -7,8 +7,8 @@ import { buildCallbackFp, DEFAULT_FAIL_CALLBACK_PAYLOAD, SUCCESS_RESULT } from '
 import { expectFailDepositTONTxs, expectTONDepositTxs } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emitLog';
-import { expectVaultSharesAndAssets } from './helper/expectVault';
-import { expectTonDepositorBalances, expectTonVaultBalances } from './helper/expectBalances';
+import { expectTonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
+import { expectTonDepositorBalances } from './helper/expectBalances';
 import { JettonWallet } from '@ton/ton';
 import { Opcodes } from '../wrappers/constants/op';
 

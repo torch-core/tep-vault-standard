@@ -1,11 +1,11 @@
-import { Blockchain, printTransactionFees, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { JettonMaster, JettonWallet } from '@ton/ton';
 import { expectFailDepositJettonTxs, expectJettonDepositTxs } from './helper/expectTxResults';
 import { expectDepositedEmitLog } from './helper/emitLog';
-import { expectJettonDepositorBalances, expectJettonVaultBalances } from './helper/expectBalances';
+import { expectJettonDepositorBalances } from './helper/expectBalances';
 import {
     buildCallbackFp,
     buildTransferNotificationPayload,
@@ -16,7 +16,7 @@ import { Address, beginCell, Cell, toNano } from '@ton/core';
 import { Opcodes } from '../wrappers/constants/op';
 import { OPCODE_SIZE } from '../wrappers/constants/size';
 import { VaultErrors } from '../wrappers/constants/error';
-import { expectVaultSharesAndAssets } from './helper/expectVault';
+import { expectJettonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;

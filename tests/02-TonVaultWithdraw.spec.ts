@@ -4,7 +4,7 @@ import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, JettonWallet, toNano } from '@ton/ton';
 import { expectBurnTxs, expectMintShares, expectWithdrawTONTxs } from './helper/expectTxResults';
-import { expectVaultSharesAndAssets } from './helper/expectVault';
+import { expectTonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
 import {
     buildBurnNotificationPayload,
     buildCallbackFp,
@@ -95,8 +95,10 @@ describe('Withdraw from TON Vault', () => {
         const receiverBalanceAfter = await receiver.getBalance();
         expect(receiverBalanceAfter).toBeGreaterThan(receiverTonBalBefore + expectedWithdrawAmount - WITHDRAW_GAS_FEE);
 
-        await expectVaultSharesAndAssets(
+        await expectTonVaultBalances(
+            blockchain,
             tonVault,
+            tonVaultTONBalBefore,
             -expectedWithdrawAmount,
             -burnShares,
             tonVaultTotalAssetsBefore,

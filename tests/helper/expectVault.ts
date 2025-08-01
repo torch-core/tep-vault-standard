@@ -1,5 +1,7 @@
-import { SandboxContract } from '@ton/sandbox';
+import { Blockchain, SandboxContract } from '@ton/sandbox';
 import { Vault, VaultStorage } from '../../wrappers/Vault';
+import { DEPOSIT_GAS } from './expectBalances';
+import { JettonWallet } from '@ton/ton';
 
 // =============================================================================
 // Storage Validation Helpers
@@ -38,4 +40,37 @@ export async function expectVaultSharesAndAssets(
     const vaultStorage = await vault.getStorage();
     expect(vaultStorage.totalAssets).toBe(increaseAssets + oldTotalAssets);
     expect(vaultStorage.totalSupply).toBe(increaseSupply + oldTotalSupply);
+}
+
+export async function expectTonVaultBalances(
+    blockchain: Blockchain,
+    vault: SandboxContract<Vault>,
+    tonBalBefore: bigint,
+    assetAmountChange: bigint,
+    sharesChange: bigint,
+    oldTotalAssets: bigint = 0n,
+    oldTotalSupply: bigint = 0n,
+) {
+    // Expect that vault ton balance is changed by assetAmountChange
+    const vaultTonBalanceAfter = (await blockchain.getContract(vault.address)).balance;
+    expect(vaultTonBalanceAfter).toBeGreaterThan(tonBalBefore + assetAmountChange - DEPOSIT_GAS);
+
+    // Expect that vault shares and assets are changed by assetAmountChange and sharesChange
+    await expectVaultSharesAndAssets(vault, assetAmountChange, sharesChange, oldTotalAssets, oldTotalSupply);
+}
+
+export async function expectJettonVaultBalances(
+    vault: SandboxContract<Vault>,
+    vaultJettonWallet: SandboxContract<JettonWallet>,
+    vaultJettonWalletBalBefore: bigint,
+    assetAmountChange: bigint,
+    sharesChange: bigint,
+    oldTotalAssets: bigint = 0n,
+    oldTotalSupply: bigint = 0n,
+) {
+    // Expect that vault jetton wallet balance is increased by assetAmountChange
+    expect(await vaultJettonWallet.getBalance()).toBe(vaultJettonWalletBalBefore + assetAmountChange);
+
+    // Expect that vault shares and assets are changed by assetAmountChange and sharesChange
+    await expectVaultSharesAndAssets(vault, assetAmountChange, sharesChange, oldTotalAssets, oldTotalSupply);
 }

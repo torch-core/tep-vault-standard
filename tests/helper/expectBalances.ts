@@ -1,8 +1,6 @@
-import { Blockchain, SandboxContract } from '@ton/sandbox';
+import { SandboxContract } from '@ton/sandbox';
 import { TreasuryContract } from '@ton/sandbox';
 import { JettonWallet, toNano } from '@ton/ton';
-import { Vault } from '../../wrappers/Vault';
-import { expectVaultSharesAndAssets } from './expectVault';
 
 export const DEPOSIT_GAS = toNano('0.012');
 
@@ -35,37 +33,4 @@ export async function expectJettonDepositorBalances(
 
     // Expect that receiver shares wallet balance is increased by depositAmount
     expect(await receiverShareWallet.getBalance()).toBe(receiverShareWalletBalBefore + depositAmount);
-}
-
-export async function expectTonVaultBalances(
-    blockchain: Blockchain,
-    vault: SandboxContract<Vault>,
-    tonBalBefore: bigint,
-    depositAmount: bigint,
-    increaseShares: bigint,
-    oldTotalAssets: bigint = 0n,
-    oldTotalSupply: bigint = 0n,
-) {
-    // Expect that vault ton balance is increased by depositAmount
-    const vaultTonBalanceAfter = (await blockchain.getContract(vault.address)).balance;
-    expect(vaultTonBalanceAfter).toBeGreaterThan(tonBalBefore + depositAmount - DEPOSIT_GAS);
-
-    // Expect that vault shares are increased by depositAmount
-    await expectVaultSharesAndAssets(vault, depositAmount, increaseShares, oldTotalAssets, oldTotalSupply);
-}
-
-export async function expectJettonVaultBalances(
-    vault: SandboxContract<Vault>,
-    vaultJettonWallet: SandboxContract<JettonWallet>,
-    vaultJettonWalletBalBefore: bigint,
-    depositAmount: bigint,
-    increaseShares: bigint,
-    oldTotalAssets: bigint = 0n,
-    oldTotalSupply: bigint = 0n,
-) {
-    // Expect that vault jetton wallet balance is increased by depositAmount
-    expect(await vaultJettonWallet.getBalance()).toBe(vaultJettonWalletBalBefore + depositAmount);
-
-    // Expect that vault shares and assets are increased
-    await expectVaultSharesAndAssets(vault, depositAmount, increaseShares, oldTotalAssets, oldTotalSupply);
 }

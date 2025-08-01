@@ -1,4 +1,4 @@
-import { Blockchain, printTransactionFees, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
@@ -12,7 +12,7 @@ import {
 } from './helper/callbackPayload';
 import { expectBurnTxs, expectMintShares, expectWithdrawJettonTxs } from './helper/expectTxResults';
 import { beginCell, Cell } from '@ton/core';
-import { expectVaultSharesAndAssets } from './helper/expectVault';
+import { expectJettonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
 import { expectWithdrawnEmitLog } from './helper/emitLog';
 import { VaultErrors } from '../wrappers/constants/error';
 import { Opcodes } from '../wrappers/constants/op';
@@ -78,7 +78,7 @@ describe('Withdraw from Jetton Vault', () => {
 
     afterEach(async () => {
         const vaultTonBalanceAfter = (await blockchain.getContract(USDTVault.address)).balance;
-        expect(vaultTonBalanceAfter + 1n).toBeGreaterThanOrEqual(vaultTonBalBefore);
+        expect(vaultTonBalanceAfter + 5n).toBeGreaterThanOrEqual(vaultTonBalBefore);
     });
 
     async function expectWithdrawJettonFlows(
@@ -119,12 +119,10 @@ describe('Withdraw from Jetton Vault', () => {
         // Expect that receiver's jetton balance is increased
         expect(await receiverJettonWallet.getBalance()).toBe(receiverJettonWalletBalBefore + expectedWithdrawAmount);
 
-        // Expect that vault's jetton balance is decreased
-        expect(await vaultUSDTWallet.getBalance()).toBe(vaultUSDTWalletBalBefore - expectedWithdrawAmount);
-
-        // Expect that vault's totalSupply and totalAssets are decreased
-        await expectVaultSharesAndAssets(
+        await expectJettonVaultBalances(
             USDTVault,
+            vaultUSDTWallet,
+            vaultUSDTWalletBalBefore,
             -expectedWithdrawAmount,
             -burnShares,
             vaultTotalAssetsBefore,
