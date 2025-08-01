@@ -5,6 +5,7 @@ import "helper/packAssets"
 import "core"
 import "messages/internal/schemas"
 import "helper/jetton"
+import "fees-management"
 
 get fun getAsset() {
     var assetsTuple: tuple = createEmptyTuple();
@@ -47,6 +48,18 @@ get fun getPreviewDeposit(depositAmount: coins, optionalParams: OptionalParams? 
 
 get fun getPreviewWithdraw(shares: coins, optionalParams: OptionalParams? = null) {
     return previewWithdraw(shares);
+}
+
+get fun getPreviewTonDepositFee() {
+    return previewTonDepositFee();
+}
+
+get fun getPreviewJettonDepositFee() {
+    return previewJettonDepositFee();
+}
+
+get fun getPreviewWithdrawFee() {
+    return previewWithdrawFee();
 }
 
 // For Jetton

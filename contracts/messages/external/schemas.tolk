@@ -1,8 +1,14 @@
 import "../../types/asset"
 
-struct OptionalDepositLogs {}
+struct OptionalDepositLogs {
+    // Add fields base on your needs
+    // Leave it empty if you don't need any extra logs
+    }
 
-struct OptionalWithdrawLogs {}
+struct OptionalWithdrawLogs {
+    // Add fields base on your needs
+    // Leave it empty if you don't need any extra logs
+}
 struct(0x11475d67) Deposited {
     initiator: address
     receiver: address
