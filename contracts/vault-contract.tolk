@@ -71,6 +71,11 @@ fun onInternalMessage(in: InMessage) {
             }
         }
 
+        ProvideQuote => {
+            val remainingValue = processProvideQuoteGas(in.valueCoins);
+            sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
+        }
+
         ResponseWalletAddress => {
             var assetJettonInfo = lazy storage.assetJettonInfo!.load();
             assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_WALLET; 
@@ -83,7 +88,7 @@ fun onInternalMessage(in: InMessage) {
             if(storage.assetJettonInfo != null) { 
                 var assetJettonInfo = lazy storage.assetJettonInfo!.load();
                 assert (in.senderAddress == storage.adminAddress) throw ERR_NOT_ADMIN;
-                requestJettonWalletAddress(assetJettonInfo.masterAddress!, inMsg.queryId);
+                sendRequestWalletAddress(assetJettonInfo.masterAddress!, inMsg.queryId);
             }
         }
 

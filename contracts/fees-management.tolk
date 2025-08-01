@@ -2,6 +2,7 @@ import "constants/errors";
 
 const DEPOSIT_GAS = ton("0.012");
 const WITHDRAW_GAS = ton("0.012");
+const PROVIDE_QUOTE_FEE = ton("0.01");
 
 @pure
 fun previewTonDepositFee() {
@@ -17,6 +18,12 @@ fun previewJettonDepositFee() {
 fun previewWithdrawFee() {
     return WITHDRAW_GAS;
 }
+
+@pure
+fun previewProvideQuoteFee() {
+    return PROVIDE_QUOTE_FEE;
+}
+
 
 fun processTonDepositGas(valueCoins: coins, depositAmount: coins) {
     val requiredGas = previewTonDepositFee();
@@ -36,3 +43,8 @@ fun processWithdrawGas(valueCoins: coins) {
     return valueCoins - requiredGas;
 }
 
+fun processProvideQuoteGas(valueCoins: coins) {
+    val requiredGas = previewProvideQuoteFee();
+    assert (valueCoins >= requiredGas) throw ERR_PROVIDE_QUOTE_GAS_TOO_LOW;
+    return valueCoins - requiredGas;
+}

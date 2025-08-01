@@ -22,3 +22,7 @@ const ERR_INVALID_BURN_AMOUNT = 3004;
 
 // Burn errors
 const ERR_UNAUTHORIZED_BURN = 4000;
+
+// Provide Quote errors
+const ERR_PROVIDE_QUOTE_GAS_TOO_LOW = 5000;
+

@@ -102,6 +102,28 @@ struct (0xb00d7656) VaultNotificationFp {
     vaultNotificationParams: VaultNotificationParams
 }
 
+// ===== Provide Quote Messages =====
+struct OptionalQuoteParams {
+    // Add your optional params based on your needs
+    // Leave it empty if you don't need any extra params
+}
+
+struct (0xc643cc91) ProvideQuote {
+    queryId: QueryId
+    receiver: address
+    optionalQuoteParams: Cell<OptionalQuoteParams>? = null
+    forwardPayload: cell?
+}
+
+struct (0x68ec31ea) TakeQuote {
+    queryId: QueryId
+    initiator: address
+    totalSupply: coins
+    totalAssets: coins
+    timestamp: Timestamp
+    forwardPayload: cell?
+}
+
 // ===== DEPLOY VAULT MESSAGES =====
 struct (0xe43f93a9) DeployVault {
     queryId: QueryId
@@ -114,4 +136,4 @@ const OP_BURN_NOTIFICATION_FOR_MINTER = BurnNotificationForMinter.getDeclaredPac
 const OP_VAULT_WITHDRAW_FP = WithdrawParamsFp.getDeclaredPackPrefix();
 const OP_DEPLOY_VAULT = DeployVault.getDeclaredPackPrefix();
 
-type AllowedMessage = Deposit | TransferNotificationForRecipient | BurnNotificationForMinter | DeployVault | ResponseWalletAddress;
+type AllowedMessage = Deposit | TransferNotificationForRecipient | BurnNotificationForMinter | DeployVault | ResponseWalletAddress | ProvideQuote;

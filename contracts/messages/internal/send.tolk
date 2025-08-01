@@ -118,12 +118,22 @@ fun transferAsset(
     jettonTransfer(initiator, queryId, remainingValue, assetJettonWallet!, receiver, transferAmount, result, callbackParams, inBody);   
 }
 
-fun requestJettonWalletAddress(jettonMaster: address, queryId: QueryId) {
+fun sendRequestWalletAddress(jettonMaster: address, queryId: QueryId) {
     val requestMsg = createMessage({
-        bounce: true,
+        bounce: false,
         dest: jettonMaster, 
         value: REQUEST_JETTON_WALLET_ADDRESS_FEE,
         body: RequestWalletAddress { queryId: queryId, ownerAddress: contract.getAddress(), includeOwnerAddress: false }
     });
     requestMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
+}
+
+fun sendTakeQuote(initiator: address, queryId: QueryId, remainingValue: coins, receiver: address, totalSupply: coins, totalAssets: coins, forwardPayload: cell?) {
+    val takeQuoteMsg = createMessage({
+        bounce: false,
+        dest: resolveReceiver(receiver, initiator),
+        value: remainingValue,
+        body: TakeQuote { queryId: queryId, initiator: initiator, totalSupply: totalSupply, totalAssets: totalAssets, timestamp: blockchain.now(), forwardPayload: forwardPayload }
+    });
+    takeQuoteMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
