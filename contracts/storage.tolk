@@ -1,6 +1,5 @@
 import "types/wallet-status"
 
-
 // ==== Vault Storage ====
 struct AssetJettonInfo {
     masterAddress: address

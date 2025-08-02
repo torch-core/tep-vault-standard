@@ -2,7 +2,6 @@ import "constants/values";
 import "constants/errors";
 import "constants/common-types";
 import "types/rounding";
-import "types/asset";
 import "types/vault-result";
 import "storage"
 import "messages/internal/schemas";

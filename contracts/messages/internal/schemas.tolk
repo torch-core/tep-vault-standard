@@ -1,5 +1,4 @@
 import "../../constants/common-types";
-import "../../types/asset";
 import "../../types/vault-result";
 import "../../types/callback-params";
 
