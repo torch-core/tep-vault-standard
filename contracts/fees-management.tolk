@@ -30,7 +30,6 @@ fun previewProvideQuoteFee() {
     return PROVIDE_QUOTE_GAS;
 }
 
-
 fun processTonDepositGas(valueCoins: coins, depositAmount: coins) {
     val requiredGas = previewTonDepositFee();
     assert (valueCoins >= depositAmount + requiredGas) throw ERR_TON_DEPOSIT_GAS_TOO_LOW;

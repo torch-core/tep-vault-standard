@@ -28,7 +28,7 @@ fun convertToShares(depositAmount: coins, optionalParams: OptionalParams? = null
     return totalAssets == 0 ? depositAmount : roundedMulDiv(depositAmount, storage.totalSupply, totalAssets, rounding) as coins;
 }
 
-fun convertToAssets(shares: coins, optionalParams: OptionalParams? = null, rounding: RoundingType = ROUND_UP) {
+fun convertToAssets(shares: coins, optionalParams: OptionalParams? = null, rounding: RoundingType = ROUND_DOWN) {
     var storage = lazy VaultStorage.load();
     return (storage.totalSupply == 0 ? 0 : roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding)) as coins;
 }
