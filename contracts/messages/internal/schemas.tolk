@@ -73,18 +73,18 @@ struct DepositParams {
     optionalParams: Cell<OptionalParams>? = null
     callbacks: Callbacks
 }
-struct (0x7ceea8a6) Deposit {
+struct (0x5a66a4a5) Deposit {
     queryId: QueryId
     depositAmount: coins
     depositParams: DepositParams
 }
 
-struct (0x97afc71b) DepositFp {
+struct (0xb534fe7b) DepositFp {
     depositParams: DepositParams
 }
 
 // ===== WITHDRAW MESSAGES =====
-struct (0xa1242cde) WithdrawParamsFp {
+struct (0x9e1b477a) WithdrawParamsFp {
     receiver: address
     minWithdraw: coins = 0
     optionalParams: Cell<OptionalParams>? = null
@@ -92,7 +92,7 @@ struct (0xa1242cde) WithdrawParamsFp {
 }
 
 // ===== NOTIFICATION MESSAGES =====
-struct (0x13aec42d) VaultNotification {
+struct (0x86eba146) VaultNotification {
     queryId: QueryId
     vaultNotificationParams: VaultNotificationParams
 }
@@ -127,12 +127,5 @@ struct (0x68ec31ea) TakeQuote {
 struct (0xe43f93a9) DeployVault {
     queryId: QueryId
 }
-
-const OP_VAULT_DEPOSIT = Deposit.getDeclaredPackPrefix();
-const OP_VAULT_DEPOSIT_FP = DepositFp.getDeclaredPackPrefix();
-const OP_TRANSFER_NOTIFICATION_FOR_RECIPIENT = TransferNotificationForRecipient.getDeclaredPackPrefix();
-const OP_BURN_NOTIFICATION_FOR_MINTER = BurnNotificationForMinter.getDeclaredPackPrefix();
-const OP_VAULT_WITHDRAW_FP = WithdrawParamsFp.getDeclaredPackPrefix();
-const OP_DEPLOY_VAULT = DeployVault.getDeclaredPackPrefix();
 
 type AllowedMessage = Deposit | TransferNotificationForRecipient | BurnNotificationForMinter | DeployVault | ResponseWalletAddress | ProvideQuote;
