@@ -26,11 +26,11 @@ get fun getTotalAssets(optionalParams: OptionalParams? = null) {
 }
 
 get fun getConvertToShares(depositAmount: coins, optionalParams: OptionalParams? = null) {
-    return convertToShares(depositAmount, RoundingType.Down());
+    return convertToShares(depositAmount);
 }
 
 get fun getConvertToAssets(shares: coins, optionalParams: OptionalParams? = null) {
-    return convertToAssets(shares, RoundingType.Up());
+    return convertToAssets(shares);
 }
 
 

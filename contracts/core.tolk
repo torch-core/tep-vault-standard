@@ -22,23 +22,23 @@ fun totalAssets(optionalParams: OptionalParams? = null) {
     return storage.totalAssets;
 }
 
-fun convertToShares(depositAmount: coins, rounding: RoundingType, optionalParams: OptionalParams? = null) {
+fun convertToShares(depositAmount: coins, optionalParams: OptionalParams? = null, rounding: RoundingType = ROUND_DOWN) {
     var storage = lazy VaultStorage.load();
     val totalAssets = totalAssets();
     return totalAssets == 0 ? depositAmount : roundedMulDiv(depositAmount, storage.totalSupply, totalAssets, rounding) as coins;
 }
 
-fun convertToAssets(shares: coins, rounding: RoundingType, optionalParams: OptionalParams? = null) {
+fun convertToAssets(shares: coins, optionalParams: OptionalParams? = null, rounding: RoundingType = ROUND_UP) {
     var storage = lazy VaultStorage.load();
     return (storage.totalSupply == 0 ? 0 : roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding)) as coins;
 }
 
 fun previewDeposit(depositAmount: coins, optionalParams: OptionalParams? = null) {
-    return convertToShares(depositAmount, RoundingType.Down());
+    return convertToShares(depositAmount);
 }
 
 fun previewWithdraw(shares: coins, optionalParams: OptionalParams? = null) {
-    return convertToAssets(shares, RoundingType.Up());
+    return convertToAssets(shares);
 }
 
 fun handleDeposit(initiator: address, queryId: QueryId, remainingValue: coins, senderAddress: address, depositAmount: coins, depositParams: DepositParams, inBody: slice) {
