@@ -229,7 +229,7 @@ describe('Withdraw from TON Vault', () => {
                 burnShares,
                 maxey.address,
                 maxey.address,
-                beginCell().store(tonVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+                beginCell().store(tonVault.storeVaultWithdrawFp(maxey.address, withdrawParams)).endCell(),
             );
 
             // Expect withdraw is successful
@@ -301,7 +301,7 @@ describe('Withdraw from TON Vault', () => {
                 burnShares,
                 maxey.address,
                 maxey.address,
-                beginCell().store(tonVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+                beginCell().store(tonVault.storeVaultWithdrawFp(maxey.address, withdrawParams)).endCell(),
             );
 
             // Expect withdraw is successful
@@ -406,7 +406,7 @@ describe('Withdraw from TON Vault', () => {
                 burnShares,
                 maxey.address,
                 maxey.address,
-                beginCell().store(tonVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+                beginCell().store(tonVault.storeVaultWithdrawFp(maxey.address, withdrawParams)).endCell(),
             );
 
             await expectWithdrawTONFailure(withdrawResult, maxey, expectedWithdrawAmount, failCallbackPayload, inBody);
@@ -453,7 +453,7 @@ describe('Withdraw from TON Vault', () => {
                 burnShares,
                 maxey.address,
                 maxey.address,
-                beginCell().store(tonVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+                beginCell().store(tonVault.storeVaultWithdrawFp(maxey.address, withdrawParams)).endCell(),
             );
 
             await expectWithdrawTONFailure(withdrawResult, maxey, expectedWithdrawAmount, failCallbackPayload, inBody);
@@ -487,7 +487,7 @@ describe('Withdraw from TON Vault', () => {
                     burnShares,
                     maxey.address,
                     maxey.address,
-                    beginCell().store(tonVault.storeVaultWithdrawParams(maxey.address)).endCell(),
+                    beginCell().store(tonVault.storeVaultWithdrawFp(maxey.address)).endCell(),
                 ),
             });
 

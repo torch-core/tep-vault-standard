@@ -142,7 +142,7 @@ export class Vault implements Contract {
         };
     }
 
-    storeVaultWithdrawParams(burner: Address, withdrawParams?: WithdrawParams) {
+    storeVaultWithdrawFp(burner: Address, withdrawParams?: WithdrawParams) {
         return (builder: Builder) => {
             return builder
                 .storeUint(Opcodes.Vault.WithdrawFp, OPCODE_SIZE)
@@ -264,9 +264,7 @@ export class Vault implements Contract {
                         queryId: queryId ?? 8n,
                         amount: shares,
                         responseDst: burner,
-                        customPayload: beginCell()
-                            .store(this.storeVaultWithdrawParams(burner, withdrawParams))
-                            .endCell(),
+                        customPayload: beginCell().store(this.storeVaultWithdrawFp(burner, withdrawParams)).endCell(),
                     }),
                 )
                 .endCell(),

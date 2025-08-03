@@ -34,7 +34,7 @@ struct (0x7bdd97de) BurnNotificationForMinter {
     shares: coins
     initiator: address
     sendExcessesTo: address
-    customPayload: Cell<WithdrawParamsFp>?
+    customPayload: Cell<WithdrawFp>?
 }
 
 struct (0x2c76b973) RequestWalletAddress {
@@ -84,7 +84,7 @@ struct (0xb534fe7b) DepositFp {
 }
 
 // ===== WITHDRAW MESSAGES =====
-struct (0x9e1b477a) WithdrawParamsFp {
+struct (0xecb4d6bf) WithdrawFp {
     receiver: address
     minWithdraw: coins = 0
     optionalParams: Cell<OptionalParams>? = null

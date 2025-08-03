@@ -4,7 +4,7 @@ export const Opcodes = {
         DeployVault: 0xe43f93a9,
         Deposit: 0x5a66a4a5,
         DepositFp: 0xb534fe7b,
-        WithdrawFp: 0x9e1b477a,
+        WithdrawFp: 0xecb4d6bf,
         VaultNotification: 0x86eba146,
         VaultNotificationFp: 0xb00d7656,
         ProvideQuote: 0xc643cc91,

@@ -244,7 +244,7 @@ describe('Withdraw from Jetton Vault', () => {
                 burnShares,
                 maxey.address,
                 maxey.address,
-                beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+                beginCell().store(USDTVault.storeVaultWithdrawFp(maxey.address, withdrawParams)).endCell(),
             );
 
             // Expect withdraw flows is success
@@ -314,7 +314,7 @@ describe('Withdraw from Jetton Vault', () => {
                 burnShares,
                 maxey.address,
                 maxey.address,
-                beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+                beginCell().store(USDTVault.storeVaultWithdrawFp(maxey.address, withdrawParams)).endCell(),
             );
 
             // Expect withdraw flows is success
@@ -421,7 +421,7 @@ describe('Withdraw from Jetton Vault', () => {
                 burnShares,
                 maxey.address,
                 maxey.address,
-                beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+                beginCell().store(USDTVault.storeVaultWithdrawFp(maxey.address, withdrawParams)).endCell(),
             );
 
             await expectWithdrawJettonFailure(
@@ -474,7 +474,7 @@ describe('Withdraw from Jetton Vault', () => {
                 burnShares,
                 maxey.address,
                 maxey.address,
-                beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address, withdrawParams)).endCell(),
+                beginCell().store(USDTVault.storeVaultWithdrawFp(maxey.address, withdrawParams)).endCell(),
             );
 
             await expectWithdrawJettonFailure(
@@ -514,7 +514,7 @@ describe('Withdraw from Jetton Vault', () => {
                     burnShares,
                     maxey.address,
                     maxey.address,
-                    beginCell().store(USDTVault.storeVaultWithdrawParams(maxey.address)).endCell(),
+                    beginCell().store(USDTVault.storeVaultWithdrawFp(maxey.address)).endCell(),
                 ),
             });
 

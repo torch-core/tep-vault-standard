@@ -70,13 +70,13 @@ fun handleDeposit(initiator: address, queryId: QueryId, remainingValue: coins, s
     }
 }
 
-fun handleWithdraw(initiator: address, queryId: QueryId, remainingValue: coins, shares: coins, withdrawParams: WithdrawParamsFp, inBody: slice, assetJettonWallet: address? = null) {
+fun handleWithdraw(initiator: address, queryId: QueryId, remainingValue: coins, shares: coins, withdrawFp: WithdrawFp, inBody: slice, assetJettonWallet: address? = null) {
     try {
         val maxShares = maxWithdraw();
         assert (shares <= maxShares) throw ERR_MAX_WITHDRAW_EXCEEDED;
 
         val withdrawAmount = previewWithdraw(shares);
-        assert (withdrawAmount >= withdrawParams.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
+        assert (withdrawAmount >= withdrawFp.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
         
         transferAsset(
             assetJettonWallet == null,
@@ -84,16 +84,16 @@ fun handleWithdraw(initiator: address, queryId: QueryId, remainingValue: coins, 
             queryId, 
             remainingValue, 
             withdrawAmount, 
-            withdrawParams.receiver, 
+            withdrawFp.receiver, 
             Result.Success(), 
-            withdrawParams.callbacks.successCallback, 
+            withdrawFp.callbacks.successCallback, 
             inBody, 
             assetJettonWallet
         );
-        emitWithdrawn(Withdrawn { initiator: initiator, receiver: withdrawParams.receiver, withdrawAmount: withdrawAmount, burnedShares: shares });
+        emitWithdrawn(Withdrawn { initiator: initiator, receiver: withdrawFp.receiver, withdrawAmount: withdrawAmount, burnedShares: shares });
         return withdrawAmount;
     } catch (e) {
-        mint(initiator, queryId, remainingValue, mutate initiator, shares, Result.Error(e), withdrawParams.callbacks.failureCallback, inBody);
+        mint(initiator, queryId, remainingValue, mutate initiator, shares, Result.Error(e), withdrawFp.callbacks.failureCallback, inBody);
         commitContractDataAndActions();
         throw e;
     }

@@ -58,7 +58,7 @@ fun onInternalMessage(in: InMessage) {
             val burnPayload = inMsg.customPayload!.load();
             
             match (burnPayload) {
-                WithdrawParamsFp => {
+                WithdrawFp => {
                     val remainingValue = processWithdrawGas(in.valueCoins);
                     val assetJettonWallet = storage.assetJettonInfo != null ? storage.assetJettonInfo!.load().walletAddress : null;
                     val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, burnPayload, in.body, assetJettonWallet);
