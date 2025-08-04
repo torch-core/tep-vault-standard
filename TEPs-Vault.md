@@ -148,14 +148,14 @@ Vault contracts MUST implement the following persistent storage variables in the
 
     | Field             | Type                   | Description |
     |-------------------|------------------------|-------------|
-    | successCallback   | Cell<CallbackParams>? | Sends successCallback.payload to receiver on successful vault interaction. |
-    | failureCallback   | Cell<CallbackParams>? | Sends failureCallback.payload to initiator on failed vault interaction. |
+    | successCallback   | Cell<`CallbackParams`>? | Sends successCallback.payload to receiver on successful vault interaction. |
+    | failureCallback   | Cell<`CallbackParams`>? | Sends failureCallback.payload to initiator on failed vault interaction. |
 
   - **VaultNotificationParams**:
 
     | Field           | Type    | Description |
     |-----------------|---------|-------------|
-    | result          | Result  | Outcome of the vault operation. |
+    | result          | `Result`  | Outcome of the vault operation. |
     | initiator       | Address | Address initiating the vault interaction. |
     | callbackPayload | Cell?   | SuccessCallback.payload (on success) or failureCallback.payload (on failure). Null if not specified in CallbackParams. |
     | inBody          | Cell?   | Interaction message payload if includeBody is true; otherwise, null. |
@@ -164,16 +164,16 @@ Vault contracts MUST implement the following persistent storage variables in the
 
     | Field                    | Type                   | Description |
     |--------------------------|------------------------|-------------|
-    | OP_VAULT_NOTIFICATION    | Opcode                 | 0x86eba146 |
-    | queryId                  | QueryId                | Unique query identifier. |
-    | vaultNotificationParams  | VaultNotificationParams| Notification parameters. |
+    | OP_VAULT_NOTIFICATION    | `Opcode`                 | 0x86eba146 |
+    | queryId                  | `QueryId`                | Unique query identifier. |
+    | vaultNotificationParams  | `VaultNotificationParams`| Notification parameters. |
 
   - **OP_VAULT_NOTIFICATION_FP**: For minting shares, withdrawing, or refunding Jetton.
 
     | Field                    | Type                   | Description |
     |--------------------------|------------------------|-------------|
-    | OP_VAULT_NOTIFICATION_FP | Opcode                 | 0xb00d7656 |
-    | vaultNotificationParams  | VaultNotificationParams| Notification parameters. |
+    | OP_VAULT_NOTIFICATION_FP | `Opcode`                 | 0xb00d7656 |
+    | vaultNotificationParams  | `VaultNotificationParams`| Notification parameters. |
 
 **Deposit (For TON)**
 
@@ -196,15 +196,15 @@ Vault contracts MUST implement the following persistent storage variables in the
     |----------------|------------------------|-------------|
     | receiver       | Address                | Address receiving vault tokens and callback payload. |
     | minShares      | Coins                  | Minimum shares to receive, else refund. |
-    | optionalParams | Cell<OptionalParams>?  | Optional parameters (e.g., price data). |
-    | callbacks      | Callbacks              | Success/failure callbacks. |
+    | optionalParams | Cell<`OptionalParams`>?  | Optional parameters (e.g., price data). |
+    | callbacks      | `Callbacks`              | Success/failure callbacks. |
 
   | Field        | Type          | Description |
   |--------------|---------------|-------------|
-  | OP_DEPOSIT   | Opcode        | 0x5a66a4a5 |
-  | queryId      | QueryId       | Unique query identifier. |
+  | OP_DEPOSIT   | `Opcode`        | 0x5a66a4a5 |
+  | queryId      | `QueryId`       | Unique query identifier. |
   | depositAmount| Coins         | TON amount to deposit. |
-  | depositParams| DepositParams | Deposit parameters. |
+  | depositParams| `DepositParams` | Deposit parameters. |
 
 **Deposit Forward Payload (For Jetton)**
 
@@ -222,8 +222,8 @@ Vault contracts MUST implement the following persistent storage variables in the
 
   | Field         | Type          | Description |
   |---------------|---------------|-------------|
-  | OP_DEPOSIT_FP | Opcode        | 0xb534fe7b |
-  | depositParams | DepositParams | Deposit parameters. |
+  | OP_DEPOSIT_FP | `Opcode`        | 0xb534fe7b |
+  | depositParams | `DepositParams` | Deposit parameters. |
 
 **Withdraw (In Burn Notification)**
 
@@ -242,11 +242,11 @@ Vault contracts MUST implement the following persistent storage variables in the
 
   | Field               | Type                   | Description |
   |---------------------|------------------------|-------------|
-  | OP_WITHDRAW_FP      | Opcode                 | 0xecb4d6bf |
+  | OP_WITHDRAW_FP      | `Opcode`                 | 0xecb4d6bf |
   | receiver            | Address                | Address receiving withdrawn assets. |
   | minWithdraw         | Coins                  | Minimum asset amount to receive, else refund. |
-  | optionalVaultParams | Cell<OptionalParams>?  | Optional parameters (e.g., price data). |
-  | callbacks           | Callbacks              | Success/failure callbacks. |
+  | optionalVaultParams | Cell<`OptionalParams`>?  | Optional parameters (e.g., price data). |
+  | callbacks           | `Callbacks`              | Success/failure callbacks. |
 
 **Provide Quote and Take Quote**
 
@@ -262,8 +262,8 @@ Vault contracts MUST implement the following persistent storage variables in the
 
     | Field               | Type      | Description |
     |---------------------|-----------|-------------|
-    | OP_PROVIDE_QUOTE    | Opcode    | 0xc643cc91 |
-    | queryId             | QueryId   | Unique query identifier. |
+    | OP_PROVIDE_QUOTE    | `Opcode`    | 0xc643cc91 |
+    | queryId             | `QueryId`   | Unique query identifier. |
     | receiver            | Address   | Address receiving OP_TAKE_QUOTE. |
     | optionalQuoteParams | Cell?     | Additional data for asset/share calculations. |
     | forwardPayload      | Cell      | Initiator-defined payload for further receiver operations. |
@@ -272,8 +272,8 @@ Vault contracts MUST implement the following persistent storage variables in the
 
     | Field          | Type    | Description |
     |----------------|---------|-------------|
-    | OP_TAKE_QUOTE  | Opcode  | 0x68ec31ea |
-    | queryId        | QueryId | Unique query identifier. |
+    | OP_TAKE_QUOTE  | `Opcode`  | 0x68ec31ea |
+    | queryId        | `QueryId` | Unique query identifier. |
     | initiator      | Address | Address sending OP_PROVIDE_QUOTE. |
     | totalSupply    | Coins   | Total vault shares. |
     | totalAssets    | Coins   | Total underlying assets. |
@@ -291,7 +291,7 @@ Vault contracts MUST implement the following persistent storage variables in the
 
     | Field          | Type           | Description |
     |----------------|----------------|-------------|
-    | optionalParams | OptionalParams | Optional parameters (e.g., asset identifier for multi-asset vaults). |
+    | optionalParams | `OptionalParams` | Optional parameters (e.g., asset identifier for multi-asset vaults). |
 
   - **Output**:
 
@@ -313,8 +313,8 @@ Vault contracts MUST implement the following persistent storage variables in the
     | Field          | Type           | Description |
     |----------------|----------------|-------------|
     | depositAmount  | Coins          | Asset amount to convert. |
-    | optionalParams | OptionalParams?| Optional parameters (e.g., asset identifier). |
-    | rounding       | RoundType      | ROUND_DOWN (omitted for get-method). |
+    | optionalParams | `OptionalParams`?| Optional parameters (e.g., asset identifier). |
+    | rounding       | `RoundType`      | ROUND_DOWN (omitted for get-method). |
 
   - **Output**:
 
@@ -336,8 +336,8 @@ Vault contracts MUST implement the following persistent storage variables in the
     | Field          | Type           | Description |
     |----------------|----------------|-------------|
     | shares         | Coins          | Share amount to convert. |
-    | optionalParams | OptionalParams?| Optional parameters (e.g., asset identifier). |
-    | rounding       | RoundType      | ROUND_DOWN (omitted for get-method). |
+    | optionalParams | `OptionalParams`?| Optional parameters (e.g., asset identifier). |
+    | rounding       | `RoundType`      | ROUND_DOWN (omitted for get-method). |
 
   - **Output**:
 
@@ -356,7 +356,7 @@ Vault contracts MUST implement the following persistent storage variables in the
 
     | Field          | Type           | Description |
     |----------------|----------------|-------------|
-    | optionalParams | OptionalParams?| Optional parameters (e.g., asset identifier). |
+    | optionalParams | `OptionalParams`?| Optional parameters (e.g., asset identifier). |
 
   - **Output**:
 
@@ -377,7 +377,7 @@ Vault contracts MUST implement the following persistent storage variables in the
     | Field          | Type           | Description |
     |----------------|----------------|-------------|
     | depositAmount  | Coins          | Asset amount to deposit. |
-    | optionalParams | OptionalParams?| Optional parameters (e.g., price data). |
+    | optionalParams | `OptionalParams`?| Optional parameters (e.g., price data). |
 
   - **Output**:
 
@@ -394,7 +394,7 @@ Vault contracts MUST implement the following persistent storage variables in the
 
     | Field          | Type           | Description |
     |----------------|----------------|-------------|
-    | optionalParams | OptionalParams?| Optional parameters (e.g., asset identifier). |
+    | optionalParams | `OptionalParams`?| Optional parameters (e.g., asset identifier). |
 
   - **Output**:
 
@@ -415,7 +415,7 @@ Vault contracts MUST implement the following persistent storage variables in the
     | Field          | Type           | Description |
     |----------------|----------------|-------------|
     | shares         | Coins          | Share amount to withdraw. |
-    | optionalParams | OptionalParams?| Optional parameters (e.g., price data). |
+    | optionalParams | `OptionalParams`?| Optional parameters (e.g., price data). |
 
   - **Output**:
 
@@ -490,10 +490,10 @@ Vault contracts MUST implement the following persistent storage variables in the
     | TOPIC_DEPOSITED     | Opcode                      | 0x11475d67  |
     | initiator           | Address                     | Address initiating the deposit. |
     | receiver            | Address                     | Address receiving shares. |
-    | depositAsset        | Cell<Asset>?                | Deposited asset type. |
+    | depositAsset        | Cell<`Asset`>?                | Deposited asset type. |
     | depositAmount       | Coins                       | Deposited asset amount. |
     | shares              | Coins                       | Minted shares. |
-    | optionalDepositLogs | Cell<OptionalDepositLogs>?  | Custom deposit logs. |
+    | optionalDepositLogs | Cell<`OptionalDepositLogs`>?  | Custom deposit logs. |
     | timestamp           | Uint32                      | Event timestamp for off-chain indexing. |
 
 - **Withdrawn**
@@ -505,10 +505,10 @@ Vault contracts MUST implement the following persistent storage variables in the
     | TOPIC_WITHDRAWN      | Opcode                       | 0xedfb416d  |
     | initiator            | Address                      | Address initiating the withdrawal. |
     | receiver             | Address                      | Address receiving assets. |
-    | withdrawAsset        | Cell<Asset>?                 | Withdrawn asset type. |
+    | withdrawAsset        | Cell<`Asset`>?                 | Withdrawn asset type. |
     | withdrawAmount       | Coins                        | Withdrawn asset amount. |
     | burnedShares         | Coins                        | Burned shares. |
-    | optionalWithdrawLogs | Cell<OptionalWithdrawLogs>?  | Custom withdrawal logs. |
+    | optionalWithdrawLogs | Cell<`OptionalWithdrawLogs`>?  | Custom withdrawal logs. |
     | timestamp            | Uint32                       | Event timestamp for off-chain indexing. |
 
 ## Drawbacks
