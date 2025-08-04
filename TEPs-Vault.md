@@ -517,18 +517,49 @@ Vault contracts MUST implement the following persistent storage variables in the
 
 ## Rationale and Alternatives
 
-The vault interface is designed to be feature-complete yet simple, adhering to `ERC-4626` principles while adapting to TON’s characteristics. Key design decisions and their rationale are:
+The vault interface follows ERC-4626 design principles while adapting to the unique characteristics of the TON blockchain. Key decisions and their rationale are outlined below:
 
-- Asynchronous Notifications: TON’s asynchronous messaging necessitated a notification mechanism (e.g., `OP_VAULT_NOTIFICATION`), enabling interacting contracts to process results or rollback, enhancing DeFi composability.
-- Gas Query Get-Methods: Added get-methods (e.g., `previewTonDepositFee`) allow developers to estimate required TON, simplifying interactions.
-- Slippage Protection: Introduced `minShares` and `minWithdraw` to improve user experience by mitigating slippage losses.
-- `OptionalParams` for Off-Chain Data: TON contracts cannot directly fetch prices from other contracts, so `OptionalParams` enables off-chain price data transmission for deposit/withdrawal operations.
-- Multi-Asset Support: Unlike `ERC-4626`’s single-asset focus, `TEP-4626` allows multiple assets via `OptionalParams` and dictionary-based storage, enhancing flexibility.
-- Provide/Take Quote Mechanism: Enables on-chain asset-to-share conversion rate queries with timestamps to filter stale prices, and `forwardPayload` for implementation flexibility.
-- Omission of mint/redeem: TON wallets support plugging for third-party transfers, but this isn’t common user behavior. Thus, mint and redeem (from `ERC-4626`) are omitted, requiring users to transfer assets to the vault first.
-- Asset-Based `maxDeposit`/`maxWithdraw`: Tracking per-user assets in TON is inefficient (e.g., using dictionaries or sub-contracts is not recommended). Thus, `maxDeposit` and `maxWithdraw` are asset-based, not user-based, ignoring private transfers.
-- convertTo vs. preview Functions: `convertToShares` and `convertToAssets` provide rough estimates excluding fees/slippage, suitable for frontend displays. `previewDeposit` and `previewWithdraw` include fees/slippage for precise outcomes, ignoring limits for composability. This aligns with `ERC-4626`, with TON adaptations (e.g., `OptionalParams` for price volatility).
-- Donation Attack Mitigation: Unlike `ERC-4626`’s vulnerability to donation attacks, `TEP-4626` requires valid payloads for deposit/withdrawal to affect `totalSupply`/`totalAssets`, rendering direct transfers ineffective.
+### Asynchronous Notifications
+
+Due to TON's asynchronous messaging model, a notification mechanism (e.g., `OP_VAULT_NOTIFICATION`) is introduced to allow interacting contracts to process results or perform rollbacks, enhancing composability in DeFi workflows.
+
+### Gas Estimation via Get-Methods
+
+Get-methods such as `previewTonDepositFee` help developers estimate the required TON for operations, simplifying integration and improving UX.
+
+### Slippage Protection
+
+`minShares` and `minWithdraw` parameters are introduced to protect users from slippage, ensuring predictable outcomes for deposits and withdrawals.
+
+### Off-Chain Data with OptionalParams
+
+Since TON contracts cannot fetch prices on-chain, `OptionalParams` enables passing off-chain data (e.g., price info) during deposit or withdrawal.
+
+### Multi-Asset Support
+
+Unlike ERC-4626's single-asset model, TEP-4626 supports multiple assets using dictionary-based storage and `OptionalParams`, increasing vault flexibility.
+
+### Provide/Take Quote Mechanism
+
+TEP-4626 includes a mechanism for querying asset-to-share conversion rates with timestamps to prevent stale quotes. `forwardPayload` allows additional customization of behavior.
+
+### Omission of `mint` / `redeem`
+
+While TON wallets support third-party transfers (wallet plugging), this behavior is uncommon. Therefore, `mint` and `redeem` are omitted, and users must transfer assets to the vault directly.
+
+### Asset-Based Limits (Not User-Based)
+
+Due to inefficiencies with per-user tracking on TON (e.g., dictionary lookups or sub-contracts), `maxDeposit` and `maxWithdraw` limits are defined per asset, not per user. Private transfers are ignored.
+
+### `convertTo` vs. `preview`
+
+* `convertToShares` / `convertToAssets`: Provide rough estimates excluding fees and slippage—ideal for display purposes.
+* `previewDeposit` / `previewWithdraw`: Include slippage and fees—ideal for precise UI confirmations.
+  Both align with ERC-4626 while incorporating TON-specific enhancements like `OptionalParams`.
+
+### Donation Attack Mitigation
+
+To avoid ERC-4626-style donation attacks, TEP-4626 requires a valid payload to affect `totalSupply` or `totalAssets`. Direct token transfers without intent are ignored and do not affect vault state.
 
 ## Prior Art
 
@@ -557,3 +588,6 @@ The vault interface is designed to be feature-complete yet simple, adhering to `
 ## Backwards Compatibility
 
 `TEP-4626` extends `TEP-74` Jetton, ensuring compatibility with existing Jetton contracts. However, new messages and get-methods require updates to integrating protocols.
+
+
+
