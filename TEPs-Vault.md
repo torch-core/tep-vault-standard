@@ -530,11 +530,6 @@ The vault interface is designed to be feature-complete yet simple, adhering to E
 - convertTo vs. preview Functions: convertToShares and convertToAssets provide rough estimates excluding fees/slippage, suitable for frontend displays. previewDeposit and previewWithdraw include fees/slippage for precise outcomes, ignoring limits for composability. This aligns with ERC-4626, with TON adaptations (e.g., OptionalParams for price volatility).
 - Donation Attack Mitigation: Unlike ERC-4626’s vulnerability to donation attacks, TEP-4626 requires valid payloads for deposit/withdrawal to affect totalSupply/totalAssets, rendering direct transfers ineffective.
 
-**Alternatives Considered**:
-- Synchronous Calls: Not feasible due to TON’s asynchronous architecture.
-- Per-User Tracking: Rejected due to inefficiency in TON’s storage model.
-- Mandatory Single-Asset: Considered but rejected to support future multi-asset use cases.
-
 ## Prior Art
 
 - ERC-4626: Tokenized Vault Standard for Ethereum, providing the foundational design for deposit, withdrawal, and conversion functions ([EIP-4626](https://eips.ethereum.org/EIPS/eip-4626)).
@@ -543,30 +538,22 @@ The vault interface is designed to be feature-complete yet simple, adhering to E
 
 ## Unresolved Questions
 
-[Placeholder: Your content does not address unresolved questions. Suggested content: List open issues, such as optimal gas estimation strategies, handling multi-asset edge cases, or standardizing OptionalParams formats. Example: "What is the optimal dictionary structure for multi-asset totalAssets? Should OptionalParams have a standardized format for price data?"]
+- Should support for Extra Currency (XC) be included in the initial version of TEP-4626?
+
+  XC adoption is currently low in the TON DeFi ecosystem. Including it now may increase implementation complexity without immediate use cases. Should XC support be deferred until it gains broader adoption?
+- Should methods similar to ERC-4626’s approve and transferFrom be implemented to support wallet plugging?
+
+  Given the limited wallet support and the added user complexity, wallet plugging is not commonly used by TON users. Should we wait until this pattern becomes more widespread before adding these methods?
+- How can we ensure that vault admin privileges are protected from unauthorized access or code upgrades?
+
+  If an admin is compromised, malicious callbacks could impact interacting protocols. What standardized mechanisms (e.g., guardian roles to monitor critical actions, timelocks) should be adopted to mitigate this risk?
 
 ## Future Possibilities
 
-[Placeholder: Your content does not cover future possibilities. Suggested content: Discuss potential extensions, such as integrating with cross-chain bridges, supporting new token standards, or adding governance features. Example: "Future versions could integrate with TON’s cross-chain bridges for XC assets or add governance for adminAddress changes."]
+- Extra Currency Integration: Support for Extra Currency (XC) can be added once XC assets gain broader adoption in the TON DeFi ecosystem, enhancing the vault’s capability for cross-chain DeFi use cases.
+- Wallet Plugging Support: If wallet plugging becomes a common practice among TON users, ERC-4626-style mint and withdraw methods can be introduced to enable third-party asset transfers, improving flexibility for dApps and automated protocols.
+- Enhanced Admin Security: Future integration with TON’s permission management standards (e.g., multisig or governance-related TEPs) can help safeguard admin privileges. Mechanisms such as multisig, timelocks, and protective guards should be employed and thoroughly tested to ensure robustness.
 
 ## Backwards Compatibility
 
 TEP-4626 extends TEP-74 Jetton, ensuring compatibility with existing Jetton contracts. However, new messages and get-methods require updates to integrating protocols.
-
-## Security Considerations
-
-- Donation Attack:
-  - **Description**: Direct transfers could manipulate totalSupply/totalAssets in ERC-4626.
-  - **Mitigation**: TEP-4626 requires valid payloads for deposit/withdrawal, ensuring no impact from invalid transfers.
-- Malicious Admin:
-  - **Description**: A compromised admin could send fraudulent notifications to steal assets.
-  - **Mitigation**: Use multi-signature admin with timelocks or guard mechanisms. Interacting contracts MUST verify vault compliance with TEP-4626.
-- Callback Abuse:
-  - **Description**: Malicious callbacks could enable attacks.
-  - **Mitigation**: MUST validate sender and result codes in messages to prevent unauthorized access.
-
-## References
-
-- [EIP-4626: Tokenized Vault Standard](https://eips.ethereum.org/EIPS/eip-4626)
-- [TEP-74: Jetton Standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md)
-- [TEP-64: Token Data Standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md)
