@@ -55,11 +55,13 @@ Vault contracts MUST implement the following persistent storage variables in the
   - **Type**: Coins
 - **adminAddress**
   - **Description**: The administrative address for the vault contract.
-  - **Requirements**: SHOULD deploy the contract and set Jetton Master parameters when the underlying asset is a Jetton, ensuring correct wallet address interactions.
+  - **Requirements**: SHOULD deploy the contract and set Jetton Master parameters when the underlying asset is a Jetton, ensuring correct provide and take jetton wallet address interactions.
   - **Type**: Address
 - **jettonContent**
   - **Description**: Metadata cell for Jetton shares, compliant with TEP-64 (Token Data Standard).
-  - **Requirements**: MUST contain token metadata (name, symbol, decimals). Name and symbol SHOULD reflect the underlying asset’s name and symbol to some extent.
+  - **Requirements**: 
+    - MUST contain token metadata (name, symbol, decimals). Name and symbol 
+    - SHOULD reflect the underlying asset’s name and symbol to some extent.
   - **Type**: Cell
 - **jettonWalletCode**
   - **Description**: Code cell for the Jetton wallet contract associated with vault shares.
@@ -78,14 +80,14 @@ Vault contracts MUST implement the following persistent storage variables in the
 - **assetMasterAddress**
   - **Description**: Jetton Master address of the underlying asset, if a Jetton.
   - **Requirements**:
-    - MUST be recorded if the underlying asset is a Jetton.
+    - MUST be presented if the underlying asset is a Jetton.
     - MUST NOT be present if the asset is TON.
     - If managing multiple assets, MAY be a dictionary mapping asset identifiers to master addresses.
   - **Type**: Address
 - **assetWalletAddress**
   - **Description**: Vault’s Jetton Wallet address for the underlying asset, if a Jetton.
   - **Requirements**:
-    - MUST be recorded if the underlying asset is a Jetton to facilitate transfers and operations.
+    - MUST be presented if the underlying asset is a Jetton to facilitate transfers and operations.
     - MUST NOT be present if the asset is TON.
     - If managing multiple assets, MAY be a dictionary mapping asset identifiers to wallet addresses.
   - **Type**: Address
@@ -106,7 +108,7 @@ Vault contracts MUST implement the following persistent storage variables in the
 - **RoundingType**: uint2
   - `ROUND_DOWN = 0`
   - `ROUND_UP = 1`
-  - `ROUND_GENERIC = 2` (context-dependent rounding, e.g., banker’s rounding)
+  - `ROUND_GENERIC = 2` (standard rounding)
 - **Result**: uint16
   - Outcome of the vault operation. 
   - Values: 0 (success), error codes (e.g., 1: Insufficient amount, 2: Limit exceeded).
@@ -128,6 +130,8 @@ Vault contracts MUST implement the following persistent storage variables in the
 #### Internal Messages
 
 **Vault Notification**
+
+![vault-notification](./assets/vault-notification.png)
 
 - **Description**: After vault interaction (Deposit or Withdraw), the vault sends a notification message to the receiver or initiator, with user-defined callback payloads for further operations.
 
@@ -173,6 +177,8 @@ Vault contracts MUST implement the following persistent storage variables in the
 
 **Deposit (For TON)**
 
+![deposit-ton](./assets/deposit-ton.png)
+
 - **Description**: Mint shares to receiver by depositing exactly depositAmount of TON.
 - **Requirements**:
   - MUST verify `in.senderAddress` matches the vault’s underlying Jetton Wallet address.
@@ -202,6 +208,8 @@ Vault contracts MUST implement the following persistent storage variables in the
 
 **Deposit Forward Payload (For Jetton)**
 
+![deposit-jetton](./assets/deposit-jetton.png)
+
 - **Description**: Mint shares to receiver by depositing exactly depositAmount of Jetton.
 - **Requirements**:
   - MUST verify `in.valueCoins` covers required gas.
@@ -218,6 +226,8 @@ Vault contracts MUST implement the following persistent storage variables in the
   | depositParams | DepositParams | Deposit parameters. |
 
 **Withdraw (In Burn Notification)**
+
+![withdraw](./assets/withdraw.png)
 
 - **Description**: Burns exactly shares from initiator and sends underlying assets to receiver.
 - **Requirements**:
