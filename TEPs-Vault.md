@@ -70,23 +70,23 @@ Vault contracts MUST implement the following persistent storage variables in the
 
 - **totalAssets**
   - **Description**: Total amount of underlying asset(s) managed by the vault.
-  - **Requirements**: 
-    - SHOULD include compounding from yield or accrued fees. 
-    - MUST include fees charged against managed assets. 
+  - **Requirements**:
+    - SHOULD include compounding from yield or accrued fees.
+    - MUST include fees charged against managed assets.
     - If managing multiple assets, MAY be implemented as a dictionary mapping asset identifiers to amounts.
   - **Type**: Coins
 - **assetMasterAddress**
   - **Description**: Jetton Master address of the underlying asset, if a Jetton.
-  - **Requirements**: 
-    - MUST be presented if the underlying asset is a Jetton. 
-    - MUST NOT be present if the asset is TON. 
+  - **Requirements**:
+    - MUST be recorded if the underlying asset is a Jetton.
+    - MUST NOT be present if the asset is TON.
     - If managing multiple assets, MAY be a dictionary mapping asset identifiers to master addresses.
   - **Type**: Address
 - **assetWalletAddress**
   - **Description**: Vault’s Jetton Wallet address for the underlying asset, if a Jetton.
-  - **Requirements**: 
-    - MUST be presented if the underlying asset is a Jetton to facilitate transfers and operations. 
-    - MUST NOT be present if the asset is TON. 
+  - **Requirements**:
+    - MUST be recorded if the underlying asset is a Jetton to facilitate transfers and operations.
+    - MUST NOT be present if the asset is TON.
     - If managing multiple assets, MAY be a dictionary mapping asset identifiers to wallet addresses.
   - **Type**: Address
 
@@ -127,30 +127,52 @@ Vault contracts MUST implement the following persistent storage variables in the
 **Vault Notification**
 
 - **Description**: After vault interaction (Deposit or Withdraw), the vault sends a notification message to the receiver or initiator, with user-defined callback payloads for further operations.
+
 - **Messages**:
+
   - **CallbackParams**:
-    - **includeBody** (Type: Bool): Whether to include the interaction message payload in the response to receiver/initiator.
-    - **payload** (Type: Cell): If defined, sends user-defined callback payload to receiver (on success) or initiator (on failure).
+
+    | Field       | Type | Description |
+    |-------------|------|-------------|
+    | includeBody | Bool | Whether to include the interaction message payload in the response to receiver/initiator. |
+    | payload     | Cell | If defined, sends user-defined callback payload to receiver (on success) or initiator (on failure). |
+
   - **Callbacks**:
-    - **successCallback** (Type: Cell<CallbackParams>?): Sends successCallback.payload to receiver on successful vault interaction.
-    - **failureCallback** (Type: Cell<CallbackParams>?): Sends failureCallback.payload to initiator on failed vault interaction.
+
+    | Field             | Type                   | Description |
+    |-------------------|------------------------|-------------|
+    | successCallback   | Cell<CallbackParams>? | Sends successCallback.payload to receiver on successful vault interaction. |
+    | failureCallback   | Cell<CallbackParams>? | Sends failureCallback.payload to initiator on failed vault interaction. |
+
   - **Result**:
-    - **Type**: Uint16
-    - **Values**:
-      - `0`: Success
-      - Error codes (e.g., `1`: Insufficient amount, `2`: Limit exceeded)
+
+    | Field  | Type    | Description |
+    |--------|---------|-------------|
+    | result | Uint16 | Outcome of the vault operation. Values: 0 (success), error codes (e.g., 1: Insufficient amount, 2: Limit exceeded). |
+
   - **VaultNotificationParams**:
-    - **result** (Type: Result): Outcome of the vault operation.
-    - **initiator** (Type: Address): Address initiating the vault interaction.
-    - **callbackPayload** (Type: Cell?): SuccessCallback.payload (on success) or failureCallback.payload (on failure). Null if not specified in CallbackParams.
-    - **inBody** (Type: Cell?): Interaction message payload if includeBody is true; otherwise, null.
+
+    | Field           | Type    | Description |
+    |-----------------|---------|-------------|
+    | result          | Result  | Outcome of the vault operation. |
+    | initiator       | Address | Address initiating the vault interaction. |
+    | callbackPayload | Cell?   | SuccessCallback.payload (on success) or failureCallback.payload (on failure). Null if not specified in CallbackParams. |
+    | inBody          | Cell?   | Interaction message payload if includeBody is true; otherwise, null. |
+
   - **OP_VAULT_NOTIFICATION**: For Withdraw or TON refund.
-    - **OP_VAULT_NOTIFICATION** (Type: Opcode): 0x86eba146
-    - **queryId** (Type: QueryId): Unique query identifier.
-    - **vaultNotificationParams** (Type: VaultNotificationParams): Notification parameters.
+
+    | Field                    | Type                   | Description |
+    |--------------------------|------------------------|-------------|
+    | OP_VAULT_NOTIFICATION    | Opcode                 | 0x86eba146 |
+    | queryId                  | QueryId                | Unique query identifier. |
+    | vaultNotificationParams  | VaultNotificationParams| Notification parameters. |
+
   - **OP_VAULT_NOTIFICATION_FP**: For minting shares, withdrawing, or refunding Jetton.
-    - **OP_VAULT_NOTIFICATION_FP** (Type: Opcode): 0xb00d7656
-    - **vaultNotificationParams** (Type: VaultNotificationParams): Notification parameters.
+
+    | Field                    | Type                   | Description |
+    |--------------------------|------------------------|-------------|
+    | OP_VAULT_NOTIFICATION_FP | Opcode                 | 0xb00d7656 |
+    | vaultNotificationParams  | VaultNotificationParams| Notification parameters. |
 
 **Deposit (For TON)**
 
@@ -162,16 +184,24 @@ Vault contracts MUST implement the following persistent storage variables in the
   - On successful share minting, MUST send OP_VAULT_NOTIFICATION_FP with successCallback.payload to receiver.
   - If receiver is address none, SHOULD set receiver to initiator.
   - MUST emit TOPIC_DEPOSITED event.
+
 - **Message**:
+
   - **DepositParams**:
-    - **receiver** (Type: Address): Address receiving vault tokens and callback payload.
-    - **minShares** (Type: Coins): Minimum shares to receive, else refund.
-    - **optionalParams** (Type: Cell<OptionalParams>?): Optional parameters (e.g., price data).
-    - **callbacks** (Type: Callbacks): Success/failure callbacks.
-  - **OP_DEPOSIT** (Type: Opcode): 0x5a66a4a5
-  - **queryId** (Type: QueryId): Unique query identifier.
-  - **depositAmount** (Type: Coins): TON amount to deposit.
-  - **depositParams** (Type: DepositParams): Deposit parameters.
+
+    | Field          | Type                   | Description |
+    |----------------|------------------------|-------------|
+    | receiver       | Address                | Address receiving vault tokens and callback payload. |
+    | minShares      | Coins                  | Minimum shares to receive, else refund. |
+    | optionalParams | Cell<OptionalParams>?  | Optional parameters (e.g., price data). |
+    | callbacks      | Callbacks              | Success/failure callbacks. |
+
+  | Field        | Type          | Description |
+  |--------------|---------------|-------------|
+  | OP_DEPOSIT   | Opcode        | 0x5a66a4a5 |
+  | queryId      | QueryId       | Unique query identifier. |
+  | depositAmount| Coins         | TON amount to deposit. |
+  | depositParams| DepositParams | Deposit parameters. |
 
 **Deposit Forward Payload (For Jetton)**
 
@@ -182,9 +212,13 @@ Vault contracts MUST implement the following persistent storage variables in the
   - On successful share minting, MUST send OP_VAULT_NOTIFICATION_FP with successCallback.payload to receiver.
   - If receiver is address none, SHOULD set receiver to initiator.
   - MUST emit TOPIC_DEPOSITED event.
+
 - **Message**:
-  - **OP_DEPOSIT_FP** (Type: Opcode): 0xb534fe7b
-  - **depositParams** (Type: DepositParams): Deposit parameters.
+
+  | Field         | Type          | Description |
+  |---------------|---------------|-------------|
+  | OP_DEPOSIT_FP | Opcode        | 0xb534fe7b |
+  | depositParams | DepositParams | Deposit parameters. |
 
 **Withdraw (In Burn Notification)**
 
@@ -196,12 +230,16 @@ Vault contracts MUST implement the following persistent storage variables in the
   - On successful withdrawal, MUST send OP_VAULT_NOTIFICATION_FP (for Jetton) or OP_VAULT_NOTIFICATION (for TON) with successCallback.payload to receiver.
   - If receiver is address none, SHOULD set receiver to initiator.
   - MUST emit TOPIC_WITHDRAWN event.
+
 - **Message**:
-  - **OP_WITHDRAW_FP** (Type: Opcode): 0xecb4d6bf
-  - **receiver** (Type: Address): Address receiving withdrawn assets.
-  - **minWithdraw** (Type: Coins): Minimum asset amount to receive, else refund.
-  - **optionalVaultParams** (Type: Cell<OptionalParams>?): Optional parameters (e.g., price data).
-  - **callbacks** (Type: Callbacks): Success/failure callbacks.
+
+  | Field               | Type                   | Description |
+  |---------------------|------------------------|-------------|
+  | OP_WITHDRAW_FP      | Opcode                 | 0xecb4d6bf |
+  | receiver            | Address                | Address receiving withdrawn assets. |
+  | minWithdraw         | Coins                  | Minimum asset amount to receive, else refund. |
+  | optionalVaultParams | Cell<OptionalParams>?  | Optional parameters (e.g., price data). |
+  | callbacks           | Callbacks              | Success/failure callbacks. |
 
 **Provide Quote and Take Quote**
 
@@ -210,21 +248,30 @@ Vault contracts MUST implement the following persistent storage variables in the
   - MUST verify `in.valueCoins` covers gas for Provide Quote.
   - MUST send OP_TAKE_QUOTE to receiver.
   - If receiver is address none, SHOULD set receiver to initiator.
+
 - **Messages**:
+
   - **OP_PROVIDE_QUOTE**:
-    - **OP_PROVIDE_QUOTE** (Type: Opcode): 0xc643cc91
-    - **queryId** (Type: QueryId): Unique query identifier.
-    - **receiver** (Type: Address): Address receiving OP_TAKE_QUOTE.
-    - **optionalQuoteParams** (Type: Cell?): Additional data for asset/share calculations.
-    - **forwardPayload** (Type: Cell): Initiator-defined payload for further receiver operations.
+
+    | Field               | Type      | Description |
+    |---------------------|-----------|-------------|
+    | OP_PROVIDE_QUOTE    | Opcode    | 0xc643cc91 |
+    | queryId             | QueryId   | Unique query identifier. |
+    | receiver            | Address   | Address receiving OP_TAKE_QUOTE. |
+    | optionalQuoteParams | Cell?     | Additional data for asset/share calculations. |
+    | forwardPayload      | Cell      | Initiator-defined payload for further receiver operations. |
+
   - **OP_TAKE_QUOTE**:
-    - **OP_TAKE_QUOTE** (Type: Opcode): 0x68ec31ea
-    - **queryId** (Type: QueryId): Unique query identifier.
-    - **initiator** (Type: Address): Address sending OP_PROVIDE_QUOTE.
-    - **totalSupply** (Type: Coins): Total vault shares.
-    - **totalAssets** (Type: Coins): Total underlying assets.
-    - **timestamp** (Type: Uint32): Timestamp of totalSupply and totalAssets calculation.
-    - **forwardPayload** (Type: Cell?): Initiator-defined payload.
+
+    | Field          | Type    | Description |
+    |----------------|---------|-------------|
+    | OP_TAKE_QUOTE  | Opcode  | 0x68ec31ea |
+    | queryId        | QueryId | Unique query identifier. |
+    | initiator      | Address | Address sending OP_PROVIDE_QUOTE. |
+    | totalSupply    | Coins   | Total vault shares. |
+    | totalAssets    | Coins   | Total underlying assets. |
+    | timestamp      | Uint32  | Timestamp of totalSupply and totalAssets calculation. |
+    | forwardPayload | Cell?   | Initiator-defined payload. |
 
 #### Functions (Get-Methods)
 
@@ -234,9 +281,16 @@ Vault contracts MUST implement the following persistent storage variables in the
     - SHOULD include compounding from yield.
     - MUST include fees charged against assets.
   - **Input**:
-    - **optionalParams** (Type: OptionalParams): Optional parameters (e.g., asset identifier for multi-asset vaults).
+
+    | Field          | Type           | Description |
+    |----------------|----------------|-------------|
+    | optionalParams | OptionalParams | Optional parameters (e.g., asset identifier for multi-asset vaults). |
+
   - **Output**:
-    - **totalManagedAssets** (Type: Coins): Total managed assets.
+
+    | Field              | Type  | Description |
+    |--------------------|-------|-------------|
+    | totalManagedAssets | Coins | Total managed assets. |
 
 - **convertToShares**
   - **Description**: Estimates shares minted for a given asset amount in an ideal scenario.
@@ -248,11 +302,18 @@ Vault contracts MUST implement the following persistent storage variables in the
     - MUST round down to 0.
     - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
   - **Input**:
-    - **depositAmount** (Type: Coins): Asset amount to convert.
-    - **optionalParams** (Type: OptionalParams?): Optional parameters (e.g., asset identifier).
-    - **rounding** (Type: RoundType): ROUND_DOWN (omitted for get-method).
+
+    | Field          | Type           | Description |
+    |----------------|----------------|-------------|
+    | depositAmount  | Coins          | Asset amount to convert. |
+    | optionalParams | OptionalParams?| Optional parameters (e.g., asset identifier). |
+    | rounding       | RoundType      | ROUND_DOWN (omitted for get-method). |
+
   - **Output**:
-    - **shares** (Type: Coins): Estimated shares.
+
+    | Field  | Type  | Description |
+    |--------|-------|-------------|
+    | shares | Coins | Estimated shares. |
 
 - **convertToAssets**
   - **Description**: Estimates assets received for a given share amount in an ideal scenario.
@@ -264,11 +325,18 @@ Vault contracts MUST implement the following persistent storage variables in the
     - MUST round down to 0.
     - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
   - **Input**:
-    - **shares** (Type: Coins): Share amount to convert.
-    - **optionalParams** (Type: OptionalParams?): Optional parameters (e.g., asset identifier).
-    - **rounding** (Type: RoundType): ROUND_DOWN (omitted for get-method).
+
+    | Field          | Type           | Description |
+    |----------------|----------------|-------------|
+    | shares         | Coins          | Share amount to convert. |
+    | optionalParams | OptionalParams?| Optional parameters (e.g., asset identifier). |
+    | rounding       | RoundType      | ROUND_DOWN (omitted for get-method). |
+
   - **Output**:
-    - **assets** (Type: Coins): Estimated assets.
+
+    | Field  | Type  | Description |
+    |--------|-------|-------------|
+    | assets | Coins | Estimated assets. |
 
 - **maxDeposit**
   - **Description**: Maximum underlying asset amount that can be deposited into the vault.
@@ -278,9 +346,16 @@ Vault contracts MUST implement the following persistent storage variables in the
     - MUST consider global or asset-specific constraints (e.g., return 0 if deposits are disabled).
     - MUST return 531691198313966349161522824112137833 (maximum Coins value) if no deposit limits exist.
   - **Input**:
-    - **optionalParams** (Type: OptionalParams?): Optional parameters (e.g., asset identifier).
+
+    | Field          | Type           | Description |
+    |----------------|----------------|-------------|
+    | optionalParams | OptionalParams?| Optional parameters (e.g., asset identifier). |
+
   - **Output**:
-    - **maxDepositAmount** (Type: Coins): Maximum deposit amount.
+
+    | Field            | Type  | Description |
+    |------------------|-------|-------------|
+    | maxDepositAmount | Coins | Maximum deposit amount. |
 
 - **previewDeposit**
   - **Description**: Simulates deposit outcome based on the current block state (callable off-chain via get-method).
@@ -291,10 +366,17 @@ Vault contracts MUST implement the following persistent storage variables in the
     - MUST NOT revert due to vault-specific global limits but MAY revert for other conditions that would cause deposit to revert.
     - Differences between convertToShares and previewDeposit indicate slippage or other losses.
   - **Input**:
-    - **depositAmount** (Type: Coins): Asset amount to deposit.
-    - **optionalParams** (Type: OptionalParams?): Optional parameters (e.g., price data).
+
+    | Field          | Type           | Description |
+    |----------------|----------------|-------------|
+    | depositAmount  | Coins          | Asset amount to deposit. |
+    | optionalParams | OptionalParams?| Optional parameters (e.g., price data). |
+
   - **Output**:
-    - **shares** (Type: Coins): Estimated shares minted.
+
+    | Field  | Type  | Description |
+    |--------|-------|-------------|
+    | shares | Coins | Estimated shares minted. |
 
 - **maxWithdraw**
   - **Description**: Maximum share amount that can be withdrawn from the vault.
@@ -302,9 +384,16 @@ Vault contracts MUST implement the following persistent storage variables in the
     - MUST return the maximum shares that can be withdrawn without reverting, underestimating if necessary.
     - MUST consider global constraints (e.g., return 0 if withdrawals are disabled).
   - **Input**:
-    - **optionalParams** (Type: OptionalParams?): Optional parameters (e.g., asset identifier).
+
+    | Field          | Type           | Description |
+    |----------------|----------------|-------------|
+    | optionalParams | OptionalParams?| Optional parameters (e.g., asset identifier). |
+
   - **Output**:
-    - **maxShares** (Type: Coins): Maximum withdrawable shares.
+
+    | Field     | Type  | Description |
+    |-----------|-------|-------------|
+    | maxShares | Coins | Maximum withdrawable shares. |
 
 - **previewWithdraw**
   - **Description**: Simulates withdrawal outcome based on the current block state (callable off-chain via get-method).
@@ -315,10 +404,17 @@ Vault contracts MUST implement the following persistent storage variables in the
     - MUST NOT revert due to vault-specific global limits but MAY revert for other conditions that would cause withdrawal to revert.
     - Differences between convertToAssets and previewWithdraw indicate slippage or other losses.
   - **Input**:
-    - **shares** (Type: Coins): Share amount to withdraw.
-    - **optionalParams** (Type: OptionalParams?): Optional parameters (e.g., price data).
+
+    | Field          | Type           | Description |
+    |----------------|----------------|-------------|
+    | shares         | Coins          | Share amount to withdraw. |
+    | optionalParams | OptionalParams?| Optional parameters (e.g., price data). |
+
   - **Output**:
-    - **assets** (Type: Coins): Estimated assets withdrawn.
+
+    | Field  | Type  | Description |
+    |--------|-------|-------------|
+    | assets | Coins | Estimated assets withdrawn. |
 
 - **previewTonDepositFee**
   - **Description**: Returns the gas fee required for depositing TON to the vault.
@@ -329,7 +425,10 @@ Vault contracts MUST implement the following persistent storage variables in the
     - SHOULD return a conservative (upper-bound) estimate to account for network variability.
   - **Input**: None
   - **Output**:
-    - **tonDepositGasFee** (Type: Coins): Gas fee for TON deposit.
+
+    | Field            | Type  | Description |
+    |------------------|-------|-------------|
+    | tonDepositGasFee | Coins | Gas fee for TON deposit. |
 
 - **previewJettonDepositFee**
   - **Description**: Returns the gas fee required for depositing Jetton to the vault.
@@ -340,7 +439,10 @@ Vault contracts MUST implement the following persistent storage variables in the
     - SHOULD return a conservative estimate.
   - **Input**: None
   - **Output**:
-    - **jettonDepositGasFee** (Type: Coins): Gas fee for Jetton deposit.
+
+    | Field                | Type  | Description |
+    |----------------------|-------|-------------|
+    | jettonDepositGasFee  | Coins | Gas fee for Jetton deposit. |
 
 - **previewWithdrawFee**
   - **Description**: Returns the gas fee required for withdrawing from the vault.
@@ -351,7 +453,10 @@ Vault contracts MUST implement the following persistent storage variables in the
     - SHOULD return a conservative estimate.
   - **Input**: None
   - **Output**:
-    - **withdrawGasFee** (Type: Coins): Gas fee for withdrawal.
+
+    | Field           | Type  | Description |
+    |-----------------|-------|-------------|
+    | withdrawGasFee  | Coins | Gas fee for withdrawal. |
 
 - **previewProvideQuoteFee**
   - **Description**: Returns the gas fee required for querying totalAssets and totalSupply.
@@ -362,33 +467,42 @@ Vault contracts MUST implement the following persistent storage variables in the
     - SHOULD return a conservative estimate.
   - **Input**: None
   - **Output**:
-    - **provideQuoteFee** (Type: Coins): Gas fee for quote query.
+
+    | Field            | Type  | Description |
+    |------------------|-------|-------------|
+    | provideQuoteFee  | Coins | Gas fee for quote query. |
 
 #### Events
 
 - **Deposited**
   - **Description**: Emitted when initiator exchanges depositAmount for shares, transferring them to receiver.
   - **Message**:
-    - **TOPIC_DEPOSITED** (Type: Opcode): 0x11475d67
-    - **initiator** (Type: Address): Address initiating the deposit.
-    - **receiver** (Type: Address): Address receiving shares.
-    - **depositAsset** (Type: Cell<Asset>?): Deposited asset type.
-    - **depositAmount** (Type: Coins): Deposited asset amount.
-    - **shares** (Type: Coins): Minted shares.
-    - **optionalDepositLogs** (Type: Cell<OptionalDepositLogs>?): Custom deposit logs.
-    - **timestamp** (Type: Uint32): Event timestamp for off-chain indexing.
+
+    | Field               | Type                        | Description |
+    |---------------------|-----------------------------|-------------|
+    | TOPIC_DEPOSITED     | Opcode                      | 0x11475d67  |
+    | initiator           | Address                     | Address initiating the deposit. |
+    | receiver            | Address                     | Address receiving shares. |
+    | depositAsset        | Cell<Asset>?                | Deposited asset type. |
+    | depositAmount       | Coins                       | Deposited asset amount. |
+    | shares              | Coins                       | Minted shares. |
+    | optionalDepositLogs | Cell<OptionalDepositLogs>?  | Custom deposit logs. |
+    | timestamp           | Uint32                      | Event timestamp for off-chain indexing. |
 
 - **Withdrawn**
   - **Description**: Emitted when initiator exchanges shares for assets, transferring them to receiver.
   - **Message**:
-    - **TOPIC_WITHDRAWN** (Type: Opcode): 0xedfb416d
-    - **initiator** (Type: Address): Address initiating the withdrawal.
-    - **receiver** (Type: Address): Address receiving assets.
-    - **withdrawAsset** (Type: Cell<Asset>?): Withdrawn asset type.
-    - **withdrawAmount** (Type: Coins): Withdrawn asset amount.
-    - **burnedShares** (Type: Coins): Burned shares.
-    - **optionalWithdrawLogs** (Type: Cell<OptionalWithdrawLogs>?): Custom withdrawal logs.
-    - **timestamp** (Type: Uint32): Event timestamp for off-chain indexing.
+
+    | Field                | Type                         | Description |
+    |----------------------|------------------------------|-------------|
+    | TOPIC_WITHDRAWN      | Opcode                       | 0xedfb416d  |
+    | initiator            | Address                      | Address initiating the withdrawal. |
+    | receiver             | Address                      | Address receiving assets. |
+    | withdrawAsset        | Cell<Asset>?                 | Withdrawn asset type. |
+    | withdrawAmount       | Coins                        | Withdrawn asset amount. |
+    | burnedShares         | Coins                        | Burned shares. |
+    | optionalWithdrawLogs | Cell<OptionalWithdrawLogs>?  | Custom withdrawal logs. |
+    | timestamp            | Uint32                       | Event timestamp for off-chain indexing. |
 
 ## Drawbacks
 
@@ -441,7 +555,7 @@ TEP-4626 extends TEP-74 Jetton, ensuring compatibility with existing Jetton cont
   - **Description**: A compromised admin could send fraudulent notifications to steal assets.
   - **Mitigation**: Use multi-signature admin with timelocks or guard mechanisms. Interacting contracts MUST verify vault compliance with TEP-4626.
 - Callback Abuse:
-  - **Description**: Malicious callbacks could enable attacks.
+  - **Description**: Malicious callbacks could enable reentrancy-like attacks.
   - **Mitigation**: MUST validate sender and result codes in messages to prevent unauthorized access.
 
 ## References
