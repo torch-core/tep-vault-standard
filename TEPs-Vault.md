@@ -107,6 +107,9 @@ Vault contracts MUST implement the following persistent storage variables in the
   - `ROUND_DOWN = 0`
   - `ROUND_UP = 1`
   - `ROUND_GENERIC = 2` (context-dependent rounding, e.g., banker’s rounding)
+- **Result**: uint16
+  - Outcome of the vault operation. 
+  - Values: 0 (success), error codes (e.g., 1: Insufficient amount, 2: Limit exceeded).
 - **Asset**: Enables handling different asset types (Jetton, TON, XC, future standards) with unified logic.
   - Uses a 4-bit prefix, checked via `preloadUint(4)`, with additional token info stored afterward.
   - **Native ($0000)**: Represents TON.
@@ -143,12 +146,6 @@ Vault contracts MUST implement the following persistent storage variables in the
     |-------------------|------------------------|-------------|
     | successCallback   | Cell<CallbackParams>? | Sends successCallback.payload to receiver on successful vault interaction. |
     | failureCallback   | Cell<CallbackParams>? | Sends failureCallback.payload to initiator on failed vault interaction. |
-
-  - **Result**:
-
-    | Field  | Type    | Description |
-    |--------|---------|-------------|
-    | result | Uint16 | Outcome of the vault operation. Values: 0 (success), error codes (e.g., 1: Insufficient amount, 2: Limit exceeded). |
 
   - **VaultNotificationParams**:
 
