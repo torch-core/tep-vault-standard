@@ -2,7 +2,7 @@
 
 **Status**: Draft  
 **Type**: Application  
-**Author**: [Your Name or Handle]  
+**Author**: [@throwunless]  
 **Created**: 2025-08-04  
 **Requires**: TEP-74, TEP-64  
 
@@ -35,10 +35,10 @@ All TEP-4626 vaults MUST implement TEP-64 Jetton metadata. The `name` and `symbo
 
 ### Definitions
 
-- **Asset**: The underlying token managed by the vault, with units defined by its Jetton Master contract. This vault design supports managing multiple underlying assets.
-- **Share**: Tokens issued by the vault, representing a claim on underlying assets with a conversion rate defined by the vault during deposit/withdrawal.
-- **Fee**: Amounts of assets or shares charged by the vault, applicable to deposits, yields, assets under management (AUM), withdrawals, or other vault-specified items.
-- **Slippage**: The difference between the advertised share price and the actual economic outcome during deposit/withdrawal, excluding fees.
+- **asset**: The underlying token managed by the vault, with units defined by its Jetton Master contract. This vault design supports managing multiple underlying assets.
+- **share**: Tokens issued by the vault, representing a claim on underlying assets with a conversion rate defined by the vault during deposit/withdrawal.
+- **fee**: Amounts of assets or shares charged by the vault, applicable to deposits, yields, assets under management (AUM), withdrawals, or other vault-specified items.
+- **slippage**: The difference between the advertised share price and the actual economic outcome during deposit/withdrawal, excluding fees.
 - **XXX_FP**: If a name ends with `_FP` (e.g., `OP_DEPOSIT_FP`), it refers to fields in `forwardPayload` (Jetton Notification) or `customPayload` (Burn Notification). Names without `_FP` (e.g., `OP_DEPOSIT`) refer to actions involving TON transfers.
 
 ### Vault Smart Contract
@@ -119,7 +119,7 @@ Vault contracts MUST implement the following persistent storage variables in the
     ```
   - **XC ($0010)**: Represents extra currency.
     ```tolk
-    beginCell().storeUint(2, 4).storeInt(token_id, 32).endCell()
+    beginCell().storeUint(2, 4).storeUint(token_id, 32).endCell()
     ```
 
 #### Internal Messages
@@ -555,7 +555,7 @@ TEP-4626 extends TEP-74 Jetton, ensuring compatibility with existing Jetton cont
   - **Description**: A compromised admin could send fraudulent notifications to steal assets.
   - **Mitigation**: Use multi-signature admin with timelocks or guard mechanisms. Interacting contracts MUST verify vault compliance with TEP-4626.
 - Callback Abuse:
-  - **Description**: Malicious callbacks could enable reentrancy-like attacks.
+  - **Description**: Malicious callbacks could enable attacks.
   - **Mitigation**: MUST validate sender and result codes in messages to prevent unauthorized access.
 
 ## References
