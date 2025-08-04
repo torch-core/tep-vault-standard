@@ -101,31 +101,40 @@ Vault contracts MUST implement the following persistent storage variables in the
 - **`OptionalDepositLogs`**: Custom log content emitted after a successful deposit.
 - **`OptionalWithdrawLogs`**: Custom log content emitted after a successful withdrawal.
 
-**General Types**
 
-- **`Opcode`**: `uint32`
-- **`QueryId`**: `uint64`
-- **`RoundingType`**: `uint2`
-  - `ROUND_DOWN = 0`
-  - `ROUND_UP = 1`
-  - `ROUND_GENERIC = 2` (standard rounding)
-- **`Result`**: `uint16`
-  - Outcome of the vault operation. 
-  - Values: `0` (success), error codes (e.g., `1`: Insufficient amount, `2`: Limit exceeded).
-- **`Asset`**: Enables handling different asset types (`Jetton`, `TON`, `XC`, future standards) with unified logic.
-  - Uses a 4-bit prefix, checked via `preloadUint(4)`, with additional token info stored afterward.
-  - **Native ($0000)**: Represents TON.
-    ```tolk
-    beginCell().storeUint(0, 4).endCell()
-    ```
-  - **Jetton ($0001)**: Represents Jetton v1.
-    ```tolk
-    beginCell().storeUint(1, 4).storeAddress(jetton_master_address).endCell()
-    ```
-  - **XC ($0010)**: Represents extra currency.
-    ```tolk
-    beginCell().storeUint(2, 4).storeUint(token_id, 32).endCell()
-    ```
+### **General Types**
+
+- **`Opcode`**: `uint32`  
+- **`QueryId`**: `uint64`  
+- **`RoundingType`**: `uint2`  
+  - `ROUND_DOWN = 0`  
+  - `ROUND_UP = 1`  
+  - `ROUND_GENERIC = 2` — standard rounding (i.e., round half up)  
+- **`Result`**: `uint16`  
+  - Outcome of the vault operation.  
+  - Values: `0` (success), error codes (e.g., `1`: Insufficient amount, `2`: Limit exceeded).  
+- **`Asset`**: Represents various asset types (e.g., TON, Jetton, Extra Currency) using a compact encoding scheme for unified handling.
+
+  **Format**  
+  Each asset is encoded using a 4-bit prefix, read via `preloadUint(4)`, followed by type-specific data:
+
+  | Prefix (bin) | Type                  | Additional Data                     |
+  |--------------|-----------------------|-------------------------------------|
+  | `0000`       | **TON (native)**      | —                                   |
+  | `0001`       | **Jetton**         | `jetton_master_address` (address)   |
+  | `0010`       | **Extra Currency (XC)** | `token_id` (uint32)              |
+
+  **Encoding Examples (Tolk)**
+  ```tolk
+  // Native TON
+  beginCell().storeUint(0, 4).endCell()
+
+  // Jetton v1
+  beginCell().storeUint(1, 4).storeAddress(jetton_master_address).endCell()
+
+  // Extra Currency (XC)
+  beginCell().storeUint(2, 4).storeUint(token_id, 32).endCell()
+  ```
 
 #### Internal Messages
 
