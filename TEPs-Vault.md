@@ -129,7 +129,7 @@ Vault contracts MUST implement the following persistent storage variables in the
   // Native TON
   beginCell().storeUint(0, 4).endCell()
 
-  // Jetton v1
+  // Jetton
   beginCell().storeUint(1, 4).storeAddress(jetton_master_address).endCell()
 
   // Extra Currency (XC)
