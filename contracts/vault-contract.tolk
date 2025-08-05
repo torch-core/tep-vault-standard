@@ -1,3 +1,27 @@
+/**
+ * TEP-4626: Tokenized Vault Standard for TON Blockchain
+ *
+ * Implementation of the TEP-4626 "Tokenized Vault Standard" as defined in the TEP proposal.
+ * This vault contract extends TEP-74 Jetton functionality to provide standardized deposit/withdrawal
+ * operations for both TON and Jetton assets, issuing proportional shares as TEP-74 tokens.
+ * Based on ERC-4626 design principles with TON blockchain adaptations.
+ *
+ * Key Features:
+ * - Supports both TON and Jetton as underlying assets
+ * - ERC-4626-like share/asset conversion with TON-specific adaptations
+ * - Notification system with callbacks for DeFi composability
+ * - Slippage protection via minShares/minWithdraw parameters
+ * - Standardized gas estimation and quote mechanisms
+ *
+ * Security Considerations:
+ * - Donation attack prevention: Only valid payloads affect vault state
+ * - Admin security: Compromised admin can upgrade contract code to send malicious notifications to interacting protocols.
+ *   Recommend using multisig, timelocks, or guardian roles to protect admin privileges.
+ *
+ * @dev This contract implements the main message routing for vault operations.
+ *      Core logic is separated into dedicated modules (core.tolk, storage.tolk, etc.)
+ */
+
 import "constants/errors";
 import "storage"
 import "helper/jetton"
