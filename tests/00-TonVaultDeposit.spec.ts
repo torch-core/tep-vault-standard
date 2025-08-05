@@ -526,6 +526,28 @@ describe('Deposit to TON Vault', () => {
     });
 
     describe('Other failure cases', () => {
+        it('should throw ERR_INSUFFICIENT_TON_DEPOSIT_GAS when valueCoins < depositAmount + deposit gas', async () => {
+            // Maxey deposit 5 TON to TON Vault
+            const depositAmount = toNano('5');
+            const depositArgs = await tonVault.getTonDepositArg({
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send({
+                to: depositArgs.to,
+                value: depositArgs.value - toNano('2'),
+                body: depositArgs.body,
+            });
+
+            // Expect that deposit fail
+            expect(depositResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: tonVault.address,
+                op: Opcodes.Vault.Deposit,
+                success: false,
+                exitCode: VaultErrors.InsufficientTonDepositGas,
+            });
+        });
         it('should throw INVALID_DEPOSIT_AMOUNT when deposit amount is 0', async () => {
             // Maxey deposit 0 TON to TON Vault
             const depositAmount = toNano('0');

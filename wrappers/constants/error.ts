@@ -7,4 +7,5 @@ export const VaultErrors = {
     MissingForwardPayload: 2000,
     UnauthorizedBurn: 4000,
     MissingCustomPayload: 3000,
+    InsufficientTonDepositGas: 2003,
 };
