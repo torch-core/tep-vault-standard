@@ -32,24 +32,24 @@ fun previewProvideQuoteFee() {
 
 fun processTonDepositGas(valueCoins: coins, depositAmount: coins) {
     val requiredGas = previewTonDepositFee();
-    assert (valueCoins >= depositAmount + requiredGas) throw ERR_TON_DEPOSIT_GAS_TOO_LOW;
+    assert (valueCoins >= depositAmount + requiredGas) throw ERR_INSUFFICIENT_TON_DEPOSIT_GAS;
     return valueCoins - depositAmount - requiredGas;
 }
 
 fun processJettonDepositGas(valueCoins: coins) {
     val requiredGas = previewJettonDepositFee();
-    assert (valueCoins >= requiredGas) throw ERR_JETTON_DEPOSIT_GAS_TOO_LOW;
+    assert (valueCoins >= requiredGas) throw ERR_INSUFFICIENT_JETTON_DEPOSIT_GAS;
     return valueCoins - requiredGas;
 }
 
 fun processWithdrawGas(valueCoins: coins) {
     val requiredGas = previewWithdrawFee();
-    assert (valueCoins >= requiredGas) throw ERR_WITHDRAW_GAS_TOO_LOW;
+    assert (valueCoins >= requiredGas) throw ERR_INSUFFICIENT_WITHDRAW_GAS;
     return valueCoins - requiredGas;
 }
 
 fun processProvideQuoteGas(valueCoins: coins) {
     val requiredGas = previewProvideQuoteFee();
-    assert (valueCoins >= requiredGas) throw ERR_PROVIDE_QUOTE_GAS_TOO_LOW;
+    assert (valueCoins >= requiredGas) throw ERR_INSUFFICIENT_PROVIDE_QUOTE_GAS;
     return valueCoins - requiredGas;
 }

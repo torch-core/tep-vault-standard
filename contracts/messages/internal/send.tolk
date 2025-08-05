@@ -39,7 +39,7 @@ fun mint(initiator: address, queryId: QueryId, remainingValue: coins, mutate rec
     val storage = lazy VaultStorage.load();
     val minterAddress = contract.getAddress();
     val mintMsg = createMessage({
-        bounce: true,
+        bounce: false,
         dest: calcDeployedJettonWallet(receiver, minterAddress, storage.jettonWalletCode),
         value: remainingValue,
         body: InternalTransferStep {
@@ -67,7 +67,7 @@ fun jettonTransfer(
 ) {
     receiver = resolveReceiver(receiver, initiator);
     val transferMsg = createMessage({
-        bounce: true,
+        bounce: false,
         dest: jettonWallet,
         value: remainingValue,
         body: AskToTransfer {
@@ -113,7 +113,7 @@ fun transferAsset(
         return;
     } 
 
-    assert (assetJettonWallet != null) throw ERR_NULL_ASSET_JETTON_WALLET;
+    assert (assetJettonWallet != null) throw ERR_MISSING_ASSET_JETTON_WALLET;
     jettonTransfer(initiator, queryId, remainingValue, assetJettonWallet!, receiver, transferAmount, result, callbackParams, inBody);   
 }
 

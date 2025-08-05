@@ -44,10 +44,10 @@ fun previewWithdraw(shares: coins, optionalParams: OptionalParams? = null) {
 fun handleDeposit(initiator: address, queryId: QueryId, remainingValue: coins, senderAddress: address, depositAmount: coins, depositParams: DepositParams, inBody: slice) {
     try {
         val maxDepositAmount = maxDeposit();
-        assert (depositAmount <= maxDepositAmount) throw ERR_MAX_DEPOSIT_AMOUNT_EXCEEDED;
+        assert (depositAmount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
 
         val shares = previewDeposit(depositAmount);
-        assert (shares >= depositParams.minShares!) throw ERR_MIN_SHARES_NOT_MET;
+        assert (shares >= depositParams.minShares!) throw ERR_FAILED_MIN_SHARES;
 
         mint(initiator, queryId, remainingValue, mutate depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback, inBody);
         emitDeposited(Deposited { initiator: initiator, receiver: depositParams.receiver, depositAmount: depositAmount, shares: shares });
@@ -73,10 +73,10 @@ fun handleDeposit(initiator: address, queryId: QueryId, remainingValue: coins, s
 fun handleWithdraw(initiator: address, queryId: QueryId, remainingValue: coins, shares: coins, withdrawFp: WithdrawFp, inBody: slice, assetJettonWallet: address? = null) {
     try {
         val maxShares = maxWithdraw();
-        assert (shares <= maxShares) throw ERR_MAX_WITHDRAW_EXCEEDED;
+        assert (shares <= maxShares) throw ERR_EXCEEDED_MAX_WITHDRAW;
 
         val withdrawAmount = previewWithdraw(shares);
-        assert (withdrawAmount >= withdrawFp.minWithdraw!) throw ERR_MIN_WITHDRAW_NOT_MET;
+        assert (withdrawAmount >= withdrawFp.minWithdraw!) throw ERR_FAILED_MIN_WITHDRAW;
         
         transferAsset(
             assetJettonWallet == null,

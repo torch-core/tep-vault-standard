@@ -160,7 +160,7 @@ export async function expectFailDepositJettonTxs(
     vaultJettonWallet: Address,
     vault: SandboxContract<Vault>,
     callbackPayload: Cell,
-    exitCode: number = VaultErrors.MinShareNotMet,
+    exitCode: number = VaultErrors.FailedMinShares,
 ) {
     await expectJettonTransferTxs(depositResult, initiator, initiatorJettonWallet, vaultJettonWallet);
 

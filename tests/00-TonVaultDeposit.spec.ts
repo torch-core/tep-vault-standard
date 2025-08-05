@@ -361,7 +361,7 @@ describe('Deposit to TON Vault', () => {
                 maxey.address,
                 tonVault,
                 queryId,
-                VaultErrors.MinShareNotMet,
+                VaultErrors.FailedMinShares,
                 DEFAULT_FAIL_CALLBACK_PAYLOAD,
             );
         });
@@ -385,7 +385,7 @@ describe('Deposit to TON Vault', () => {
                 maxey.address,
                 tonVault,
                 queryId,
-                VaultErrors.MinShareNotMet,
+                VaultErrors.FailedMinShares,
                 DEFAULT_FAIL_CALLBACK_PAYLOAD,
             );
         });
@@ -415,7 +415,7 @@ describe('Deposit to TON Vault', () => {
                 maxey.address,
                 tonVault,
                 queryId,
-                VaultErrors.MinShareNotMet,
+                VaultErrors.FailedMinShares,
                 failCallbackPayload,
             );
         });
@@ -445,7 +445,7 @@ describe('Deposit to TON Vault', () => {
                 maxey.address,
                 tonVault,
                 queryId,
-                VaultErrors.MinShareNotMet,
+                VaultErrors.FailedMinShares,
                 failCallbackPayload,
                 depositArgs.body,
             );
@@ -477,7 +477,7 @@ describe('Deposit to TON Vault', () => {
                 maxey.address,
                 tonVault,
                 queryId,
-                VaultErrors.MinShareNotMet,
+                VaultErrors.FailedMinShares,
                 failCallbackPayload,
             );
         });
@@ -508,7 +508,7 @@ describe('Deposit to TON Vault', () => {
                 maxey.address,
                 tonVault,
                 queryId,
-                VaultErrors.MinShareNotMet,
+                VaultErrors.FailedMinShares,
                 failCallbackPayload,
                 depositArgs.body,
             );

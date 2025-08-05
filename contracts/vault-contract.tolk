@@ -13,9 +13,9 @@ fun onInternalMessage(in: InMessage) {
 
     match (inMsg) {
         Deposit => {
-            // Deposit Amount must > 0
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
 
+            // in.valueCoins must > deposit amount + deposit gas
             val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
             val shares = handleDeposit(in.senderAddress, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, inMsg.depositParams, in.body);
 
@@ -29,14 +29,13 @@ fun onInternalMessage(in: InMessage) {
             var assetJettonInfo = lazy storage.assetJettonInfo!.load();
             assert (in.senderAddress == assetJettonInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
 
-            // Transfer Amount must > 0
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
-
-            assert (inMsg.forwardPayload != null) throw ERR_NULL_FORWARD_PAYLOAD;
+            assert (inMsg.forwardPayload != null) throw ERR_MISSING_FORWARD_PAYLOAD;
             val forwardPayload = inMsg.forwardPayload!.load();
 
             match (forwardPayload) {
                 DepositFp => {
+                    // in.valueCoins must > deposit gas
                     val remainingValue = processJettonDepositGas(in.valueCoins);
                     val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, forwardPayload.depositParams, in.body);
 
@@ -48,18 +47,19 @@ fun onInternalMessage(in: InMessage) {
         }
 
         BurnNotificationForMinter => {
-            // Sender must be the initiator's vault share jetton wallet
+            // Sender must be the initiator's share jetton wallet
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
 
-            // Burn shares must > 0
             assert (inMsg.shares > 0) throw ERR_INVALID_BURN_AMOUNT;
-
-            assert (inMsg.customPayload != null) throw ERR_NULL_CUSTOM_PAYLOAD;
+            assert (inMsg.customPayload != null) throw ERR_MISSING_CUSTOM_PAYLOAD;
             val burnPayload = inMsg.customPayload!.load();
             
             match (burnPayload) {
                 WithdrawFp => {
+                    // in.valueCoins must > withdraw gas
                     val remainingValue = processWithdrawGas(in.valueCoins);
+
+                    // If assetJettonInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton
                     val assetJettonWallet = storage.assetJettonInfo != null ? storage.assetJettonInfo!.load().walletAddress : null;
                     val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, burnPayload, in.body, assetJettonWallet);
 
@@ -71,6 +71,7 @@ fun onInternalMessage(in: InMessage) {
         }
 
         ProvideQuote => {
+            // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
         }
@@ -84,9 +85,14 @@ fun onInternalMessage(in: InMessage) {
         }
 
         DeployVault => {
+            // If assetJettonInfo is not null -> underlying asset is Jetton, otherwise underlying asset is TON
             if(storage.assetJettonInfo != null) { 
                 var assetJettonInfo = lazy storage.assetJettonInfo!.load();
-                assert (in.senderAddress == storage.adminAddress) throw ERR_NOT_ADMIN;
+
+                // Only admin can deploy Jetton vault
+                assert (in.senderAddress == storage.adminAddress) throw ERR_UNAUTHORIZED_ADMIN;
+                
+                // Send request wallet address to Jetton master
                 sendRequestWalletAddress(assetJettonInfo.masterAddress!, inMsg.queryId);
             }
         }

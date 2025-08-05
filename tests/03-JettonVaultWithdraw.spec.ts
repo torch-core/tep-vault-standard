@@ -139,7 +139,7 @@ describe('Withdraw from Jetton Vault', () => {
         expectedWithdrawAmount: bigint,
         callbackPayload: Cell,
         inBody?: Cell,
-        errorCode: number = VaultErrors.MinWithdrawNotMet,
+        errorCode: number = VaultErrors.FailedMinWithdraw,
     ) {
         await expectBurnTxs(withdrawResult, initiator.address, USDTVault, errorCode);
 
@@ -551,7 +551,7 @@ describe('Withdraw from Jetton Vault', () => {
                 to: USDTVault.address,
                 op: Opcodes.Jetton.BurnNotification,
                 success: false,
-                exitCode: VaultErrors.NullCustomPayload,
+                exitCode: VaultErrors.MissingCustomPayload,
             });
         });
     });

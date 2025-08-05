@@ -115,7 +115,7 @@ describe('Withdraw from TON Vault', () => {
         expectedWithdrawAmount: bigint,
         callbackPayload: Cell,
         inBody?: Cell,
-        errorCode: number = VaultErrors.MinWithdrawNotMet,
+        errorCode: number = VaultErrors.FailedMinWithdraw,
     ) {
         await expectBurnTxs(withdrawResult, initiator.address, tonVault, errorCode);
 
@@ -524,7 +524,7 @@ describe('Withdraw from TON Vault', () => {
                 to: tonVault.address,
                 op: Opcodes.Jetton.BurnNotification,
                 success: false,
-                exitCode: VaultErrors.NullCustomPayload,
+                exitCode: VaultErrors.MissingCustomPayload,
             });
         });
     });

@@ -1,10 +1,10 @@
 export const VaultErrors = {
-    MinShareNotMet: 2002,
-    MinWithdrawNotMet: 3002,
+    FailedMinShares: 2002,
+    FailedMinWithdraw: 3002,
     InvalidDepositAmount: 2005,
     InvalidBurnAmount: 3004,
     InvalidJettonWallet: 1003,
-    NullForwardPayload: 2000,
+    MissingForwardPayload: 2000,
     UnauthorizedBurn: 4000,
-    NullCustomPayload: 3000,
+    MissingCustomPayload: 3000,
 };
