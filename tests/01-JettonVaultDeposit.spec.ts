@@ -583,6 +583,27 @@ describe('Deposit to Jetton Vault', () => {
     });
 
     describe('Other failure cases', () => {
+        it('should throw ERR_INSUFFICIENT_JETTON_DEPOSIT_GAS when valueCoins < deposit gas', async () => {
+            const depositAmount = 10000n;
+            const depositArg = await USDTVault.getJettonDepositArg(
+                maxey.address,
+                {
+                    queryId,
+                    depositAmount,
+                },
+                toNano('0.01'),
+            );
+            const depositResult = await maxey.send(depositArg);
+
+            // Expect that deposit fail
+            expect(depositResult.transactions).toHaveTransaction({
+                from: vaultUSDTWallet.address,
+                to: USDTVault.address,
+                op: Opcodes.Jetton.TransferNotification,
+                success: false,
+                exitCode: VaultErrors.InsufficientJettonDepositGas,
+            });
+        });
         it('should throw INVALID_DEPOSIT_AMOUNT when deposit amount is 0', async () => {
             const depositAmount = 0n;
             const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {

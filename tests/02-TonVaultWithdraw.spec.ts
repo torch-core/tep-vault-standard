@@ -471,6 +471,23 @@ describe('Withdraw from TON Vault', () => {
     });
 
     describe('Other failure cases', () => {
+        it('should throw ERR_INSUFFICIENT_WITHDRAW_GAS when valueCoins < withdraw gas', async () => {
+            const burnShares = maxeyShareBalBefore / 2n;
+            const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares);
+            const withdrawResult = await maxey.send({
+                to: withdrawArgs.to,
+                value: toNano('0.012'),
+                body: withdrawArgs.body,
+            });
+
+            expect(withdrawResult.transactions).toHaveTransaction({
+                from: maxeyShareWallet.address,
+                to: tonVault.address,
+                op: Opcodes.Jetton.BurnNotification,
+                success: false,
+                exitCode: VaultErrors.InsufficientWithdrawGas,
+            });
+        });
         it('should throw INVALID_BURN_AMOUNT when burn shares is 0', async () => {
             const burnShares = 0n;
             const withdrawArgs = await tonVault.getWithdrawArg(maxey.address, burnShares);

@@ -8,4 +8,7 @@ export const VaultErrors = {
     UnauthorizedBurn: 4000,
     MissingCustomPayload: 3000,
     InsufficientTonDepositGas: 2003,
+    InsufficientJettonDepositGas: 2004,
+    InsufficientWithdrawGas: 3003,
+    InsufficientProvideQuoteGas: 5000,
 };

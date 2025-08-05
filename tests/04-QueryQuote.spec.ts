@@ -6,6 +6,7 @@ import { Address, beginCell, Cell, toNano } from '@ton/core';
 import { Opcodes } from '../wrappers/constants/op';
 import { OPCODE_SIZE, QUERY_ID_SIZE, TIMESTAMP_SIZE } from '../wrappers/constants/size';
 import { writeFileSync } from 'fs';
+import { VaultErrors } from '../wrappers/constants/error';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
@@ -204,6 +205,23 @@ describe('Deposit to TON Vault', () => {
                 ),
             );
         });
+
+        it('should throw ERR_INSUFFICIENT_PROVIDE_QUOTE_GAS when valueCoins < provide quote gas', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, contractToQuery.address);
+            const provideQuoteResult = await contractToQuery.send({
+                to: tonVault.address,
+                value: toNano('0.008'),
+                body: provideQuotePayload,
+            });
+
+            expect(provideQuoteResult.transactions).toHaveTransaction({
+                from: contractToQuery.address,
+                to: tonVault.address,
+                op: Opcodes.Vault.ProvideQuote,
+                success: false,
+                exitCode: VaultErrors.InsufficientProvideQuoteGas,
+            });
+        });
     });
 
     describe('Provide Quote from USDT Vault', () => {
@@ -273,6 +291,23 @@ describe('Deposit to TON Vault', () => {
                     forwardPayload,
                 ),
             );
+        });
+
+        it('should throw ERR_INSUFFICIENT_PROVIDE_QUOTE_GAS when valueCoins < provide quote gas', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, contractToQuery.address);
+            const provideQuoteResult = await contractToQuery.send({
+                to: USDTVault.address,
+                value: toNano('0.008'),
+                body: provideQuotePayload,
+            });
+
+            expect(provideQuoteResult.transactions).toHaveTransaction({
+                from: contractToQuery.address,
+                to: USDTVault.address,
+                op: Opcodes.Vault.ProvideQuote,
+                success: false,
+                exitCode: VaultErrors.InsufficientProvideQuoteGas,
+            });
         });
     });
 });

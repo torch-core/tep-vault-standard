@@ -218,8 +218,12 @@ export class Vault implements Contract {
         };
     }
 
-    async getJettonDepositArg(provider: ContractProvider, depositor: Address, deposit: Deposit) {
-        const forwardAmount = toNano('0.1');
+    async getJettonDepositArg(
+        provider: ContractProvider,
+        depositor: Address,
+        deposit: Deposit,
+        forwardAmount: bigint = toNano('0.1'),
+    ) {
         if (!this.jettonMaster) {
             throw new Error('Jetton Master is not set');
         }
