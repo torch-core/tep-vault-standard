@@ -11,6 +11,7 @@ import { expectTonVaultBalances, expectVaultSharesAndAssets } from './helper/exp
 import { expectTonDepositorBalances } from './helper/expectBalances';
 import { JettonWallet } from '@ton/ton';
 import { Opcodes } from '../wrappers/constants/op';
+import { writeFileSync } from 'fs';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
@@ -44,6 +45,15 @@ describe('Deposit to TON Vault', () => {
     afterEach(async () => {
         const tonVaultTONBalanceAfter = (await blockchain.getContract(tonVault.address)).balance;
         expect(tonVaultTONBalanceAfter - tonVaultTonBalDelta + 5n).toBeGreaterThanOrEqual(tonVaultTONBalBefore);
+    });
+
+    afterAll(() => {
+        const coverage = blockchain.coverage(tonVault);
+        if (!coverage) return;
+
+        // Generate HTML report for detailed analysis
+        const coverageJson = coverage.toJson();
+        writeFileSync('./coverage/ton-vault-deposit.json', coverageJson);
     });
 
     async function expectTonDepositFlows(

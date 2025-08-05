@@ -17,6 +17,7 @@ import { Opcodes } from '../wrappers/constants/op';
 import { OPCODE_SIZE } from '../wrappers/constants/size';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectJettonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
+import { writeFileSync } from 'fs';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -60,6 +61,15 @@ describe('Deposit to Jetton Vault', () => {
     afterEach(async () => {
         const vaultTonBalanceAfter = (await blockchain.getContract(USDTVault.address)).balance;
         expect(vaultTonBalanceAfter).toBeGreaterThanOrEqual(vaultTonBalBefore);
+    });
+
+    afterAll(() => {
+        const coverage = blockchain.coverage(USDTVault);
+        if (!coverage) return;
+
+        // Generate HTML report for detailed analysis
+        const coverageJson = coverage.toJson();
+        writeFileSync('./coverage/jetton-vault-deposit.json', coverageJson);
     });
 
     async function expectJettonDepositFlows(

@@ -15,6 +15,7 @@ import {
 import { expectWithdrawnEmitLog } from './helper/emitLog';
 import { VaultErrors } from '../wrappers/constants/error';
 import { Opcodes } from '../wrappers/constants/op';
+import { writeFileSync } from 'fs';
 
 describe('Withdraw from TON Vault', () => {
     let blockchain: Blockchain;
@@ -64,6 +65,15 @@ describe('Withdraw from TON Vault', () => {
         const tonVaultTONBalanceAfter = (await blockchain.getContract(tonVault.address)).balance;
         expect(tonVaultTONBalanceAfter + tonVaultTonBalDelta).toBeGreaterThanOrEqual(tonVaultTONBalBefore);
         tonVaultTonBalDelta = 0n;
+    });
+
+    afterAll(() => {
+        const coverage = blockchain.coverage(tonVault);
+        if (!coverage) return;
+
+        // Generate HTML report for detailed analysis
+        const coverageJson = coverage.toJson();
+        writeFileSync('./coverage/ton-vault-withdraw.json', coverageJson);
     });
 
     async function expectWithdrawTONFlows(

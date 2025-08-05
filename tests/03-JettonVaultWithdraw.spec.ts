@@ -16,6 +16,7 @@ import { expectJettonVaultBalances, expectVaultSharesAndAssets } from './helper/
 import { expectWithdrawnEmitLog } from './helper/emitLog';
 import { VaultErrors } from '../wrappers/constants/error';
 import { Opcodes } from '../wrappers/constants/op';
+import { writeFileSync } from 'fs';
 
 describe('Withdraw from Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -79,6 +80,15 @@ describe('Withdraw from Jetton Vault', () => {
     afterEach(async () => {
         const vaultTonBalanceAfter = (await blockchain.getContract(USDTVault.address)).balance;
         expect(vaultTonBalanceAfter + 5n).toBeGreaterThanOrEqual(vaultTonBalBefore);
+    });
+
+    afterAll(() => {
+        const coverage = blockchain.coverage(USDTVault);
+        if (!coverage) return;
+
+        // Generate HTML report for detailed analysis
+        const coverageJson = coverage.toJson();
+        writeFileSync('./coverage/jetton-vault-withdraw.json', coverageJson);
     });
 
     async function expectWithdrawJettonFlows(

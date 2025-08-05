@@ -7,7 +7,8 @@
         "build": "blueprint build",
         "build:all": "blueprint build --all",
         "test": "jest --verbose",
-        "release": "blueprint pack && npm publish --access public"
+        "release": "blueprint pack && npm publish --access public",
+        "coverage": "ts-node coverage/coverage.ts"
     },
     "dependencies": {
         "@ton/core": "~0"

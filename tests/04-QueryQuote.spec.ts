@@ -5,6 +5,7 @@ import { createTestEnvironment } from './helper/setup';
 import { Address, beginCell, Cell, toNano } from '@ton/core';
 import { Opcodes } from '../wrappers/constants/op';
 import { OPCODE_SIZE, QUERY_ID_SIZE, TIMESTAMP_SIZE } from '../wrappers/constants/size';
+import { writeFileSync } from 'fs';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
@@ -49,6 +50,22 @@ describe('Deposit to TON Vault', () => {
         const USDTVaultStorage = await USDTVault.getStorage();
         USDTVaultTotalSupply = USDTVaultStorage.totalSupply;
         USDTVaultTotalAssets = USDTVaultStorage.totalAssets;
+    });
+
+    afterAll(() => {
+        const jettonVaultCoverage = blockchain.coverage(USDTVault);
+        if (!jettonVaultCoverage) return;
+
+        // Generate HTML report for detailed analysis
+        const jettonVaultCoverageJson = jettonVaultCoverage.toJson();
+        writeFileSync('./coverage/jetton-vault-provide-quote.json', jettonVaultCoverageJson);
+
+        const tonVaultCoverage = blockchain.coverage(tonVault);
+        if (!tonVaultCoverage) return;
+
+        // Generate HTML report for detailed analysis
+        const tonVaultCoverageJson = tonVaultCoverage.toJson();
+        writeFileSync('./coverage/ton-vault-provide-quote.json', tonVaultCoverageJson);
     });
 
     function buildProvideQuotePayload(
