@@ -522,7 +522,7 @@ Vault contracts MUST implement the following persistent storage variables in the
 
 ## Drawbacks
 
-[Placeholder: Your provided content does not include drawbacks. Suggested content: Discuss potential downsides, such as increased gas costs due to notification mechanisms, complexity of multi-asset support, or risks of non-standard `OptionalParams` usage. Example: "The notification system enhances composability but may increase gas costs for simple vaults. Multi-asset support adds complexity, requiring careful dictionary management."]
+Currently, it's not possible to restrict the deposit or withdrawal amount based on the user's address.
 
 ## Rationale and Alternatives
 
@@ -569,6 +569,10 @@ Due to inefficiencies with per-user tracking on TON (e.g., dictionary lookups or
 ### Donation Attack Mitigation
 
 To avoid ERC-4626-style donation attacks, TEP-4626 requires a valid payload to affect `totalSupply` or `totalAssets`. Direct token transfers without intent are ignored and do not affect vault state.
+
+### Admin Security
+
+Compromised admin can upgrade contract code to send malicious notifications to interacting protocols. Recommend using multisig, timelocks, or guardian roles to protect admin privileges.
 
 ## Prior Art
 
