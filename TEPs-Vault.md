@@ -190,7 +190,6 @@ Vault contracts MUST implement the following persistent storage variables in the
 
 - **Description**: Mint shares to receiver by depositing exactly `depositAmount` of TON.
 - **Requirements**:
-  - MUST verify `in.senderAddress` matches the vault’s underlying Jetton Wallet address.
   - MUST verify `in.valueCoins` covers `depositAmount` plus required gas.
   - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund TON and send `OP_VAULT_NOTIFICATION` with `failureCallback.payload` to initiator.
   - On successful share minting, MUST send `OP_VAULT_NOTIFICATION_FP` with `successCallback.payload` to receiver.
@@ -222,6 +221,7 @@ Vault contracts MUST implement the following persistent storage variables in the
 - **Description**: Mint shares to receiver by depositing exactly `depositAmount` of Jetton.
 - **Requirements**:
   - MUST verify `in.valueCoins` covers required gas.
+  - MUST verify `in.senderAddress` matches the vault’s underlying Jetton Wallet address.
   - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund Jetton and send `OP_VAULT_NOTIFICATION_FP` with `failureCallback.payload` to initiator.
   - On successful share minting, MUST send `OP_VAULT_NOTIFICATION_FP` with `successCallback.payload` to receiver.
   - If receiver is address none, SHOULD set receiver to initiator.
