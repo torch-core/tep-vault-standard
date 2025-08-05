@@ -9,13 +9,15 @@ import "../../fees-management"
 
 @pure
 fun resolveReceiver(receiver: address, initiator: address) {
-    return receiver == createAddressNone() ? initiator : receiver;
+    // If receiver is None -> use initiator as receiver
+    return receiver.isNone() ? initiator : receiver;
 }
 
 @pure
 fun createVaultNotificationParams(result: Result, initiator: address, callbackParams: Cell<CallbackParams>?, inBody: slice): VaultNotificationParams {
     var callback: CallbackParams?;
     if(callbackParams == null) {
+        // If callbackParams is null -> use default callbacks
         callback = result == Result.Success() ? CallbackParams.defaultSuccess() : CallbackParams.defaultFailure();
     } else {
         callback = callbackParams.load();
@@ -89,9 +91,9 @@ fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, recei
         dest: resolveReceiver(receiver, initiator),
         value: sendingValue, 
         body: VaultNotification {
-                queryId: queryId,
-                vaultNotificationParams: createVaultNotificationParams(result, initiator, callbackParams, inBody)
-            }
+            queryId: queryId,
+            vaultNotificationParams: createVaultNotificationParams(result, initiator, callbackParams, inBody)
+        }
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
