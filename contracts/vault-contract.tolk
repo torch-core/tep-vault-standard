@@ -12,6 +12,7 @@ fun onInternalMessage(in: InMessage) {
     var storage = lazy VaultStorage.load();
 
     match (inMsg) {
+        // Processes TON deposits and mints shares to receiver
         Deposit => {
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
 
@@ -24,8 +25,9 @@ fun onInternalMessage(in: InMessage) {
             storage.save();
         }
 
+        // Processes Jetton deposits and mints shares to receiver
         TransferNotificationForRecipient => {
-            // Sender must be the vault's deposit asset jetton wallet
+            // Verifies sender is from vault's Jetton wallet to prevent unauthorized Jetton deposits  
             var assetJettonInfo = lazy storage.assetJettonInfo!.load();
             assert (in.senderAddress == assetJettonInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
 
@@ -46,8 +48,9 @@ fun onInternalMessage(in: InMessage) {
             }
         }
 
+        // Processes share burns for withdrawals and withdraws asset to receiver
         BurnNotificationForMinter => {
-            // Sender must be the initiator's share jetton wallet
+            // Verifies sender is from initiator's share jetton wallet to prevent unauthorized burns
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
 
             assert (inMsg.shares > 0) throw ERR_INVALID_BURN_AMOUNT;
@@ -70,14 +73,18 @@ fun onInternalMessage(in: InMessage) {
             }
         }
 
+        // Processes provide quote requests and sends take quote response to receiver
         ProvideQuote => {
             // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
         }
 
+        // Updates Vault's jetton wallet address from Jetton master response
         ResponseWalletAddress => {
             var assetJettonInfo = lazy storage.assetJettonInfo!.load();
+
+            // Verifies sender is from Jetton master to prevent unauthorized updates
             assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_WALLET; 
             assetJettonInfo.walletAddress = inMsg.jettonWalletAddress;
             storage.assetJettonInfo = assetJettonInfo.toCell();
