@@ -25,3 +25,4 @@
 
 `npx blueprint create ContractName` or `yarn blueprint create ContractName`
 # tep-vault-standard
+# torch-vault
