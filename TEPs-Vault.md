@@ -1,14 +1,20 @@
-# TEPs-4626: Tokenized Vaults Standard for TON Blockchain
+# TEP-4626: Tokenized Vaults Standard for TON Blockchain
 
 **Status**: Draft  
 **Type**: Application  
 **Author**: [@throwunless]  
 **Created**: 2025-08-04  
-**Requires**: TEPs-74, TEPs-64  
+**Requires**: TEP-74, TEP-64  
 
 ## Summary
 
-This proposal defines a standardized API for tokenized vaults on the TON blockchain, built upon the `TEPs-74` Jetton standard. It adheres to the design principles of `ERC-4626`, adapted for TON’s unique features and Jetton framework, offering core functionalities such as deposit, withdrawal, and conversion rate queries. It introduces a standardized cross-protocol communication interface with unified notification mechanisms for operation results and callbacks. The standard aims to enhance composability and interoperability in TON’s DeFi ecosystem, enabling developers to build consistent and efficient vault logic, leveraging TON’s strengths to foster innovation and growth in decentralized finance. Readers are recommended to review the `ERC-4626` standard (see [EIP-4626](https://eips.ethereum.org/EIPS/eip-4626)) for a deeper understanding of the design background.
+This proposal defines a standardized API for tokenized vaults on the TON blockchain, built upon the [TEPs-74 Jetton standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md). It adheres to the design principles of ERC-4626, adapted for TON’s unique features and Jetton framework.
+
+The standard offers core functionalities such as **deposit, withdrawal, and conversion rate queries**. It also introduces a standardized **cross-protocol communication interface** with unified notification mechanisms for operation results and callbacks.
+
+The goal is to enhance **composability and interoperability** in TON’s DeFi ecosystem, enabling developers to build consistent and efficient vault logic. By leveraging TON’s strengths, this standard aims to foster innovation and growth in decentralized finance.
+
+Readers are recommended to review the ERC-4626 standard (see EIP-4626) for a deeper understanding of the design background.
 
 ## Motivation
 
@@ -21,17 +27,17 @@ The lack of standardization for tokenized vaults in the TON ecosystem leads to f
 - Lack of Gas Estimation Standards: No unified method to query Gas consumption, making it difficult for developers to estimate interaction costs, leading to inefficiencies.
 - Varied Deposit/Withdrawal Processes: Deposit and withdrawal flows and parameters differ, increasing development complexity and resource waste.
 
-These issues force protocols to develop custom adapters, increasing errors and costs. `TEPs-4626` addresses these by standardizing vault interfaces, reducing integration complexity, and accelerating TON’s DeFi ecosystem growth.
+These issues force protocols to develop custom adapters, increasing errors and costs. `TEP-4626` addresses these by standardizing vault interfaces, reducing integration complexity, and accelerating TON’s DeFi ecosystem growth.
 
 ## Guide
 
-[TEPss-Vault Standard Implementation](https://github.com/ipromise2324/tep-vault-standard)
+[TEPs-Vault Standard Implementation](https://github.com/ipromise2324/tep-vault-standard)
 
 ## Specification
 
-All `TEPs-4626` tokenized vaults MUST implement the `TEPs-74` Jetton standard to represent shares. For non-transferable vaults, the Jetton Wallet state MAY be set to `sendLocked` when minting shares. Shares represent partial ownership of the vault’s underlying assets.
+All `TEP-4626` tokenized vaults MUST implement the `TEP-74` Jetton standard to represent shares. For non-transferable vaults, the Jetton Wallet state MAY be set to `sendLocked` when minting shares. Shares represent partial ownership of the vault’s underlying assets.
 
-All `TEPs-4626` vaults MUST implement `TEPs-64` Jetton metadata. The `name` and `symbol` functions SHOULD reflect the underlying asset’s name and symbol to some extent.
+All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `symbol` functions SHOULD reflect the underlying asset’s name and symbol to some extent.
 
 ### Definitions
 
@@ -45,9 +51,9 @@ All `TEPs-4626` vaults MUST implement `TEPs-64` Jetton metadata. The `name` and 
 
 #### Storage
 
-Vault contracts MUST implement the following persistent storage variables in the contract’s data cell, extending `TEPs-74` Jetton storage requirements, as shares are represented as Jetton tokens.
+Vault contracts MUST implement the following persistent storage variables in the contract’s data cell, extending `TEP-74` Jetton storage requirements, as shares are represented as Jetton tokens.
 
-**`TEPs-74` Required Storage**
+**`TEP-74` Required Storage**
 
 - **`totalSupply`**
   - **Description**: Total supply of vault shares, represented as Jetton tokens.
@@ -58,14 +64,14 @@ Vault contracts MUST implement the following persistent storage variables in the
   - **Requirements**: SHOULD deploy the contract and set Jetton Master parameters when the underlying asset is a Jetton, ensuring correct provide and take jetton wallet address interactions.
   - **Type**: `Address`
 - **`jettonContent`**
-  - **Description**: Metadata cell for Jetton shares, compliant with `TEPs-64` (Token Data Standard).
+  - **Description**: Metadata cell for Jetton shares, compliant with `TEP-64` (Token Data Standard).
   - **Requirements**: 
     - MUST contain token metadata (`name`, `symbol`, `decimals`). `name` and `symbol` 
     - SHOULD reflect the underlying asset’s name and symbol to some extent.
   - **Type**: `Cell`
 - **`jettonWalletCode`**
   - **Description**: Code cell for the Jetton wallet contract associated with vault shares.
-  - **Requirements**: MUST comply with `TEPs-74` (Fungible Tokens Standard).
+  - **Requirements**: MUST comply with `TEP-74` (Fungible Tokens Standard).
   - **Type**: `Cell`
 
 **Vault-Specific Storage**
@@ -546,11 +552,11 @@ Since TON contracts cannot fetch prices on-chain, `OptionalParams` enables passi
 
 ### Multi-Asset Support
 
-Unlike ERC-4626's single-asset model, TEPs-4626 supports multiple assets using dictionary-based storage and `OptionalParams`, increasing vault flexibility.
+Unlike ERC-4626's single-asset model, TEP-4626 supports multiple assets using dictionary-based storage and `OptionalParams`, increasing vault flexibility.
 
 ### Provide/Take Quote Mechanism
 
-TEPs-4626 includes a mechanism for querying asset-to-share conversion rates with timestamps to prevent stale quotes. `forwardPayload` allows additional customization of behavior.
+TEP-4626 includes a mechanism for querying asset-to-share conversion rates with timestamps to prevent stale quotes. `forwardPayload` allows additional customization of behavior.
 
 ### Omission of `mint` / `redeem`
 
@@ -568,7 +574,7 @@ Due to inefficiencies with per-user tracking on TON (e.g., dictionary lookups or
 
 ### Donation Attack Mitigation
 
-To avoid ERC-4626-style donation attacks, TEPs-4626 requires a valid payload to affect `totalSupply` or `totalAssets`. Direct token transfers without intent are ignored and do not affect vault state.
+To avoid ERC-4626-style donation attacks, TEP-4626 requires a valid payload to affect `totalSupply` or `totalAssets`. Direct token transfers without intent are ignored and do not affect vault state.
 
 ### Admin Security
 
@@ -577,12 +583,12 @@ Compromised admin can upgrade contract code to send malicious notifications to i
 ## Prior Art
 
 - `ERC-4626`: Tokenized Vault Standard for Ethereum, providing the foundational design for deposit, withdrawal, and conversion functions ([EIP-4626](https://eips.ethereum.org/EIPS/eip-4626)).
-- `TEPs-74`: Jetton Standard for TON, defining fungible token mechanics ([TEPs-74](https://github.com/ton-blockchain/TEPss/blob/master/text/0074-jettons-standard.md)).
-- `TEPs-64`: Token Data Standard for Jetton metadata ([TEPs-64](https://github.com/ton-blockchain/TEPss/blob/master/text/0064-token-data-standard.md)).
+- `TEP-74`: Jetton Standard for TON, defining fungible token mechanics ([TEP-74](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md)).
+- `TEP-64`: Token Data Standard for Jetton metadata ([TEP-64](https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md)).
 
 ## Unresolved Questions
 
-- Should support for Extra Currency (`XC`) be included in the initial version of `TEPs-4626`?
+- Should support for Extra Currency (`XC`) be included in the initial version of `TEP-4626`?
 
   `XC` adoption is currently low in the TON DeFi ecosystem. Including it now may increase implementation complexity without immediate use cases. Should `XC` support be deferred until it gains broader adoption?
 - Should methods similar to `ERC-4626`’s approve and transferFrom be implemented to support wallet plugging?
@@ -596,11 +602,11 @@ Compromised admin can upgrade contract code to send malicious notifications to i
 
 - Extra Currency Integration: Support for Extra Currency (`XC`) can be added once `XC` assets gain broader adoption in the TON DeFi ecosystem, enhancing the vault’s capability for cross-chain DeFi use cases.
 - Wallet Plugging Support: If wallet plugging becomes a common practice among TON users, `ERC-4626`-style mint and withdraw methods can be introduced to enable third-party asset transfers, improving flexibility for dApps and automated protocols.
-- Enhanced Admin Security: Future integration with TON’s permission management standards (e.g., multisig or governance-related TEPss) can help safeguard admin privileges. Mechanisms such as multisig, timelocks, and protective guards should be employed and thoroughly tested to ensure robustness.
+- Enhanced Admin Security: Future integration with TON’s permission management standards (e.g., multisig or governance-related TEPs) can help safeguard admin privileges. Mechanisms such as multisig, timelocks, and protective guards should be employed and thoroughly tested to ensure robustness.
 
 ## Backwards Compatibility
 
-`TEPs-4626` extends `TEPs-74` Jetton, ensuring compatibility with existing Jetton contracts. However, new messages and get-methods require updates to integrating protocols.
+`TEP-4626` extends `TEP-74` Jetton, ensuring compatibility with existing Jetton contracts. However, new messages and get-methods require updates to integrating protocols.
 
 
 
