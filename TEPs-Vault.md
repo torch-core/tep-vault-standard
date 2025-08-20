@@ -18,16 +18,17 @@ Readers are encouraged to review the [ERC-4626 standard](https://eips.ethereum.o
 
 ## Motivation
 
-The lack of standardization for tokenized vaults in the TON ecosystem leads to fragmented implementations, complicating protocol integration. Key issues include:
+The lack of standardization for tokenized vaults in the TON ecosystem leads to fragmented implementations, complicating protocol integration. This fragmentation arises from TON's unique asynchronous, message-driven architecture, which, while powerful, amplifies inconsistencies across vaults. Key issues include:
 
-- Inconsistent Callbacks: Success/failure payload formats vary across implementations, hindering subsequent operations or rollbacks in interacting protocols, increasing error risks.
-- Non-Uniform Query Interfaces: Get-methods use inconsistent names and structures, forcing frontends and wallets (e.g., dApps, portfolio tools) to write custom logic per protocol, often doubling or tripling integration time.
-- Divergent Event Formats: Emit logs use varied formats, making it difficult for off-chain systems to monitor and parse events uniformly.
-- Inconsistent Price Queries: Vault price query interfaces lack uniformity, causing yield aggregators to face challenges in fetching prices, increasing development costs and affecting yield accuracy.
-- Lack of Gas Estimation Standards: No unified method to query Gas consumption, making it difficult for developers to estimate interaction costs, leading to inefficiencies.
-- Varied Deposit/Withdrawal Processes: Deposit and withdrawal flows and parameters differ, increasing development complexity and resource waste.
+- **Inconsistent Callbacks**: Success/failure payload formats vary across implementations, hindering subsequent operations or rollbacks in interacting protocols—especially in TON's asynchronous message-passing environment—increasing error risks.
+- **Non-Uniform Query Interfaces**: Query methods (e.g., get-methods) use inconsistent names and structures, forcing frontends and wallets to write custom logic per protocol, often doubling or tripling integration time.
+- **Divergent Event Formats**: Emitted events use varied formats, making it difficult for off-chain systems to monitor and parse events uniformly.
+- **Inconsistent Price Queries**: Vault price query interfaces lack uniformity, causing yield aggregators to face challenges in fetching prices, increasing development costs and affecting yield accuracy.
+- **Lack of Gas Estimation Standards**: No unified method to query gas consumption, making it difficult for developers to estimate interaction costs—particularly with TON's dynamic gas mechanics—leading to inefficiencies.
+- **Varied Deposit/Withdrawal Processes**: Deposit and withdrawal flows and parameters differ, including how they handle Jetton transfers and TON's gas mechanics, increasing development complexity and resource waste.
+- **Yield Calculation Inconsistencies**: Variations in how vaults calculate and distribute yields lead to unreliable APY displays and integration challenges for aggregators.
 
-These issues force protocols to develop custom adapters, increasing errors and costs. `TEP-4626` addresses these by standardizing vault interfaces, reducing integration complexity, and accelerating TON’s DeFi ecosystem growth.
+These issues force protocols to develop custom adapters, increasing errors, costs, and development time. TEP-4626 addresses these by standardizing vault interfaces, reducing integration complexity, and accelerating TON’s DeFi ecosystem growth. By aligning with proven models like ERC-4626 while adapting to TON’s asynchronous, message-driven architecture and sharding design, this standard provides a solid foundation for scalable and reliable DeFi applications on TON.
 
 ## Guide
 
