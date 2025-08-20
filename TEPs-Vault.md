@@ -8,13 +8,13 @@
 
 ## Summary
 
-This proposal defines a standardized API for tokenized vaults on the TON blockchain, built upon the [TEPs-74 Jetton standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md). It adheres to the design principles of ERC-4626, adapted for TON’s unique features and Jetton framework.
+This proposal defines a standardized API for tokenized vaults on the TON blockchain, built upon the [TEPs-74 Jetton standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md) and inspired by the design principles of ERC-4626. It is adapted to TON’s **message-driven async design** and Jetton framework.  
 
-The standard offers core functionalities such as **deposit, withdrawal, and conversion rate queries**. It also introduces a standardized **cross-protocol communication interface** with unified notification mechanisms for operation results and callbacks.
+The standard supports **deposit, withdrawal, and conversion rate queries**. It also introduces a standardized **cross-protocol communication interface** with unified notification mechanisms for operation results and callbacks.  
 
-The goal is to enhance **composability and interoperability** in TON’s DeFi ecosystem, enabling developers to build consistent and efficient vault logic. By leveraging TON’s strengths, this standard aims to foster innovation and growth in decentralized finance.
+By unifying these core operations, the standard enhances **composability and interoperability** in TON’s DeFi ecosystem. It reduces duplicated implementations, minimizes fragmentation across protocols, and enables developers to build consistent and efficient vault logic.  
 
-Readers are recommended to review the ERC-4626 standard (see EIP-4626) for a deeper understanding of the design background.
+Readers are encouraged to review the [ERC-4626 standard](https://eips.ethereum.org/EIPS/eip-4626) for additional background and context.
 
 ## Motivation
 
