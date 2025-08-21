@@ -21,32 +21,32 @@ get fun getAsset() {
     return convertAssetsTupleToCell(assetsTuple, 0);
 }
 
-get fun getTotalAssets(optionalParams: OptionalParams? = null) {
+get fun getTotalAssets(vaultOptions: VaultOptions? = null) {
     return totalAssets();
 }
 
-get fun getConvertToShares(depositAmount: coins, optionalParams: OptionalParams? = null) {
+get fun getConvertToShares(depositAmount: coins, depositOptions: DepositOptions? = null) {
     return convertToShares(depositAmount);
 }
 
-get fun getConvertToAssets(shares: coins, optionalParams: OptionalParams? = null) {
+get fun getConvertToAssets(shares: coins, withdrawOptions: WithdrawOptions? = null) {
     return convertToAssets(shares);
 }
 
 
-get fun getMaxDeposit(optionalParams: OptionalParams? = null) {
+get fun getMaxDeposit(depositOptions: DepositOptions? = null) {
     return maxDeposit();
 }
 
-get fun getMaxWithdraw(optionalParams: OptionalParams? = null) {
+get fun getMaxWithdraw(withdrawOptions: WithdrawOptions? = null) {
     return maxWithdraw();
 }
 
-get fun getPreviewDeposit(depositAmount: coins, optionalParams: OptionalParams? = null) {
+get fun getPreviewDeposit(depositAmount: coins, depositOptions: DepositOptions? = null) {
     return previewDeposit(depositAmount);
 }
 
-get fun getPreviewWithdraw(shares: coins, optionalParams: OptionalParams? = null) {
+get fun getPreviewWithdraw(shares: coins, withdrawOptions: WithdrawOptions? = null) {
     return previewWithdraw(shares);
 }
 

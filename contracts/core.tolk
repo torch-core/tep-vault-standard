@@ -9,12 +9,12 @@ import "messages/internal/send";
 import "messages/external/emit";
 import "messages/external/schemas"
 
-fun totalAssets(optionalParams: OptionalParams? = null) {
+fun totalAssets(vaultOptions: VaultOptions? = null) {
     var storage = lazy VaultStorage.load();
     return storage.totalAssets;
 }
 
-fun convertToShares(depositAmount: coins, optionalParams: OptionalParams? = null, rounding: RoundingType = ROUND_DOWN) {
+fun convertToShares(depositAmount: coins, depositOptions: DepositOptions? = null, rounding: RoundingType = ROUND_DOWN) {
     var storage = lazy VaultStorage.load();
     val totalAssets = totalAssets();
 
@@ -22,26 +22,26 @@ fun convertToShares(depositAmount: coins, optionalParams: OptionalParams? = null
     return totalAssets == 0 ? depositAmount : roundedMulDiv(depositAmount, storage.totalSupply, totalAssets, rounding) as coins;
 }
 
-fun convertToAssets(shares: coins, optionalParams: OptionalParams? = null, rounding: RoundingType = ROUND_DOWN) {
+fun convertToAssets(shares: coins, withdrawOptions: WithdrawOptions? = null, rounding: RoundingType = ROUND_DOWN) {
     var storage = lazy VaultStorage.load();
 
     // No shares exist: 0 assets, otherwise proportional calculation
     return (storage.totalSupply == 0 ? 0 : roundedMulDiv(shares, totalAssets(), storage.totalSupply, rounding)) as coins;
 }
 
-fun maxDeposit(optionalParams: OptionalParams? = null) {
+fun maxDeposit(depositOptions: DepositOptions? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun maxWithdraw(optionalParams: OptionalParams? = null) {
+fun maxWithdraw(withdrawOptions: WithdrawOptions? = null) {
     return MAX_COINS_VALUE;
 }
 
-fun previewDeposit(depositAmount: coins, optionalParams: OptionalParams? = null) {
+fun previewDeposit(depositAmount: coins, depositOptions: DepositOptions? = null) {
     return convertToShares(depositAmount);
 }
 
-fun previewWithdraw(shares: coins, optionalParams: OptionalParams? = null) {
+fun previewWithdraw(shares: coins, withdrawOptions: WithdrawOptions? = null) {
     return convertToAssets(shares);
 }
 

@@ -50,7 +50,7 @@ struct (0xd1735400) ResponseWalletAddress {
 }
 
 // ===== COMMON PARAMETERS =====
-struct OptionalParams {
+struct VaultOptions {
     // Add your optional params for vault here
 }
 
@@ -67,10 +67,14 @@ struct VaultNotificationParams {
 }
 
 // ===== DEPOSIT MESSAGES =====
+struct DepositOptions {
+    vaultOptions: Cell<VaultOptions>? = null
+    // Add your optional params for vault here
+}
 struct DepositParams {
     receiver: address
     minShares: coins = 0
-    optionalParams: Cell<OptionalParams>? = null
+    depositOptions: Cell<DepositOptions>? = null
     callbacks: Callbacks
 }
 struct (0x5a66a4a5) Deposit {
@@ -82,14 +86,25 @@ struct (0x5a66a4a5) Deposit {
 struct (0xb534fe7b) DepositFp {
     depositParams: DepositParams
 }
+struct DepositConfig {
+    // Internal configuration struct for deposit operations, resolved from DepositOptions.
+}
 
 // ===== WITHDRAW MESSAGES =====
+struct WithdrawOptions {
+    vaultOptions: Cell<VaultOptions>? = null
+    // Add your optional params for vault here
+}
 struct (0xecb4d6bf) WithdrawFp {
     receiver: address
     minWithdraw: coins = 0
-    optionalParams: Cell<OptionalParams>? = null
+    withdrawOptions: Cell<WithdrawOptions>? = null
     callbacks: Callbacks
 }
+
+struct WithdrawConfig {
+    // Internal configuration struct for withdraw operations, resolved from WithdrawOptions.
+}   
 
 // ===== NOTIFICATION MESSAGES =====
 struct (0x86eba146) VaultNotification {
