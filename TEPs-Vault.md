@@ -51,6 +51,44 @@ All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `s
 
 ### Vault Smart Contract
 
+#### Optional Parameters and General Types
+
+**General Types**
+
+- **`Opcode`**: `uint32`  
+- **`QueryId`**: `uint64`  
+- **`RoundingType`**: `uint2`  
+  - `ROUND_DOWN = 0`  
+  - `ROUND_UP = 1`  
+  - `ROUND_GENERIC = 2` — standard rounding (i.e., round half up)  
+- **`Result`**: `uint16`  
+  - Outcome of the vault operation.  
+  - Values: `0` (success), error codes (e.g., `1`: Insufficient amount, `2`: Limit exceeded).  
+- **`Asset`**: Represents various asset types (e.g., TON, Jetton, Extra Currency) using a compact encoding scheme for unified handling.
+
+  **Format**  
+  Each asset is encoded using a 4-bit prefix, read via `preloadUint(4)`, followed by type-specific data:
+
+  | Prefix (bin) | Type                  | Additional Data                     |
+  |--------------|-----------------------|-------------------------------------|
+  | `0000`       | **TON (native)**      | —                                   |
+  | `0001`       | **Jetton**         | `jetton_master_address` (address)   |
+  | `0010`       | **Extra Currency (XC)** | `token_id` (uint32)              |
+
+  **Encoding Examples (Tolk)**
+  ```tolk
+  // Native TON
+  beginCell().storeUint(0, 4).endCell()
+
+  // Jetton
+  beginCell().storeUint(1, 4).storeAddress(jetton_master_address).endCell()
+
+  // Extra Currency (XC)
+  beginCell().storeUint(2, 4).storeUint(token_id, 32).endCell()
+  ```
+- **`Nested<Cell<T>>`**: Because TON's Cell can have at most 4 references, if you need to store more than 4 references of the same type data structure, we will enable `Nested<Cell<T>>`, where access is such that 1 cell holds at most 3 references, and the remaining one reference is used to connect to the next layer cell, and then the next layer cell can continue to store at most 3 references and so on, as shown in the diagram below.
+![nested-cell](./assets/nested-cell.png)
+
 #### Storage
 
 Vault contracts MUST implement the following persistent storage variables in the contract’s data cell, extending `TEP-74` Jetton storage requirements, as shares are represented as Jetton tokens.
@@ -99,50 +137,6 @@ Vault contracts MUST implement the following persistent storage variables in the
     - MUST NOT be present if the asset is TON.
     - If managing multiple assets, MAY be a dictionary mapping asset identifiers to wallet addresses.
   - **Type**: `Address`
-
-#### Optional Parameters and General Types
-
-**General Structure**
-
-- **`OptionalParams`**: Additional parameters required by the vault.
-  - Content defined based on needs (e.g., off-chain price information for the vault contract).
-- **`OptionalDepositLogs`**: Custom log content emitted after a successful deposit.
-- **`OptionalWithdrawLogs`**: Custom log content emitted after a successful withdrawal.
-
-
-### **General Types**
-
-- **`Opcode`**: `uint32`  
-- **`QueryId`**: `uint64`  
-- **`RoundingType`**: `uint2`  
-  - `ROUND_DOWN = 0`  
-  - `ROUND_UP = 1`  
-  - `ROUND_GENERIC = 2` — standard rounding (i.e., round half up)  
-- **`Result`**: `uint16`  
-  - Outcome of the vault operation.  
-  - Values: `0` (success), error codes (e.g., `1`: Insufficient amount, `2`: Limit exceeded).  
-- **`Asset`**: Represents various asset types (e.g., TON, Jetton, Extra Currency) using a compact encoding scheme for unified handling.
-
-  **Format**  
-  Each asset is encoded using a 4-bit prefix, read via `preloadUint(4)`, followed by type-specific data:
-
-  | Prefix (bin) | Type                  | Additional Data                     |
-  |--------------|-----------------------|-------------------------------------|
-  | `0000`       | **TON (native)**      | —                                   |
-  | `0001`       | **Jetton**         | `jetton_master_address` (address)   |
-  | `0010`       | **Extra Currency (XC)** | `token_id` (uint32)              |
-
-  **Encoding Examples (Tolk)**
-  ```tolk
-  // Native TON
-  beginCell().storeUint(0, 4).endCell()
-
-  // Jetton
-  beginCell().storeUint(1, 4).storeAddress(jetton_master_address).endCell()
-
-  // Extra Currency (XC)
-  beginCell().storeUint(2, 4).storeUint(token_id, 32).endCell()
-  ```
 
 #### Internal Messages
 
