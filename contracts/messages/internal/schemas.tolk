@@ -54,6 +54,10 @@ struct VaultOptions {
     // Add your optional params for vault here
 }
 
+struct VaultConfig {
+    // Internal configuration struct for vault operations, resolved from VaultOptions.
+}   
+
 struct Callbacks {
     successCallback: Cell<CallbackParams>? = null
     failureCallback: Cell<CallbackParams>? = null
@@ -87,6 +91,7 @@ struct (0xb534fe7b) DepositFp {
     depositParams: DepositParams
 }
 struct DepositConfig {
+    vaultConfig: Cell<VaultConfig>? = null
     // Internal configuration struct for deposit operations, resolved from DepositOptions.
 }
 
@@ -103,6 +108,7 @@ struct (0xecb4d6bf) WithdrawFp {
 }
 
 struct WithdrawConfig {
+    vaultConfig: Cell<VaultConfig>? = null
     // Internal configuration struct for withdraw operations, resolved from WithdrawOptions.
 }   
 
