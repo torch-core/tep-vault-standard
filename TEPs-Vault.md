@@ -156,26 +156,24 @@ For vaults managing multiple underlying assets, the following persistent storage
   - **Type**: `Dict<Hash, Coins>`
 
 - **`assetMastersDict`**
-  - **Description**: Dictionary mapping Jetton Master addresses to the vault's corresponding Jetton Wallet addresses.
+  - **Description**: Dictionary mapping Jetton Master address to the vault's corresponding Jetton Wallet address.
   - **Requirements**:
     - Key MUST be the Jetton Master address.
     - Value MUST be the vault's Jetton Wallet address for that asset.
     - MUST include entries for all Jetton assets managed.
-    - MUST NOT include an entry for TON (use AddrNone in totalAssetsDict).
   - **Type**: `Dict<Address, Address>`
 
 - **`assetWalletsDict`**
-  - **Description**: Dictionary mapping the vault's Jetton Wallet addresses to their corresponding Jetton Master addresses.
+  - **Description**: Dictionary mapping the vault's Jetton Wallet address to their corresponding Jetton Master address.
   - **Requirements**:
     - Key MUST be the vault's Jetton Wallet address.
     - Value MUST be the Jetton Master address for that asset.
     - MUST mirror assetMastersDict (inverted key-value pairs for bidirectional lookup).
     - MUST include entries for all Jetton assets managed.
-    - MUST NOT include an entry for TON.
   - **Type**: `Dict<Address, Address>`
 
 - **`assetsCell`**
-  - **Description**: Cell of a nested structure (Nested<Cell<Asset>>) for storing underlying asset data in multi-asset vaults.
+  - **Description**: Cell of a nested structure (`Nested<Cell<Asset>>`) for storing underlying asset data in multi-asset vaults.
   - **Requirements**:
     - MUST contain all underlying assets accepted by the vault.
   - **Type**: `Cell`
