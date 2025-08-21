@@ -51,9 +51,7 @@ All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `s
 
 ### Vault Smart Contract
 
-#### Optional Parameters and General Types
-
-**General Types**
+#### General Types
 
 - **`Opcode`**: `uint32`  
 - **`QueryId`**: `uint64`  
