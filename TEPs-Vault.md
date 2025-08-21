@@ -55,6 +55,7 @@ All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `s
 
 - **`Opcode`**: `uint32`  
 - **`QueryId`**: `uint64`  
+- **Hash**: `uint256`
 - **`RoundingType`**: `uint2`  
   - `ROUND_DOWN = 0`  
   - `ROUND_UP = 1`  
@@ -149,38 +150,35 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **`totalAssetsDict`**
   - **Description**: Dictionary mapping underlying asset identifiers to the total amounts managed by the vault.
   - **Requirements**:
-    - Key MUST be the Jetton Master address (as Address type) for Jetton assets, or AddrNone for TON.
+    - Key MUST be the hash (uint256) of the Asset cell, computed as Asset.toCell().hash().
     - Values SHOULD include compounding from yield or accrued fees.
     - MUST include fees charged against managed assets.
-  - **Type**: `Dict<Address, Coins>`
+  - **Type**: `Dict<Hash, Coins>`
 
-- **`masterDict`**
+- **`assetMastersDict`**
   - **Description**: Dictionary mapping Jetton Master addresses to the vault's corresponding Jetton Wallet addresses.
   - **Requirements**:
-    - Key MUST be the Jetton Master address (as Address type).
+    - Key MUST be the Jetton Master address.
     - Value MUST be the vault's Jetton Wallet address for that asset.
     - MUST include entries for all Jetton assets managed.
     - MUST NOT include an entry for TON (use AddrNone in totalAssetsDict).
   - **Type**: `Dict<Address, Address>`
 
-- **`walletDict`**
+- **`assetWalletsDict`**
   - **Description**: Dictionary mapping the vault's Jetton Wallet addresses to their corresponding Jetton Master addresses.
   - **Requirements**:
-    - Key MUST be the vault's Jetton Wallet address (as Address type).
+    - Key MUST be the vault's Jetton Wallet address.
     - Value MUST be the Jetton Master address for that asset.
-    - MUST mirror masterDict (inverted key-value pairs for bidirectional lookup).
+    - MUST mirror assetMastersDict (inverted key-value pairs for bidirectional lookup).
     - MUST include entries for all Jetton assets managed.
     - MUST NOT include an entry for TON.
   - **Type**: `Dict<Address, Address>`
 
 - **`assetsCell`**
-  - **Description**: A nested cell structure containing references to underlying asset data, allowing for efficient management of multiple assets beyond the 4-reference limit per cell.
+  - **Description**: Cell of a nested structure (Nested<Cell<Asset>>) for storing underlying asset data in multi-asset vaults.
   - **Requirements**:
-    - MUST be a cell that serves as the root of a nested structure (e.g., each cell holds up to 4 asset references, with a "next" reference to another cell if more assets are needed).
-    - MUST use the nested structure to store all asset details (e.g., Jetton Master, wallet, amounts), integrated with totalAssetsDict and masterDict for lookups.
-    - SHOULD be updated atomically with asset additions/removals to maintain consistency.
-    - For vaults with >4 assets, this enables chaining without dict overhead; for fewer, dicts suffice.
-  - **Type**: `Nested<Cell<T>>`
+    - MUST contain all underlying assets accepted by the vault.
+  - **Type**: `Cell`
 
 #### Internal Messages
 
