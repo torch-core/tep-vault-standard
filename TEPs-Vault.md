@@ -20,7 +20,7 @@ Readers are encouraged to review the [ERC-4626 standard](https://eips.ethereum.o
 
 While TON has a powerful asynchronous and message-driven architecture, its ecosystem is hindered by a lack of standardization for tokenized vaults. This has resulted in fragmented implementations, making protocol integration more complex. Key issues include:
 
-- **Inconsistent Callbacks**: Success/failure payload formats vary across implementations, hindering subsequent operations or rollbacks in interacting protocols—especially in TON's asynchronous message-passing environment—increasing error risks.
+- **Inconsistent Callbacks**: Success/failure payload formats vary across implementations, which complicates subsequent operations or rollbacks in interacting protocols—especially in TON's asynchronous message-passing environment—increasing error risks.
 - **Non-Uniform Query Interfaces**: Get methods use inconsistent names and structures, forcing frontends and wallets to implement custom logic for each protocol. For example, some expose only the Jetton balance, while others require applying a conversion rate to show real asset value.
 - **Divergent Event Formats**: Emitted events use varied formats, making it difficult for off-chain systems to monitor and parse events uniformly.
 - **Inconsistent On-Chain Price Queries**: Vaults provide price information through different message-based query formats, forcing aggregators to implement multiple parsing logics. This increases development complexity and integration costs.
@@ -37,14 +37,16 @@ TEP-4626 addresses these by standardizing vault interfaces, reducing integration
 
 ## Specification
 
-All `TEP-4626` tokenized vaults MUST implement the `TEP-74` Jetton standard to represent shares. For non-transferable vaults, the Jetton Wallet state MAY be set to `sendLocked` when minting shares. Shares represent partial ownership of the vault’s underlying assets.
+All TEP-4626 tokenized vaults MUST implement the [TEP-74](https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md) Jetton standard to represent shares. Shares represent partial ownership of the vault’s underlying assets.
 
-All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `symbol` functions SHOULD reflect the underlying asset’s name and symbol to some extent.
+For non-transferable vaults, the Jetton Wallet MAY adopt a status flag mechanism—similar to the approach used in [stablecoin contracts](https://github.com/ton-blockchain/stablecoin-contract/blob/56fd5b983f18288d42d65ab9c937f3637e27fa0d/contracts/jetton-wallet.fc#L11)—to restrict transfers.
+
+All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md) Jetton metadata. The `name` and `symbol` functions SHOULD reflect the underlying asset’s name and symbol to some extent.
 
 ### Definitions
 
 - **`asset`**: The underlying token managed by the vault, with units defined by its Jetton Master contract. This vault design supports managing multiple underlying assets.
-- **`share`**: Tokens issued by the vault, representing a claim on underlying assets with a conversion rate defined by the vault during deposit/withdrawal.
+- **`share`**: Jetton issued by the vault, representing a claim on underlying assets with a conversion rate defined by the vault during deposit/withdrawal.
 - **`fee`**: Amounts of assets or shares charged by the vault, applicable to deposits, yields, assets under management (AUM), withdrawals, or other vault-specified items.
 - **`slippage`**: The difference between the advertised share price and the actual economic outcome during deposit/withdrawal, excluding fees.
 - **`XXX_FP`**: If a name ends with `_FP` (e.g., `OP_DEPOSIT_FP`), it refers to fields in `forwardPayload` (Jetton Notification) or `customPayload` (Burn Notification). Names without `_FP` (e.g., `OP_DEPOSIT`) refer to actions involving TON transfers.
@@ -63,7 +65,7 @@ All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `s
 - **`Result`**: `uint16`  
   - Outcome of the vault operation.  
   - Values: `0` (success), error codes (e.g., `1`: Insufficient amount, `2`: Limit exceeded).  
-- **`Asset`**: Represents various asset types (e.g., TON, Jetton, Extra Currency) using a compact encoding scheme for unified handling.
+- **`Asset`**: Represents various asset types (TON, Jetton, Extra Currency) using a compact encoding scheme for unified handling.
 
   **Format**  
   Each asset is encoded using a 4-bit prefix, read via `preloadUint(4)`, followed by type-specific data:
@@ -71,8 +73,8 @@ All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `s
   | Prefix (bin) | Type                  | Additional Data                     |
   |--------------|-----------------------|-------------------------------------|
   | `0000`       | **TON (native)**      | —                                   |
-  | `0001`       | **Jetton**         | `jettonMasterAddress` (address)   |
-  | `0010`       | **Extra Currency (XC)** | `token_id` (uint32)              |
+  | `0001`       | **Jetton**         | `jettonMasterAddress` (`Address`)   |
+  | `0010`       | **Extra Currency (XC)** | `tokenId` (`uint32`)              |
 
   **Encoding Examples (Tolk)**
   ```tolk
@@ -90,12 +92,12 @@ All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `s
 
 #### Storage
 
-Vault contracts MUST implement the following persistent storage variables in the contract’s data cell, extending `TEP-74` Jetton storage requirements, as shares are represented as Jetton tokens.
+Vault contracts MUST implement the following persistent storage variables in the contract’s data cell, extending `TEP-74` Jetton storage requirements, as shares are represented as Jetton.
 
 ##### TEP-74 Required Storage
 
 - **`totalSupply`**
-  - **Description**: Total supply of vault shares, represented as Jetton tokens.
+  - **Description**: Total supply of vault shares, represented as Jetton.
   - **Requirements**: MUST represent the total outstanding shares issued by the vault.
   - **Type**: `Coins`
 
@@ -108,12 +110,12 @@ Vault contracts MUST implement the following persistent storage variables in the
   - **Description**: Metadata cell for Jetton shares, compliant with `TEP-64` (Token Data Standard).
   - **Requirements**: 
     - MUST contain token metadata (`name`, `symbol`, `decimals`). `name` and `symbol` 
-    - SHOULD reflect the underlying asset’s name and symbol to some extent.
+    - SHOULD include both the vault provider’s information and the underlying asset’s details in the token metadata, with `name` and `symbol` reflecting the underlying asset.
   - **Type**: `Cell`
 
 - **`jettonWalletCode`**
   - **Description**: Code cell for the Jetton wallet contract associated with vault shares.
-  - **Requirements**: MUST comply with `TEP-74` (Fungible Tokens Standard).
+  - **Requirements**: MUST comply with `TEP-74`.
   - **Type**: `Cell`
 
 ##### Vault-Specific Storage
@@ -145,12 +147,12 @@ For vaults managing a single underlying asset, the following persistent storage 
 
 ###### Multi-Asset Storage
 
-For vaults managing multiple underlying assets, the following persistent storage variables MUST be implemented in the contract’s data cell, extending TEP-74 Jetton storage requirements. These use dictionaries for mapping and a nested cell for efficient handling of numerous assets.
+For vaults managing multiple underlying assets, the following persistent storage variables MUST be implemented in the contract’s data cell. These use dictionaries for mapping and a nested cell for efficient handling of numerous assets.
 
 - **`totalAssetsDict`**
   - **Description**: Dictionary mapping underlying asset identifiers to the total amounts managed by the vault.
   - **Requirements**:
-    - Key MUST be the hash (uint256) of the Asset cell, computed as Asset.toCell().hash().
+    - Key MUST be the hash (`uint256`) of the `Asset` cell, computed as `Asset.toCell().hash()`.
     - Values SHOULD include compounding from yield or accrued fees.
     - MUST include fees charged against managed assets.
   - **Type**: `Dict<Hash, Coins>`
@@ -161,6 +163,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     - Key MUST be the Jetton Master address.
     - Value MUST be the vault's Jetton Wallet address for that asset.
     - MUST include entries for all Jetton assets managed.
+    - MUST NOT be present if the asset is TON.
   - **Type**: `Dict<Address, Address>`
 
 - **`assetWalletsDict`**
@@ -168,8 +171,9 @@ For vaults managing multiple underlying assets, the following persistent storage
   - **Requirements**:
     - Key MUST be the vault's Jetton Wallet address.
     - Value MUST be the Jetton Master address for that asset.
-    - MUST mirror assetMastersDict (inverted key-value pairs for bidirectional lookup).
+    - MUST mirror `assetMastersDict` (inverted key-value pairs for bidirectional lookup).
     - MUST include entries for all Jetton assets managed.
+    - MUST NOT be present if the asset is TON.
   - **Type**: `Dict<Address, Address>`
 
 - **`assetsCell`**
