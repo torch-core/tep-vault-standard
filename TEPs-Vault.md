@@ -191,20 +191,32 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Description**: After vault interaction (`Deposit` or `Withdraw`), the vault sends a notification message to the receiver or initiator, with user-defined callback payloads for further operations.
 
 - **Messages**:
+  - **`VaultOptions`**
+
+    | Field            | Type   | Description |
+    |------------------|--------|-------------|
+    | *(user-defined)* | `any` | Optional parameters used across deposit, withdraw, and quote messages. Its structure is not predefined — developers may include data such as **off-chain computed prices**, **signature payloads**, or **referral information**. |
+
+  - **`VaultConfig`**
+
+    | Field                  | Type   | Description |
+    |------------------------|--------|-------------|
+    | *(user-defined)* | `any` | Internal configuration struct resolved from `VaultOptions`. Represents processed and validated parameters, such as a **verified price** used in vault operations. |
+
 
   - **`CallbackParams`**:
 
     | Field       | Type | Description |
     |-------------|------|-------------|
-    | `includeBody` | `Bool` | Whether to include the interaction message payload in the response to receiver/initiator. |
-    | `payload`     | `Cell` | If defined, sends user-defined callback payload to receiver (on success) or initiator (on failure). |
+    | `includeBody` | `Bool` | Whether to include the Vault interaction message payload (e.g., OP_DEPOSIT) in the response to the `receiver`/`initiator`. |
+    | `payload`     | `Cell` | If defined, sends user-defined callback payload to `receiver` (on success) or `initiator` (on failure). |
 
   - **`Callbacks`**:
 
     | Field             | Type                   | Description |
     |-------------------|------------------------|-------------|
-    | `successCallback`   | `Cell<CallbackParams>?` | Sends `successCallback.payload` to receiver on successful vault interaction. |
-    | `failureCallback`   | `Cell<CallbackParams>?` | Sends `failureCallback.payload` to initiator on failed vault interaction. |
+    | `successCallback`   | `Cell<CallbackParams>?` | Sends `successCallback.payload` to `receiver` on successful vault interaction. |
+    | `failureCallback`   | `Cell<CallbackParams>?` | Sends `failureCallback.payload` to `initiator` on failed vault interaction. |
 
   - **`VaultNotificationParams`**:
 
@@ -213,7 +225,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     | `result`          | `Result`  | Outcome of the vault operation. |
     | `initiator`       | `Address` | Address initiating the vault interaction. |
     | `callbackPayload` | `Cell?`   | `successCallback.payload` (on success) or `failureCallback.payload` (on failure). Null if not specified in `CallbackParams`. |
-    | `inBody`          | `Cell?`   | Interaction message payload if `includeBody` is true; otherwise, null. |
+    | `inBody`          | `Cell?`   | The vault Interaction message payload if `includeBody` is `true`; otherwise, null. |
 
   - **`OP_VAULT_NOTIFICATION`**: For `Withdraw` or TON refund.
 
@@ -221,56 +233,62 @@ For vaults managing multiple underlying assets, the following persistent storage
     |--------------------------|------------------------|-------------|
     | `OP_VAULT_NOTIFICATION`    | `Opcode`                 | `0x86eba146` |
     | `queryId`                  | `QueryId`                | Unique query identifier. |
-    | `vaultNotificationParams`  | `VaultNotificationParams`| Notification parameters. |
+    | `vaultNotificationParams`  | `VaultNotificationParams`|  |
 
   - **`OP_VAULT_NOTIFICATION_FP`**: For minting shares, withdrawing, or refunding Jetton.
 
     | Field                    | Type                   | Description |
     |--------------------------|------------------------|-------------|
     | `OP_VAULT_NOTIFICATION_FP` | `Opcode`                 | `0xb00d7656` |
-    | `vaultNotificationParams`  | `VaultNotificationParams`| Notification parameters. |
+    | `vaultNotificationParams`  | `VaultNotificationParams`|  |
 
 **Deposit (For TON)**
 
 ![deposit-ton](./assets/deposit-ton.png)
 
-- **Description**: Mint shares to receiver by depositing exactly `depositAmount` of TON.
+- **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of TON.
 - **Requirements**:
   - MUST verify `in.valueCoins` covers `depositAmount` plus required gas.
-  - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund TON and send `OP_VAULT_NOTIFICATION` with `failureCallback.payload` to initiator.
-  - On successful share minting, MUST send `OP_VAULT_NOTIFICATION_FP` with `successCallback.payload` to receiver.
-  - If receiver is address none, SHOULD set receiver to initiator.
+  - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund TON and send `OP_VAULT_NOTIFICATION` with `failureCallback.payload` to `initiator`.
+  - On successful share minting, MUST send `OP_VAULT_NOTIFICATION_FP` with `successCallback.payload` to `receiver`.
+  - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
   - MUST emit `TOPIC_DEPOSITED` event.
 
 - **Message**:
+  - **`DepositOptions`**
+
+    | Field        | Type                 | Description |
+    |--------------|----------------------|-------------|
+    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, quote). |
+    | *(user-defined)* | `any` | Deposit-specific parameters defined by the developer. Structure is not predefined — can include fields such as minimum shares, lockup settings, or other custom logic. |
 
   - **`DepositParams`**:
 
     | Field          | Type                   | Description |
     |----------------|------------------------|-------------|
-    | `receiver`       | `Address`                | Address receiving vault tokens and callback payload. |
+    | `receiver`       | `Address`                | Address receiving vault share jetton and callback payload. |
     | `minShares`      | `Coins`                  | Minimum shares to receive, else refund. |
-    | `optionalParams` | `Cell<OptionalParams>?`  | Optional parameters (e.g., price data). |
-    | `callbacks`      | `Callbacks`              | Success/failure callbacks. |
+    | `depositOptions` | `Cell<DepositOptions>?`  | Optional parameters (e.g., price data). |
+    | `callbacks`      | `Callbacks`              | Success and failure callbacks. |
 
   | Field        | Type          | Description |
   |--------------|---------------|-------------|
   | `OP_DEPOSIT`   | `Opcode`        | `0x5a66a4a5` |
   | `queryId`      | `QueryId`       | Unique query identifier. |
   | `depositAmount`| `Coins`         | TON amount to deposit. |
-  | `depositParams`| `DepositParams` | Deposit parameters. |
+  | `depositParams`| `DepositParams` |  |
 
 **Deposit Forward Payload (For Jetton)**
 
 ![deposit-jetton](./assets/deposit-jetton.png)
 
-- **Description**: Mint shares to receiver by depositing exactly `depositAmount` of Jetton.
+- **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Jetton.
 - **Requirements**:
   - MUST verify `in.valueCoins` covers required gas.
   - MUST verify `in.senderAddress` matches the vault’s underlying Jetton Wallet address.
-  - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund Jetton and send `OP_VAULT_NOTIFICATION_FP` with `failureCallback.payload` to initiator.
-  - On successful share minting, MUST send `OP_VAULT_NOTIFICATION_FP` with `successCallback.payload` to receiver.
-  - If receiver is address none, SHOULD set receiver to initiator.
+  - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund Jetton and send `OP_VAULT_NOTIFICATION_FP` with `failureCallback.payload` to `initiator`.
+  - On successful share minting, MUST send `OP_VAULT_NOTIFICATION_FP` with `successCallback.payload` to `receiver`.
+  - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
   - MUST emit `TOPIC_DEPOSITED` event.
 
 - **Message**:
@@ -284,23 +302,29 @@ For vaults managing multiple underlying assets, the following persistent storage
 
 ![withdraw](./assets/withdraw.png)
 
-- **Description**: Burns exactly `shares` from initiator and sends underlying assets to receiver.
+- **Description**: Burns exactly `shares` from `initiator` and sends underlying assets to `receiver`.
 - **Requirements**:
   - MUST verify `in.valueCoins` covers required gas.
-  - MUST verify `in.senderAddress` is the Jetton Wallet of the shares, not another sender’s wallet.
-  - If withdrawal fails (e.g., burned shares exceed vault limit or withdrawn amount < `minWithdraw`), MUST refund shares and send `OP_VAULT_NOTIFICATION_FP` with `failureCallback.payload` to initiator.
-  - On successful withdrawal, MUST send `OP_VAULT_NOTIFICATION_FP` (for Jetton) or `OP_VAULT_NOTIFICATION` (for TON) with `successCallback.payload` to receiver.
-  - If receiver is address none, SHOULD set receiver to initiator.
+  - MUST verify `in.senderAddress` is the Jetton Wallet of the shares, not another Jetton wallet.
+  - If withdrawal fails (e.g., burned shares exceed vault limit or withdrawn amount < `minWithdraw`), MUST refund shares and send `OP_VAULT_NOTIFICATION_FP` with `failureCallback.payload` to `initiator`.
+  - On successful withdrawal, MUST send `OP_VAULT_NOTIFICATION_FP` (for Jetton) or `OP_VAULT_NOTIFICATION` (for TON) with `successCallback.payload` to `receiver`.
+  - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
   - MUST emit `TOPIC_WITHDRAWN` event.
 
 - **Message**:
+  - **`WtihdrawOptions`**
+
+    | Field        | Type                 | Description |
+    |--------------|----------------------|-------------|
+    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, quote). |
+    | *(user-defined)* | `any` | Withdraw-specific parameters defined by the developer. Structure is not predefined — can include fields such as minimum shares, lockup settings, or other custom logic. |
 
   | Field               | Type                   | Description |
   |---------------------|------------------------|-------------|
   | `OP_WITHDRAW_FP`      | `Opcode`                 | `0xecb4d6bf` |
   | `receiver`            | `Address`                | Address receiving withdrawn assets. |
   | `minWithdraw`         | `Coins`                  | Minimum asset amount to receive, else refund. |
-  | `optionalVaultParams` | `Cell<OptionalParams>?`  | Optional parameters (e.g., price data). |
+  | `withdrawOptions` | `Cell<WithdrawOptions>?`  | Optional parameters (e.g., price data). |
   | `callbacks`           | `Callbacks`              | Success/failure callbacks. |
 
 **Provide Quote and Take Quote**
@@ -308,10 +332,16 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Description**: Fetches current asset-to-share conversion information from the vault.
 - **Requirements**:
   - MUST verify `in.valueCoins` covers gas for Provide Quote.
-  - MUST send `OP_TAKE_QUOTE` to receiver.
-  - If receiver is address none, SHOULD set receiver to initiator.
+  - MUST send `OP_TAKE_QUOTE` to `receiver`.
+  - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
 
 - **Messages**:
+  - **`QuoteOptions`**
+
+    | Field        | Type                 | Description |
+    |--------------|----------------------|-------------|
+    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, quote). |
+    | *(user-defined)* | `any` | Quote-specific parameters defined by the developer. Structure is not predefined — can include fields such as minimum shares, lockup settings, or other custom logic. |
 
   - **`OP_PROVIDE_QUOTE`**:
 
@@ -320,8 +350,8 @@ For vaults managing multiple underlying assets, the following persistent storage
     | `OP_PROVIDE_QUOTE`    | `Opcode`    | `0xc643cc91` |
     | `queryId`             | `QueryId`   | Unique query identifier. |
     | `receiver`            | `Address`   | Address receiving `OP_TAKE_QUOTE`. |
-    | `optionalQuoteParams` | `Cell?`     | Additional data for asset/share calculations. |
-    | `forwardPayload`      | `Cell`      | Initiator-defined payload for further receiver operations. |
+    | `quoteOptions` | `Cell<QuoteOptions>?`     | Additional data for asset/share calculations. |
+    | `forwardPayload`      | `Cell`      | Initiator-defined payload for further `receiver` operations. |
 
   - **`OP_TAKE_QUOTE`**:
 
