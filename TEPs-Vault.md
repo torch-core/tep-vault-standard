@@ -195,7 +195,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 
     | Field            | Type   | Description |
     |------------------|--------|-------------|
-    | *(user-defined)* | `any` | Optional parameters used across deposit, withdraw, and quote messages. Its structure is not predefined — developers may include data such as **off-chain computed prices**, **signature payloads**, or **referral information**. |
+    | *(user-defined)* | `any` | Optional parameters used across deposit, withdraw, and query quote messages. Its structure is not predefined — developers may include data such as **off-chain computed prices**, **signature payloads**, or **referral information**. |
 
   - **`VaultConfig`**
 
@@ -259,8 +259,8 @@ For vaults managing multiple underlying assets, the following persistent storage
 
     | Field        | Type                 | Description |
     |--------------|----------------------|-------------|
-    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, quote). |
-    | *(user-defined)* | `any` | Deposit-specific parameters defined by the developer. Structure is not predefined — can include fields such as minimum shares, lockup settings, or other custom logic. |
+    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, query quote). |
+    | *(user-defined)* | `any` | Deposit-specific parameters defined by the developer. |
 
   - **`DepositParams`**:
 
@@ -316,8 +316,8 @@ For vaults managing multiple underlying assets, the following persistent storage
 
     | Field        | Type                 | Description |
     |--------------|----------------------|-------------|
-    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, quote). |
-    | *(user-defined)* | `any` | Withdraw-specific parameters defined by the developer. Structure is not predefined — can include fields such as minimum shares, lockup settings, or other custom logic. |
+    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, query quote). |
+    | *(user-defined)* | `any` | Withdraw-specific parameters defined by the developer. |
 
   | Field               | Type                   | Description |
   |---------------------|------------------------|-------------|
@@ -340,8 +340,8 @@ For vaults managing multiple underlying assets, the following persistent storage
 
     | Field        | Type                 | Description |
     |--------------|----------------------|-------------|
-    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, quote). |
-    | *(user-defined)* | `any` | Quote-specific parameters defined by the developer. Structure is not predefined — can include fields such as minimum shares, lockup settings, or other custom logic. |
+    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, query quote). |
+    | *(user-defined)* | `any` | Quote-specific parameters defined by the developer. |
 
   - **`OP_PROVIDE_QUOTE`**:
 
