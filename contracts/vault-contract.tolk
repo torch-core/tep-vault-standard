@@ -27,6 +27,9 @@ import "storage"
 import "helper/jetton"
 import "messages/internal/schemas"
 import "messages/internal/send"
+import "messages/external/schemas"
+import "messages/external/emit"
+
 import "core";
 import "fees-management";
 import "get-methods";
@@ -102,6 +105,14 @@ fun onInternalMessage(in: InMessage) {
             // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
+
+            emitQuoted(Quoted {
+                initiator: in.senderAddress,
+                receiver: inMsg.receiver,
+                totalSupply: storage.totalSupply,
+                totalAssets: storage.totalAssets,
+                timestamp: blockchain.now()
+            });
         }
 
         // Updates Vault's jetton wallet address from Jetton master response

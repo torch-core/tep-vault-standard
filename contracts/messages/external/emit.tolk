@@ -15,3 +15,11 @@ fun emitWithdrawn(withdrawnParams: Withdrawn) {
     });
     emitMsg.send(SEND_MODE_REGULAR);
 }
+
+fun emitQuoted(quoteParams: Quoted) {
+    val emitMsg = createExternalLogMessage({
+        dest: ExtOutLogBucket {topic: TOPIC_QUOTED},
+        body: quoteParams
+    });
+    emitMsg.send(SEND_MODE_REGULAR);
+}
