@@ -8,7 +8,7 @@
 
 ## Summary
 
-This proposal defines a standardized API for tokenized vaults on the TON blockchain, built upon the [TEP-74 Jetton standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md) and inspired by the design principles of ERC-4626. It is adapted to TON’s **message-driven async design** and Jetton framework.  
+This proposal defines a standardized API for tokenized vaults on the TON blockchain, built upon the [TEP-74 Jetton standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md) and inspired by the design principles of [ERC-4626](https://eips.ethereum.org/EIPS/eip-4626). It is adapted to TON’s **message-driven async design** and Jetton framework.  
 
 The standard supports **deposit, withdrawal, and conversion rate queries**. It also introduces a standardized **cross-protocol communication interface** with unified notification mechanisms for operation results and callbacks.  
 
@@ -55,7 +55,7 @@ All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `s
 
 - **`Opcode`**: `uint32`  
 - **`QueryId`**: `uint64`  
-- **Hash**: `uint256`
+- **`Hash`**: `uint256`
 - **`RoundingType`**: `uint2`  
   - `ROUND_DOWN = 0`  
   - `ROUND_UP = 1`  
@@ -71,7 +71,7 @@ All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `s
   | Prefix (bin) | Type                  | Additional Data                     |
   |--------------|-----------------------|-------------------------------------|
   | `0000`       | **TON (native)**      | —                                   |
-  | `0001`       | **Jetton**         | `jetton_master_address` (address)   |
+  | `0001`       | **Jetton**         | `jettonMasterAddress` (address)   |
   | `0010`       | **Extra Currency (XC)** | `token_id` (uint32)              |
 
   **Encoding Examples (Tolk)**
@@ -80,7 +80,7 @@ All `TEP-4626` vaults MUST implement `TEP-64` Jetton metadata. The `name` and `s
   beginCell().storeUint(0, 4).endCell()
 
   // Jetton
-  beginCell().storeUint(1, 4).storeAddress(jetton_master_address).endCell()
+  beginCell().storeUint(1, 4).storeAddress(jettonMasterAddress).endCell()
 
   // Extra Currency (XC)
   beginCell().storeUint(2, 4).storeUint(token_id, 32).endCell()
