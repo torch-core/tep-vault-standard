@@ -329,11 +329,15 @@ For vaults managing multiple underlying assets, the following persistent storage
 
 **Provide Quote and Take Quote**
 
+![quote](./assets/quote.png)
+
+
 - **Description**: Fetches current asset-to-share conversion information from the vault.
 - **Requirements**:
   - MUST verify `in.valueCoins` covers gas for Provide Quote.
   - MUST send `OP_TAKE_QUOTE` to `receiver`.
   - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
+  - MAY emit `TOPIC_QUOTED` event.
 
 - **Messages**:
   - **`QuoteOptions`**
