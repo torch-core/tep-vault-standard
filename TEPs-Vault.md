@@ -18,7 +18,7 @@ Readers are encouraged to review the [ERC-4626 standard](https://eips.ethereum.o
 
 ## Motivation
 
-The lack of standardization for tokenized vaults in the TON ecosystem leads to fragmented implementations, complicating protocol integration. This fragmentation arises from TON's unique asynchronous, message-driven architecture, which, while powerful, amplifies inconsistencies across vaults. Key issues include:
+While TON has a powerful asynchronous and message-driven architecture, its ecosystem is hindered by a lack of standardization for tokenized vaults. This has resulted in fragmented implementations, making protocol integration more complex. Key issues include:
 
 - **Inconsistent Callbacks**: Success/failure payload formats vary across implementations, hindering subsequent operations or rollbacks in interacting protocols—especially in TON's asynchronous message-passing environment—increasing error risks.
 - **Non-Uniform Query Interfaces**: Get methods use inconsistent names and structures, forcing frontends and wallets to implement custom logic for each protocol. For example, some expose only the Jetton balance, while others require applying a conversion rate to show real asset value.
