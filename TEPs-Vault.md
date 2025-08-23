@@ -454,7 +454,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - MUST return the maximum deposit amount that won’t revert, underestimating if necessary.
     - Assumes the user has unlimited assets.
     - MUST consider global or asset-specific constraints (e.g., return 0 if deposits are disabled).
-    - MUST return `531691198313966349161522824112137833` (maximum `Coins` value) if no deposit limits exist.
+    - MAY return `531691198313966349161522824112137833` (maximum `Coins` value) if no deposit limits exist.
     - For multi-asset vaults, SHOULD handle limits via config if needed.
   - **Input**:
     | Field           | Type              | Description |
@@ -497,6 +497,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
   - **Requirements**:
     - MUST return the maximum shares that can be withdrawn without reverting, underestimating if necessary.
     - MUST consider global constraints (e.g., return 0 if withdrawals are disabled).
+    - MAY return `531691198313966349161522824112137833` (maximum `Coins` value) if no withdraw limits exist.
     - For multi-asset vaults, SHOULD handle limits via config if needed.
   - **Input**:
     | Field            | Type               | Description |
