@@ -373,18 +373,17 @@ For vaults managing multiple underlying assets, the following persistent storage
 
 #### Functions and Get-Methods
 TEP-4626 vaults MUST implement the following functions for querying vault state and conversion rates. Each function has two forms:
-- **Internal Function**: Core logic for calculations, used within vault operations (e.g., deposit/withdraw). Parameters may include resolved configs (e.g., `DepositConfig` or `VaultConfig`), which are parsed and validated structures derived from user options.
-- **Get-Method**: Exposed query method (e.g., `getConvertToShares`) that wraps the internal function. It accepts user-provided options (e.g., `DepositOptions` or `VaultOptions` as Cell), resolves/parses them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
-
-Due to their similarity, we describe them together, highlighting differences in parameters. All get-methods MUST NOT modify state and SHOULD return results based on current vault storage.
+- **Internal Function**: Core logic for calculations, used within vault operations (e.g., deposit/withdraw). Parameters MUST include resolved configs (e.g., `DepositConfig` or `VaultConfig`), which are parsed and validated structures derived from user options.
+- **Get-Method**: Exposed query method (e.g., `getConvertToShares`) that wraps the internal function. It accepts user-provided options (e.g., `DepositOptions` or `VaultOptions` as Cell), resolves them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
 
 - **`totalAssets`**
-  - **Description**: Returns the total underlying assets managed by the vault. For multi-asset vaults, this may normalize all assets to a specified quote asset's units by converting and summing them using exchange rates (if provided). The get-method variant (`getTotalAssets`) exposes this for off-chain queries, wrapping the internal function.
+  - **Description**: 
+    - Returns the total underlying assets managed by the vault. 
+    - For multi-asset vaults, this may normalize all assets to a specified quote asset's units by converting and summing them using exchange rates (if provided).
   - **Requirements**:
     - SHOULD include compounding from yield.
     - MUST include fees charged against assets.
-    - For multi-asset vaults, SHOULD use the quote asset for normalization if specified; otherwise, revert or use a default behavior.
-    - MUST NOT modify vault state.
+    - For multi-asset vaults, SHOULD use the quote asset for normalization if specified; otherwise, use base asset.
   - **Input**:
     | Field         | Type           | Description |
     |---------------|----------------|-------------|
@@ -398,7 +397,9 @@ Due to their similarity, we describe them together, highlighting differences in 
     | `totalManagedAssets` | `Coins` | Total managed assets (normalized if quote asset specified in multi-asset vaults). |
 
 - **`convertToShares`**
-  - **Description**: Estimates shares minted for a given asset amount in an ideal scenario.
+  - **Description**: 
+    - Estimates the number of shares that would be minted for a given asset amount in an ideal scenario.
+    - For multi-asset vaults, converts the deposit amount based on the specified asset using exchange rates (if provided).
   - **Requirements**:
     - MUST NOT include fees charged against assets.
     - MUST NOT vary by caller.
@@ -406,22 +407,25 @@ Due to their similarity, we describe them together, highlighting differences in 
     - MUST NOT revert unless due to integer overflow from unreasonably large input.
     - MUST round down to 0.
     - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
+    - For multi-asset vaults, SHOULD use the specified asset for conversion if provided; otherwise, use base asset.
   - **Input**:
+    | Field           | Type              | Description |
+    |-----------------|-------------------|-------------|
+    | `depositAmount` | `Coins`           | Asset amount to convert. |
+    | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
+    | `asset`         | `Cell<Asset>?`    | Optional asset identifier for multi-asset vaults (specifies which asset the depositAmount refers to). If this is **null**, the **base asset** will be used. |
+    | `rounding`      | `RoundingType`    | Rounding mode (default: ROUND_DOWN). |
 
-    | Field          | Type           | Description |
-    |----------------|----------------|-------------|
-    | `depositAmount`  | `Coins`          | Asset amount to convert. |
-    | `optionalParams` | `OptionalParams?` | Optional parameters (e.g., asset identifier). |
-    | `rounding`       | `RoundingType`   | `ROUND_DOWN` (omitted for get-method). |
-
+    *Note: For the get-method (`getConvertToShares`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
-
-    | Field  | Type  | Description |
-    |--------|-------|-------------|
+    | Field    | Type    | Description |
+    |----------|---------|-------------|
     | `shares` | `Coins` | Estimated shares. |
 
 - **`convertToAssets`**
-  - **Description**: Estimates assets received for a given share amount in an ideal scenario.
+  - **Description**: 
+    - Estimates the amount of assets that would be received for a given share amount in an ideal scenario.
+    - For multi-asset vaults, converts the shares based on the specified asset using exchange rates (if provided).
   - **Requirements**:
     - MUST NOT include fees charged against assets.
     - MUST NOT vary by caller.
@@ -429,97 +433,110 @@ Due to their similarity, we describe them together, highlighting differences in 
     - MUST NOT revert unless due to integer overflow from unreasonably large input.
     - MUST round down to 0.
     - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
+    - For multi-asset vaults, SHOULD use the specified asset for conversion if provided; otherwise, use base asset.
   - **Input**:
+    | Field            | Type               | Description |
+    |------------------|--------------------|-------------|
+    | `shares`         | `Coins`            | Share amount to convert. |
+    | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
+    | `asset`          | `Cell<Asset>?`     | Optional asset identifier for multi-asset vaults (specifies which asset to convert into). If this is **null**, the **base asset** will be used. |
+    | `rounding`       | `RoundingType`     | Rounding mode (default: ROUND_DOWN). |
 
-    | Field          | Type           | Description |
-    |----------------|----------------|-------------|
-    | `shares`         | `Coins`          | Share amount to convert. |
-    | `optionalParams` | `OptionalParams?` | Optional parameters (e.g., asset identifier). |
-    | `rounding`       | `RoundingType`   | `ROUND_DOWN` (omitted for get-method). |
-
+    *Note: For the get-method (`getConvertToAssets`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
-
-    | Field  | Type  | Description |
-    |--------|-------|-------------|
+    | Field    | Type    | Description |
+    |----------|---------|-------------|
     | `assets` | `Coins` | Estimated assets. |
 
 - **`maxDeposit`**
-  - **Description**: Maximum underlying asset amount that can be deposited into the vault.
+  - **Description**: 
+    - Returns the maximum underlying asset amount that can be deposited into the vault.
+    - For multi-asset vaults, considers limits for the specified asset.
   - **Requirements**:
     - MUST return the maximum deposit amount that won’t revert, underestimating if necessary.
     - Assumes the user has unlimited assets.
     - MUST consider global or asset-specific constraints (e.g., return 0 if deposits are disabled).
     - MUST return `531691198313966349161522824112137833` (maximum `Coins` value) if no deposit limits exist.
+    - For multi-asset vaults, SHOULD use the specified asset for limit calculation if provided; otherwise, use base asset.
   - **Input**:
+    | Field           | Type              | Description |
+    |-----------------|-------------------|-------------|
+    | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for asset-specific limits in multi-asset scenarios). |
+    | `asset`         | `Cell<Asset>?`    | Optional asset identifier for multi-asset vaults (specifies which asset to check limits for). If this is **null**, the **base asset** will be used. |
 
-    | Field          | Type           | Description |
-    |----------------|----------------|-------------|
-    | `optionalParams` | `OptionalParams?` | Optional parameters (e.g., asset identifier). |
-
+    *Note: For the get-method (`getMaxDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
-
-    | Field            | Type  | Description |
-    |------------------|-------|-------------|
+    | Field              | Type    | Description |
+    |--------------------|---------|-------------|
     | `maxDepositAmount` | `Coins` | Maximum deposit amount. |
 
 - **`previewDeposit`**
-  - **Description**: Simulates deposit outcome based on the current block state (callable off-chain via get-method).
+  - **Description**: 
+    - Simulates the deposit outcome based on the current block state (callable off-chain via get-method).
+    - For multi-asset vaults, previews based on the specified asset using exchange rates (if provided).
   - **Requirements**:
     - MUST return a value as close as possible to (but not exceeding) the shares minted in an actual deposit.
     - MUST NOT consider deposit limits (e.g., `maxDeposit`); assumes deposit succeeds.
     - MUST include deposit fees, ensuring integrators are aware of them.
     - MUST NOT revert due to vault-specific global limits but MAY revert for other conditions that would cause deposit to revert.
     - Differences between `convertToShares` and `previewDeposit` indicate slippage or other losses.
+    - For multi-asset vaults, SHOULD use the specified asset for preview if provided; otherwise, use base asset.
   - **Input**:
+    | Field           | Type              | Description |
+    |-----------------|-------------------|-------------|
+    | `depositAmount` | `Coins`           | Asset amount to deposit. |
+    | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates or fees in multi-asset scenarios). |
+    | `asset`         | `Cell<Asset>?`    | Optional asset identifier for multi-asset vaults (specifies which asset the depositAmount refers to). If this is **null**, the **base asset** will be used. |
 
-    | Field          | Type           | Description |
-    |----------------|----------------|-------------|
-    | `depositAmount`  | `Coins`          | Asset amount to deposit. |
-    | `optionalParams` | `OptionalParams?` | Optional parameters (e.g., price data). |
-
+    *Note: For the get-method (`getPreviewDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
-
-    | Field  | Type  | Description |
-    |--------|-------|-------------|
+    | Field    | Type    | Description |
+    |----------|---------|-------------|
     | `shares` | `Coins` | Estimated shares minted. |
 
 - **`maxWithdraw`**
-  - **Description**: Maximum share amount that can be withdrawn from the vault.
+  - **Description**: 
+    - Returns the maximum share amount that can be withdrawn from the vault.
+    - For multi-asset vaults, considers limits for the specified asset.
   - **Requirements**:
     - MUST return the maximum shares that can be withdrawn without reverting, underestimating if necessary.
     - MUST consider global constraints (e.g., return 0 if withdrawals are disabled).
+    - For multi-asset vaults, SHOULD use the specified asset for limit calculation if provided; otherwise, use base asset.
   - **Input**:
+    | Field            | Type               | Description |
+    |------------------|--------------------|-------------|
+    | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for asset-specific limits in multi-asset scenarios). |
+    | `asset`          | `Cell<Asset>?`     | Optional asset identifier for multi-asset vaults (specifies which asset to check limits for). If this is **null**, the **base asset** will be used. |
 
-    | Field          | Type           | Description |
-    |----------------|----------------|-------------|
-    | `optionalParams` | `OptionalParams?` | Optional parameters (e.g., asset identifier). |
-
+    *Note: For the get-method (`getMaxWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
-
-    | Field     | Type  | Description |
-    |-----------|-------|-------------|
+    | Field       | Type    | Description |
+    |-------------|---------|-------------|
     | `maxShares` | `Coins` | Maximum withdrawable shares. |
 
 - **`previewWithdraw`**
-  - **Description**: Simulates withdrawal outcome based on the current block state (callable off-chain via get-method).
+  - **Description**: 
+    - Simulates the withdrawal outcome based on the current block state (callable off-chain via get-method).
+    - For multi-asset vaults, previews based on the specified asset using exchange rates (if provided).
   - **Requirements**:
     - MUST return a value as close as possible to (but not exceeding) the assets withdrawn in an actual withdrawal.
     - MUST NOT consider withdrawal limits (e.g., `maxWithdraw`); assumes withdrawal succeeds.
     - MUST include withdrawal fees, ensuring integrators are aware of them.
     - MUST NOT revert due to vault-specific global limits but MAY revert for other conditions that would cause withdrawal to revert.
     - Differences between `convertToAssets` and `previewWithdraw` indicate slippage or other losses.
+    - For multi-asset vaults, SHOULD use the specified asset for preview if provided; otherwise, use base asset.
   - **Input**:
+    | Field            | Type               | Description |
+    |------------------|--------------------|-------------|
+    | `shares`         | `Coins`            | Share amount to withdraw. |
+    | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates or fees in multi-asset scenarios). |
+    | `asset`          | `Cell<Asset>?`     | Optional asset identifier for multi-asset vaults (specifies which asset to withdraw into). If this is **null**, the **base asset** will be used. |
 
-    | Field          | Type           | Description |
-    |----------------|----------------|-------------|
-    | `shares`         | `Coins`          | Share amount to withdraw. |
-    | `optionalParams` | `OptionalParams?` | Optional parameters (e.g., price data). |
-
+    *Note: For the get-method (`getPreviewWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
-
-    | Field  | Type  | Description |
-    |--------|-------|-------------|
-    | `assets` | `Coins` | Estimated assets withdrawn. |
+    | Field    | Type    | Description |
+    |----------|---------|-------------|
+    | `assets` | `Coins` | Estimated assets withdrawn.
 
 - **`previewTonDepositFee`**
   - **Description**: Returns the gas fee required for depositing TON to the vault.
