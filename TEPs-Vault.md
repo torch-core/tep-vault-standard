@@ -399,7 +399,6 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`convertToShares`**
   - **Description**: 
     - Estimates the number of shares that would be minted for a given asset amount in an ideal scenario.
-    - For multi-asset vaults, converts the deposit amount based on the specified asset using exchange rates (if provided).
   - **Requirements**:
     - MUST NOT include fees charged against assets.
     - MUST NOT vary by caller.
@@ -407,13 +406,11 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - MUST NOT revert unless due to integer overflow from unreasonably large input.
     - MUST round down to 0.
     - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
-    - For multi-asset vaults, SHOULD use the specified asset for conversion if provided; otherwise, use base asset.
   - **Input**:
     | Field           | Type              | Description |
     |-----------------|-------------------|-------------|
     | `depositAmount` | `Coins`           | Asset amount to convert. |
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
-    | `asset`         | `Cell<Asset>?`    | Optional asset identifier for multi-asset vaults (specifies which asset the depositAmount refers to). If this is **null**, the **base asset** will be used. |
     | `rounding`      | `RoundingType`    | Rounding mode (default: ROUND_DOWN). |
 
     *Note: For the get-method (`getConvertToShares`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
@@ -425,7 +422,6 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`convertToAssets`**
   - **Description**: 
     - Estimates the amount of assets that would be received for a given share amount in an ideal scenario.
-    - For multi-asset vaults, converts the shares based on the specified asset using exchange rates (if provided).
   - **Requirements**:
     - MUST NOT include fees charged against assets.
     - MUST NOT vary by caller.
@@ -433,13 +429,11 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - MUST NOT revert unless due to integer overflow from unreasonably large input.
     - MUST round down to 0.
     - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
-    - For multi-asset vaults, SHOULD use the specified asset for conversion if provided; otherwise, use base asset.
   - **Input**:
     | Field            | Type               | Description |
     |------------------|--------------------|-------------|
     | `shares`         | `Coins`            | Share amount to convert. |
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
-    | `asset`          | `Cell<Asset>?`     | Optional asset identifier for multi-asset vaults (specifies which asset to convert into). If this is **null**, the **base asset** will be used. |
     | `rounding`       | `RoundingType`     | Rounding mode (default: ROUND_DOWN). |
 
     *Note: For the get-method (`getConvertToAssets`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
@@ -451,18 +445,15 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`maxDeposit`**
   - **Description**: 
     - Returns the maximum underlying asset amount that can be deposited into the vault.
-    - For multi-asset vaults, considers limits for the specified asset.
   - **Requirements**:
     - MUST return the maximum deposit amount that won’t revert, underestimating if necessary.
     - Assumes the user has unlimited assets.
     - MUST consider global or asset-specific constraints (e.g., return 0 if deposits are disabled).
     - MUST return `531691198313966349161522824112137833` (maximum `Coins` value) if no deposit limits exist.
-    - For multi-asset vaults, SHOULD use the specified asset for limit calculation if provided; otherwise, use base asset.
   - **Input**:
     | Field           | Type              | Description |
     |-----------------|-------------------|-------------|
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for asset-specific limits in multi-asset scenarios). |
-    | `asset`         | `Cell<Asset>?`    | Optional asset identifier for multi-asset vaults (specifies which asset to check limits for). If this is **null**, the **base asset** will be used. |
 
     *Note: For the get-method (`getMaxDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
@@ -473,20 +464,17 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`previewDeposit`**
   - **Description**: 
     - Simulates the deposit outcome based on the current block state (callable off-chain via get-method).
-    - For multi-asset vaults, previews based on the specified asset using exchange rates (if provided).
   - **Requirements**:
     - MUST return a value as close as possible to (but not exceeding) the shares minted in an actual deposit.
     - MUST NOT consider deposit limits (e.g., `maxDeposit`); assumes deposit succeeds.
     - MUST include deposit fees, ensuring integrators are aware of them.
     - MUST NOT revert due to vault-specific global limits but MAY revert for other conditions that would cause deposit to revert.
     - Differences between `convertToShares` and `previewDeposit` indicate slippage or other losses.
-    - For multi-asset vaults, SHOULD use the specified asset for preview if provided; otherwise, use base asset.
   - **Input**:
     | Field           | Type              | Description |
     |-----------------|-------------------|-------------|
     | `depositAmount` | `Coins`           | Asset amount to deposit. |
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates or fees in multi-asset scenarios). |
-    | `asset`         | `Cell<Asset>?`    | Optional asset identifier for multi-asset vaults (specifies which asset the depositAmount refers to). If this is **null**, the **base asset** will be used. |
 
     *Note: For the get-method (`getPreviewDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
@@ -497,16 +485,13 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`maxWithdraw`**
   - **Description**: 
     - Returns the maximum share amount that can be withdrawn from the vault.
-    - For multi-asset vaults, considers limits for the specified asset.
   - **Requirements**:
     - MUST return the maximum shares that can be withdrawn without reverting, underestimating if necessary.
     - MUST consider global constraints (e.g., return 0 if withdrawals are disabled).
-    - For multi-asset vaults, SHOULD use the specified asset for limit calculation if provided; otherwise, use base asset.
   - **Input**:
     | Field            | Type               | Description |
     |------------------|--------------------|-------------|
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for asset-specific limits in multi-asset scenarios). |
-    | `asset`          | `Cell<Asset>?`     | Optional asset identifier for multi-asset vaults (specifies which asset to check limits for). If this is **null**, the **base asset** will be used. |
 
     *Note: For the get-method (`getMaxWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
@@ -517,20 +502,17 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`previewWithdraw`**
   - **Description**: 
     - Simulates the withdrawal outcome based on the current block state (callable off-chain via get-method).
-    - For multi-asset vaults, previews based on the specified asset using exchange rates (if provided).
   - **Requirements**:
     - MUST return a value as close as possible to (but not exceeding) the assets withdrawn in an actual withdrawal.
     - MUST NOT consider withdrawal limits (e.g., `maxWithdraw`); assumes withdrawal succeeds.
     - MUST include withdrawal fees, ensuring integrators are aware of them.
     - MUST NOT revert due to vault-specific global limits but MAY revert for other conditions that would cause withdrawal to revert.
     - Differences between `convertToAssets` and `previewWithdraw` indicate slippage or other losses.
-    - For multi-asset vaults, SHOULD use the specified asset for preview if provided; otherwise, use base asset.
   - **Input**:
     | Field            | Type               | Description |
     |------------------|--------------------|-------------|
     | `shares`         | `Coins`            | Share amount to withdraw. |
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates or fees in multi-asset scenarios). |
-    | `asset`          | `Cell<Asset>?`     | Optional asset identifier for multi-asset vaults (specifies which asset to withdraw into). If this is **null**, the **base asset** will be used. |
 
     *Note: For the get-method (`getPreviewWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
