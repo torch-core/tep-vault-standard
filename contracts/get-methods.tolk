@@ -1,10 +1,9 @@
 import "types/asset"
-import "types/rounding"
 import "storage"
 import "helper/packAssets"
+import "helper/jetton"
 import "core"
 import "messages/internal/schemas"
-import "helper/jetton"
 import "fees-management"
 
 get fun getAsset() {
@@ -21,7 +20,7 @@ get fun getAsset() {
     return convertAssetsTupleToCell(assetsTuple, 0);
 }
 
-get fun getTotalAssets(vaultOptionsCell: Cell<VaultOptions>? = null) {
+get fun getTotalAssets(vaultOptionsCell: Cell<VaultOptions>? = null, quoteAsset: Cell<Asset>? = null) {
     return totalAssets();
 }
 

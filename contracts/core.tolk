@@ -3,13 +3,14 @@ import "constants/errors";
 import "constants/common-types";
 import "types/rounding";
 import "types/vault-result";
+import "types/asset"
 import "storage"
 import "messages/internal/schemas";
 import "messages/internal/send";
 import "messages/external/emit";
 import "messages/external/schemas"
 
-fun totalAssets(vaultConfig: VaultConfig? = null) {
+fun totalAssets(vaultConfig: VaultConfig? = null, quoteAsset: Cell<Asset>? = null) {
     var storage = lazy VaultStorage.load();
     return storage.totalAssets;
 }
