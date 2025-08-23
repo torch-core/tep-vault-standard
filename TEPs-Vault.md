@@ -598,7 +598,6 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `TOPIC_DEPOSITED`     | `Opcode`                      | `0x11475d67`  |
     | `initiator`           | `Address`                     | Address initiating the deposit. |
     | `receiver`            | `Address`                     | Address receiving shares. |
-    | `depositAsset`        | `Cell<Asset>?`                | Deposited asset type. |
     | `depositAmount`       | `Coins`                       | Deposited asset amount. |
     | `shares`              | `Coins`                       | Minted shares. |
     | `optionalDepositLogs` | `Cell<OptionalDepositLogs>?`  | Custom deposit logs. |
@@ -613,7 +612,6 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `TOPIC_WITHDRAWN`      | `Opcode`                       | `0xedfb416d`  |
     | `initiator`            | `Address`                      | Address initiating the withdrawal. |
     | `receiver`             | `Address`                      | Address receiving assets. |
-    | `withdrawAsset`        | `Cell<Asset>?`                 | Withdrawn asset type. |
     | `withdrawAmount`       | `Coins`                        | Withdrawn asset amount. |
     | `burnedShares`         | `Coins`                        | Burned shares. |
     | `optionalWithdrawLogs` | `Cell<OptionalWithdrawLogs>?`  | Custom withdrawal logs. |
