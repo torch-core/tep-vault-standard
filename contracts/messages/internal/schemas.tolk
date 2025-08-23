@@ -1,6 +1,7 @@
 import "../../constants/common-types";
 import "../../types/vault-result";
 import "../../types/callback-params";
+import "../../types/asset"
 
 // ===== JETTON TRANSFER MESSAGES =====
 struct (0x7362d09c) TransferNotificationForRecipient {
@@ -130,6 +131,7 @@ struct OptionalQuoteParams {
 
 struct (0xc643cc91) ProvideQuote {
     queryId: QueryId
+    quoteAsset: Cell<Asset>? = null
     receiver: address
     optionalQuoteParams: Cell<OptionalQuoteParams>? = null
     forwardPayload: cell?
@@ -138,6 +140,7 @@ struct (0xc643cc91) ProvideQuote {
 struct (0x68ec31ea) TakeQuote {
     queryId: QueryId
     initiator: address
+    quoteAsset: Cell<Asset>
     totalSupply: coins
     totalAssets: coins
     timestamp: Timestamp

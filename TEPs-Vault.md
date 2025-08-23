@@ -37,7 +37,7 @@ TEP-4626 addresses these by standardizing vault interfaces, reducing integration
 
 ## Specification
 
-All TEP-4626 tokenized vaults MUST implement the [TEP-74](https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md) Jetton standard to represent shares. Shares represent partial ownership of the vault’s underlying assets.
+All TEP-4626 tokenized vaults MUST implement the [TEP-74](https://github.com/ton-blockchain/TEPs/blob/master/text/0001-tep-lifecycle.md) Jetton standard to represent shares. Shares represent partial ownership of the vault’s underlying assets.
 
 For non-transferable vaults, the Jetton Wallet MAY adopt a status flag mechanism—similar to the approach used in [stablecoin contracts](https://github.com/ton-blockchain/stablecoin-contract/blob/56fd5b983f18288d42d65ab9c937f3637e27fa0d/contracts/jetton-wallet.fc#L11)—to restrict transfers.
 
@@ -312,7 +312,7 @@ For vaults managing multiple underlying assets, the following persistent storage
   - MUST emit `TOPIC_WITHDRAWN` event.
 
 - **Message**:
-  - **`WtihdrawOptions`**
+  - **`WithdrawOptions`**
 
     | Field        | Type                 | Description |
     |--------------|----------------------|-------------|
@@ -353,6 +353,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     |---------------------|-----------|-------------|
     | `OP_PROVIDE_QUOTE`    | `Opcode`    | `0xc643cc91` |
     | `queryId`             | `QueryId`   | Unique query identifier. |
+    | `quoteAsset`             | `Cell<Asset>?`   | For vaults that support multiple assets, quoteAsset can be used as the basis for calculating the exchange rate. If this field is null, the exchange rate will be calculated using the baseAsset. |
     | `receiver`            | `Address`   | Address receiving `OP_TAKE_QUOTE`. |
     | `quoteOptions` | `Cell<QuoteOptions>?`     | Additional data for asset/share calculations. |
     | `forwardPayload`      | `Cell`      | Initiator-defined payload for further `receiver` operations. |
@@ -364,6 +365,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     | `OP_TAKE_QUOTE`  | `Opcode`  | `0x68ec31ea` |
     | `queryId`        | `QueryId` | Unique query identifier. |
     | `initiator`      | `Address` | Address sending `OP_PROVIDE_QUOTE`. |
+    | `quoteAsset`             | `Cell<Asset>`   | Base asset used for calculating the exchange rate. |
     | `totalSupply`    | `Coins`   | Total vault shares. |
     | `totalAssets`    | `Coins`   | Total underlying assets. |
     | `timestamp`      | `Uint32`  | Timestamp of `totalSupply` and `totalAssets` calculation. |

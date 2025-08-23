@@ -29,10 +29,10 @@ import "messages/internal/schemas"
 import "messages/internal/send"
 import "messages/external/schemas"
 import "messages/external/emit"
-
 import "core";
 import "fees-management";
 import "get-methods";
+import "types/asset"
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
@@ -104,7 +104,11 @@ fun onInternalMessage(in: InMessage) {
         ProvideQuote => {
             // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
-            sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
+            var quoteAsset: Asset = Asset.tonAsset();
+            if(storage.assetJettonInfo != null) {
+                quoteAsset = Asset.jettonAsset(storage.assetJettonInfo!.load().masterAddress!);
+            }
+            sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 
             emitQuoted(Quoted {
                 initiator: in.senderAddress,

@@ -6,6 +6,7 @@ import "../../storage";
 import "../../helper/jetton";
 import "schemas";
 import "../../fees-management"
+import "../../types/asset"
 
 @pure
 fun resolveReceiver(receiver: address, initiator: address) {
@@ -129,12 +130,20 @@ fun sendRequestWalletAddress(jettonMaster: address, queryId: QueryId) {
     requestMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun sendTakeQuote(initiator: address, queryId: QueryId, remainingValue: coins, receiver: address, totalSupply: coins, totalAssets: coins, forwardPayload: cell?) {
+fun sendTakeQuote(initiator: address, queryId: QueryId, remainingValue: coins, quoteAsset: Asset, receiver: address, totalSupply: coins, totalAssets: coins, forwardPayload: cell?) {
     val takeQuoteMsg = createMessage({
         bounce: false,
         dest: resolveReceiver(receiver, initiator),
         value: remainingValue,
-        body: TakeQuote { queryId: queryId, initiator: initiator, totalSupply: totalSupply, totalAssets: totalAssets, timestamp: blockchain.now(), forwardPayload: forwardPayload }
+        body: TakeQuote { 
+            queryId: queryId, 
+            initiator: initiator, 
+            quoteAsset: quoteAsset.toCell(),
+            totalSupply: totalSupply, 
+            totalAssets: totalAssets, 
+            timestamp: blockchain.now(), 
+            forwardPayload: forwardPayload,
+        }
     });
     takeQuoteMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
