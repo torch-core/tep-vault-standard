@@ -635,8 +635,6 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 
 ## Drawbacks
 
-## Drawbacks
-
 While TEP-4626 provides a standardized interface for tokenized vaults on TON, it has several limitations and potential risks that developers should consider:
 
 - **Security Risks in Notifications**: The `VaultNotification` mechanism enhances communication between protocols for handling success or failure outcomes. However, if the vault's administrative privileges (e.g., via `adminAddress`) are compromised, an attacker could upgrade the contract and send forged messages, potentially deceiving integrated protocols. This underscores the need for robust access controls and verification in vault implementations.
@@ -649,53 +647,45 @@ These drawbacks will be further explored in the Rationale and Alternatives secti
 
 ## Rationale and Alternatives
 
-The vault interface follows ERC-4626 design principles while adapting to the unique characteristics of the TON blockchain. Key decisions and their rationale are outlined below:
+The vault interface follows ERC-4626 design principles while adapting to the unique characteristics of the TON blockchain. Key decisions, their rationale, and considered alternatives are outlined below:
 
-### Asynchronous Notifications
-
-Due to TON's asynchronous messaging model, a notification mechanism (e.g., `OP_VAULT_NOTIFICATION`) is introduced to allow interacting contracts to process results or perform rollbacks, enhancing composability in DeFi workflows.
-
-### Gas Estimation via Get-Methods
-
-Get-methods such as `previewTonDepositFee` help developers estimate the required TON for operations, simplifying integration and improving UX.
-
-### Slippage Protection
-
-`minShares` and `minWithdraw` parameters are introduced to protect users from slippage, ensuring predictable outcomes for deposits and withdrawals.
-
-### Off-Chain Data with OptionalParams
-
-Since TON contracts cannot fetch prices on-chain, `OptionalParams` enables passing off-chain data (e.g., price info) during deposit or withdrawal.
+### Asynchronous Notifications and Security Risks
+**Rationale**: TON is an asynchronous system, making rollbacks or inter-protocol interactions challenging. Without standards, integrations become difficult and prone to vulnerabilities, such as those seen in TON from improper use of success/failure payloads. Thus, a notification system is essential for vaults, allowing interacting contracts to perform next steps based on outcomes. However, this introduces risks if the vault's admin is compromised, enabling forged messages via contract upgrades.  
+**Alternatives**: To mitigate, three approaches are recommended: (1) Use multisig for admin; (2) Implement timelocks for upgrades, with third-party guardians independent of the admin able to cancel; (3) Disable code upgrades entirely. Many TON DeFi contracts allow upgrades, but combining (1) and (2) effectively limits attacks.
 
 ### Multi-Asset Support
+**Rationale**: Unlike ERC-4626's single-asset model, TEP-4626 supports multi-assets for two reasons: (1) Top Ethereum vaults (e.g., Veda Labs' Boring Vault) feature multi-asset functionality; (2) User experience benefits, e.g., a stablecoin vault accepting USDT/USDe/USDC avoids extra swaps, reducing uncertainty. Vaults can handle conversions post-deposit via oracles, DEX, OTC, or cross-chain liquidity for better UX.  
+**Alternatives**: A single-asset-only design was considered for simplicity, but it limits innovation. Full dict unification for all vaults (even single-asset) was evaluated for code reuse, but rejected due to gas overhead; the dual approach optimizes common cases.
 
-Unlike ERC-4626's single-asset model, TEP-4626 supports multiple assets using dictionary-based storage and `OptionalParams`, increasing vault flexibility.
+### Off-Chain Data Integration via VaultOptions
+**Rationale**: TON lacks on-chain price fetching like Ethereum, so off-chain data (e.g., prices) is carried via messages. VaultOptions allows passing such data, validated into VaultConfig for use.
 
-### Provide/Take Quote Mechanism
+### Omission of Extra Currency Support
+**Rationale**: TON supports Extra Currency, but its usage is not widespread, with no DeFi protocols adopting it yet. Thus, the current design excludes it.  
+**Alternatives**: Immediate inclusion was considered, but deferred due to ecosystem immaturity; future versions could add it as adoption grows (see Future Possibilities).
 
-TEP-4626 includes a mechanism for querying asset-to-share conversion rates with timestamps to prevent stale quotes. `forwardPayload` allows additional customization of behavior.
+### Asset-Based Limits Instead of Per-Address
+**Rationale**: ERC-4626 limits maxDeposit/maxWithdraw per address, but TEP-4626 uses asset-based checks. On TON, querying initiator's shares on-chain is difficult without dicts (inefficient) or sub-contracts/Jetton wallets (complex).  
+**Alternatives**: Per-user dict tracking was evaluated, but adds gas costs. Sub-contracts increase fragmentation; asset-based limits provide adequate protection without overhead.
 
-### Omission of `mint` / `redeem`
+### Omission of Mint/Redeem Functions
+**Rationale**: ERC-4626's mint (specify shares, vault pulls assets) and redeem (specify assets, vault pulls shares) require wallet plugging, uncommon on TON. Omitting them aligns with user habits of direct transfers, reducing cognitive load.  
+**Alternatives**: Implementing them was considered, but skipped due to low adoption and added complexity/async risks; direct transfers fit TON norms better.
 
-While TON wallets support third-party transfers (wallet plugging), this behavior is uncommon. Therefore, `mint` and `redeem` are omitted, and users must transfer assets to the vault directly.
+### Provide/Take Quote Mechanism and Timeliness
+**Rationale**: Fetching exchange rates faces Jetton balance query issues—rates may change by response time. Adding timestamps to OP_TAKE_QUOTE lets receivers validate freshness.  
+**Alternatives**: Pure off-chain quotes reduce on-chain composability. Omitting timestamps risks stale data; timestamps enable time-bound checks.
 
-### Asset-Based Limits (Not User-Based)
+### Slippage Protection via minShares/minWithdraw
+**Rationale**: Adding minShares/minWithdraw checks in deposit/withdraw refunds on failure, protecting against rate volatility for better UX.
 
-Due to inefficiencies with per-user tracking on TON (e.g., dictionary lookups or sub-contracts), `maxDeposit` and `maxWithdraw` limits are defined per asset, not per user. Private transfers are ignored.
+### Mitigation of Donation Attacks
+**Rationale**: No donation attacks per design, as transfers require valid payloads to update totalAssets. Direct transfers without payloads are ignored. Issues arise only if rates are off-chain calculated from balances—in such cases, vaults should avoid relying on direct balance checks to prevent manipulation.
 
-### `convertTo` vs. `preview`
+### Gas Estimation for Developer Experience
+**Rationale**: TON interactions often fail due to insufficient TON despite docs. Preview fees (e.g., previewDeposit) let developers estimate costs, reducing errors and improving DX.
 
-* `convertToShares` / `convertToAssets`: Provide rough estimates excluding fees and slippage—ideal for display purposes.
-* `previewDeposit` / `previewWithdraw`: Include slippage and fees—ideal for precise UI confirmations.
-  Both align with ERC-4626 while incorporating TON-specific enhancements like `OptionalParams`.
-
-### Donation Attack Mitigation
-
-To avoid ERC-4626-style donation attacks, TEP-4626 requires a valid payload to affect `totalSupply` or `totalAssets`. Direct token transfers without intent are ignored and do not affect vault state.
-
-### Admin Security
-
-Compromised admin can upgrade contract code to send malicious notifications to interacting protocols. Recommend using multisig, timelocks, or guardian roles to protect admin privileges.
+These design choices address the limitations outlined in the Drawbacks section, with unresolved questions and future extensions explored in subsequent sections.
 
 ## Prior Art
 
@@ -705,21 +695,23 @@ Compromised admin can upgrade contract code to send malicious notifications to i
 
 ## Unresolved Questions
 
-- Should support for Extra Currency (`XC`) be included in the initial version of `TEP-4626`?
+This section highlights open questions that remain unresolved in the current draft. These are areas for potential community feedback or further research:
 
-  `XC` adoption is currently low in the TON DeFi ecosystem. Including it now may increase implementation complexity without immediate use cases. Should `XC` support be deferred until it gains broader adoption?
-- Should methods similar to `ERC-4626`’s approve and transferFrom be implemented to support wallet plugging?
+- **Admin Security Risks**: Even with multisig admins, timelock upgrades, and third-party monitoring to prevent illicit contract updates (as recommended in Rationale), there remains inherent risk in upgradable vaults. Beyond fully disabling code upgrades, no 100% foolproof method exists to eliminate compromise risks, particularly in a dynamic DeFi environment. How can protocols further harden against this without sacrificing maintainability? This ties into Drawbacks' notification security concerns and invites exploration in implementations.
 
-  Given the limited wallet support and the added user complexity, wallet plugging is not commonly used by TON users. Should we wait until this pattern becomes more widespread before adding these methods?
-- How can we ensure that vault admin privileges are protected from unauthorized access or code upgrades?
-
-  If an admin is compromised, malicious callbacks could impact interacting protocols. What standardized mechanisms (e.g., guardian roles to monitor critical actions, timelocks) should be adopted to mitigate this risk?
+These questions do not affect the core standard but provide opportunities for refinement based on real-world usage.
 
 ## Future Possibilities
 
-- Extra Currency Integration: Support for Extra Currency (`XC`) can be added once `XC` assets gain broader adoption in the TON DeFi ecosystem, enhancing the vault’s capability for cross-chain DeFi use cases.
-- Wallet Plugging Support: If wallet plugging becomes a common practice among TON users, `ERC-4626`-style mint and withdraw methods can be introduced to enable third-party asset transfers, improving flexibility for dApps and automated protocols.
-- Enhanced Admin Security: Future integration with TON’s permission management standards (e.g., multisig or governance-related TEPs) can help safeguard admin privileges. Mechanisms such as multisig, timelocks, and protective guards should be employed and thoroughly tested to ensure robustness.
+TEP-4626 establishes a solid foundation for TON vaults, with potential for evolution as the ecosystem advances. The following extensions build on the current design:
+
+- **Extra Currency Integration**: Once Extra Currency adoption matures in TON DeFi (as noted in Rationale), it could be added to the `Asset` encoding, enabling more diverse multi-asset vaults and broader token support.
+  
+- **Mint and Redeem Functions via Wallet Plugging**: If wallet plugging becomes more widespread on TON, future versions could incorporate ERC-4626-style mint/redeem operations, enhancing flexibility for direct asset pulls while aligning with evolving user habits.
+  
+- **Gasless Vault Operations**: To improve UX, extensions could support gasless interactions (e.g., via meta-transactions or TON's emerging fee abstraction), reducing barriers for deposits/withdrawals without compromising security.
+
+These possibilities depend on TON's technical progress and community input. Contributions via discussions or PRs are encouraged to develop them further.
 
 ## Backwards Compatibility
 
