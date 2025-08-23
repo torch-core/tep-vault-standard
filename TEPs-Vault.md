@@ -379,16 +379,13 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`totalAssets`**
   - **Description**: 
     - Returns the total underlying assets managed by the vault. 
-    - For multi-asset vaults, this may normalize all assets to a specified quote asset's units by converting and summing them using exchange rates (if provided).
   - **Requirements**:
     - SHOULD include compounding from yield.
     - MUST include fees charged against assets.
-    - For multi-asset vaults, SHOULD use the quote asset for normalization if specified; otherwise, use base asset.
   - **Input**:
     | Field         | Type           | Description |
     |---------------|----------------|-------------|
     | `vaultConfig` | `VaultConfig?` | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
-    | `quoteAsset`  | `Cell<Asset>?` | Optional quote asset for normalizing the total value in multi-asset vaults (e.g., as a basis for pricing conversions). If this is **null**, the **base asset** will be used. |
 
     *Note: For the get-method (`getTotalAssets`), replace `vaultConfig` with `vaultOptionsCell: Cell<VaultOptions>?`. The get-method should resolve `vaultOptionsCell` into `vaultConfig` before calling the internal function.*
   - **Output**:

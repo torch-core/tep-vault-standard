@@ -10,7 +10,7 @@ import "messages/internal/send";
 import "messages/external/emit";
 import "messages/external/schemas"
 
-fun totalAssets(vaultConfig: VaultConfig? = null, quoteAsset: Cell<Asset>? = null) {
+fun totalAssets(vaultConfig: VaultConfig? = null) {
     var storage = lazy VaultStorage.load();
     return storage.totalAssets;
 }

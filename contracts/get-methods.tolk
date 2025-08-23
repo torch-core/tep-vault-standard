@@ -20,7 +20,7 @@ get fun getAsset() {
     return convertAssetsTupleToCell(assetsTuple, 0);
 }
 
-get fun getTotalAssets(vaultOptionsCell: Cell<VaultOptions>? = null, quoteAsset: Cell<Asset>? = null) {
+get fun getTotalAssets(vaultOptionsCell: Cell<VaultOptions>? = null) {
     return totalAssets();
 }
 
