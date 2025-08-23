@@ -371,24 +371,31 @@ For vaults managing multiple underlying assets, the following persistent storage
     | `timestamp`      | `Uint32`  | Timestamp of `totalSupply` and `totalAssets` calculation. |
     | `forwardPayload` | `Cell?`   | Initiator-defined payload. |
 
-#### Functions (Get-Methods)
+#### Functions and Get-Methods
+TEP-4626 vaults MUST implement the following functions for querying vault state and conversion rates. Each function has two forms:
+- **Internal Function**: Core logic for calculations, used within vault operations (e.g., deposit/withdraw). Parameters may include resolved configs (e.g., `DepositConfig` or `VaultConfig`), which are parsed and validated structures derived from user options.
+- **Get-Method**: Exposed query method (e.g., `getConvertToShares`) that wraps the internal function. It accepts user-provided options (e.g., `DepositOptions` or `VaultOptions` as Cell), resolves/parses them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
+
+Due to their similarity, we describe them together, highlighting differences in parameters. All get-methods MUST NOT modify state and SHOULD return results based on current vault storage.
 
 - **`totalAssets`**
-  - **Description**: Total underlying assets managed by the vault.
+  - **Description**: Returns the total underlying assets managed by the vault. For multi-asset vaults, this may normalize all assets to a specified quote asset's units by converting and summing them using exchange rates (if provided). The get-method variant (`getTotalAssets`) exposes this for off-chain queries, wrapping the internal function.
   - **Requirements**:
     - SHOULD include compounding from yield.
     - MUST include fees charged against assets.
+    - For multi-asset vaults, SHOULD use the quote asset for normalization if specified; otherwise, revert or use a default behavior.
+    - MUST NOT modify vault state.
   - **Input**:
+    | Field         | Type           | Description |
+    |---------------|----------------|-------------|
+    | `vaultConfig` | `VaultConfig?` | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
+    | `quoteAsset`  | `Cell<Asset>?` | Optional quote asset for normalizing the total value in multi-asset vaults (e.g., as a basis for pricing conversions). If this is **null**, the **base asset** will be used. |
 
-    | Field          | Type           | Description |
-    |----------------|----------------|-------------|
-    | `optionalParams` | `OptionalParams` | Optional parameters (e.g., asset identifier for multi-asset vaults). |
-
+    *Note: For the get-method (`getTotalAssets`), replace `vaultConfig` with `vaultOptionsCell: Cell<VaultOptions>?`. The get-method should resolve `vaultOptionsCell` into `vaultConfig` before calling the internal function.*
   - **Output**:
-
-    | Field              | Type  | Description |
-    |--------------------|-------|-------------|
-    | `totalManagedAssets` | `Coins` | Total managed assets. |
+    | Field                | Type    | Description                                      |
+    |----------------------|---------|--------------------------------------------------|
+    | `totalManagedAssets` | `Coins` | Total managed assets (normalized if quote asset specified in multi-asset vaults). |
 
 - **`convertToShares`**
   - **Description**: Estimates shares minted for a given asset amount in an ideal scenario.

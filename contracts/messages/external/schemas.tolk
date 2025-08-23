@@ -29,6 +29,7 @@ struct (0xedfb416d) Withdrawn {
 }
 
 struct (0xb7bfa697) Quoted {
+    quoteAsset: Cell<Asset>
     initiator: address
     receiver: address
     totalSupply: coins

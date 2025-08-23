@@ -111,6 +111,7 @@ fun onInternalMessage(in: InMessage) {
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 
             emitQuoted(Quoted {
+                quoteAsset: quoteAsset.toCell(),
                 initiator: in.senderAddress,
                 receiver: inMsg.receiver,
                 totalSupply: storage.totalSupply,
