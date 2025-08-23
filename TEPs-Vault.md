@@ -635,7 +635,17 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 
 ## Drawbacks
 
-Currently, it's not possible to restrict the deposit or withdrawal amount based on the user's address.
+## Drawbacks
+
+While TEP-4626 provides a standardized interface for tokenized vaults on TON, it has several limitations and potential risks that developers should consider:
+
+- **Security Risks in Notifications**: The `VaultNotification` mechanism enhances communication between protocols for handling success or failure outcomes. However, if the vault's administrative privileges (e.g., via `adminAddress`) are compromised, an attacker could upgrade the contract and send forged messages, potentially deceiving integrated protocols. This underscores the need for robust access controls and verification in vault implementations.
+  
+- **Lack of Per-Address Limits**: The standard does not include built-in restrictions on deposit or withdrawal amounts for individual addresses. This could expose vaults to risks like flash loan exploits or whale manipulations, requiring developers to implement custom limits via `DepositOptions` or `WithdrawOptions` if needed.
+  
+- **Timeliness Issues in Quotes**: The `provideQuote` and `takeQuote` mechanisms may suffer from delays inherent to TON's asynchronous messaging architecture. Quotes are based on snapshot values of `totalSupply` and `totalAssets`, but by the time the quote is received, the vault's state could have changed due to concurrent operations, network congestion, or cross-shard interactions. This could lead to unexpected slippage or failed operations, necessitating off-chain monitoring or time-bound validity checks in integrations.
+
+These drawbacks will be further explored in the Rationale and Alternatives section, where we explain potential solutions and design choices to address them.
 
 ## Rationale and Alternatives
 
