@@ -49,6 +49,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 - **`share`**: Jetton issued by the vault, representing a claim on underlying assets with a conversion rate defined by the vault during deposit/withdrawal.
 - **`fee`**: Amounts of assets or shares charged by the vault, applicable to deposits, yields, assets under management (AUM), withdrawals, or other vault-specified items.
 - **`slippage`**: The difference between the advertised share price and the actual economic outcome during deposit/withdrawal, excluding fees.
+- **`baseAsset`**: The primary or default underlying asset for vault calculations, used for standardization in multi-asset scenarios. For single-asset vaults, it is the sole asset. If no other specified asset is provided, the vault will utilize the base asset for exchange rate conversions and output standardization, to ensure operational consistency and simplify integrations.
 - **`XXX_FP`**: If a name ends with `_FP` (e.g., `OP_DEPOSIT_FP`), it refers to fields in `forwardPayload` (Jetton Notification) or `customPayload` (Burn Notification). Names without `_FP` (e.g., `OP_DEPOSIT`) refer to actions involving TON transfers.
 
 ### Vault Smart Contract
