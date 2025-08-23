@@ -353,7 +353,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     |---------------------|-----------|-------------|
     | `OP_PROVIDE_QUOTE`    | `Opcode`    | `0xc643cc91` |
     | `queryId`             | `QueryId`   | Unique query identifier. |
-    | `quoteAsset`             | `Cell<Asset>?`   | For vaults that support multiple assets, quoteAsset can be used as the basis for calculating the exchange rate. If this field is null, the exchange rate will be calculated using the baseAsset. |
+    | `quoteAsset`             | `Cell<Asset>?`   | For vaults that support multiple assets, quoteAsset is used as the basis for calculating the exchange rate. If this field is null, the exchange rate will be calculated using the baseAsset. |
     | `receiver`            | `Address`   | Address receiving `OP_TAKE_QUOTE`. |
     | `quoteOptions` | `Cell<QuoteOptions>?`     | Additional data for asset/share calculations. |
     | `forwardPayload`      | `Cell`      | Initiator-defined payload for further `receiver` operations. |
@@ -618,6 +618,20 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `burnedShares`         | `Coins`                        | Burned shares. |
     | `optionalWithdrawLogs` | `Cell<OptionalWithdrawLogs>?`  | Custom withdrawal logs. |
     | `timestamp`            | `Uint32`                       | Event timestamp for off-chain indexing. |
+
+- **`Quoted`**
+  - **Description**: Emitted when the vault provides a quote for asset-to-share conversion, including total supply and assets at the time of calculation.
+  - **Message**:
+
+    | Field          | Type           | Description |
+    |----------------|----------------|-------------|
+    | `TOPIC_QUOTED`  | `Opcode`       | `0xb7bfa697`  |
+    | `quoteAsset`    | `Cell<Asset>`  | `quoteAsset` is used as the basis for calculating the exchange rate. |
+    | `initiator`     | `Address`      | Address initiating the quote request. |
+    | `receiver`      | `Address`      | Address receiving the quote response. |
+    | `totalSupply`   | `Coins`        | Total vault shares at the time of quote. |
+    | `totalAssets`   | `Coins`        | Total underlying assets at the time of quote. |
+    | `timestamp`     | `Uint32`       | Event timestamp for off-chain indexing. |
 
 ## Drawbacks
 
