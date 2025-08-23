@@ -37,7 +37,7 @@ TEP-4626 addresses these by standardizing vault interfaces, reducing integration
 
 ## Specification
 
-All TEP-4626 tokenized vaults MUST implement the [TEP-74](https://github.com/ton-blockchain/TEPs/blob/master/text/0001-tep-lifecycle.md) Jetton standard to represent shares. Shares represent partial ownership of the vault’s underlying assets.
+All TEP-4626 tokenized vaults MUST implement the [TEP-74](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md) Jetton standard to represent shares. Shares represent partial ownership of the vault’s underlying assets.
 
 For non-transferable vaults, the Jetton Wallet MAY adopt a status flag mechanism—similar to the approach used in [stablecoin contracts](https://github.com/ton-blockchain/stablecoin-contract/blob/56fd5b983f18288d42d65ab9c937f3637e27fa0d/contracts/jetton-wallet.fc#L11)—to restrict transfers.
 
