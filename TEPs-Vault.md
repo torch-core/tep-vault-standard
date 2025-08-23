@@ -697,7 +697,7 @@ These design choices address the limitations outlined in the Drawbacks section, 
 
 This section highlights open questions that remain unresolved in the current draft. These are areas for potential community feedback or further research:
 
-- **Admin Security Risks**: Even with multisig admins, timelock upgrades, and third-party monitoring to prevent illicit contract updates (as recommended in Rationale), there remains inherent risk in upgradable vaults. Beyond fully disabling code upgrades, no 100% foolproof method exists to eliminate compromise risks, particularly in a dynamic DeFi environment. How can protocols further harden against this without sacrificing maintainability? This ties into Drawbacks' notification security concerns and invites exploration in implementations.
+- **Admin Security Risks**: Even with multisig admins, timelock upgrades, and third-party monitoring to prevent illicit contract updates, there remains inherent risk in upgradable vaults. Beyond fully disabling code upgrades, no 100% foolproof method exists to eliminate compromise risks, particularly in a dynamic DeFi environment. How can protocols further harden against this without sacrificing maintainability? This ties into Drawbacks' notification security concerns and invites exploration in implementations.
 
 These questions do not affect the core standard but provide opportunities for refinement based on real-world usage.
 
@@ -705,11 +705,11 @@ These questions do not affect the core standard but provide opportunities for re
 
 TEP-4626 establishes a solid foundation for TON vaults, with potential for evolution as the ecosystem advances. The following extensions build on the current design:
 
-- **Extra Currency Integration**: Once Extra Currency adoption matures in TON DeFi (as noted in Rationale), it could be added to the `Asset` encoding, enabling more diverse multi-asset vaults and broader token support.
+- **Extra Currency Integration**: Once Extra Currency adoption matures in TON DeFi, it could be added to the `Asset` encoding, enabling more diverse multi-asset vaults and broader token support.
   
 - **Mint and Redeem Functions via Wallet Plugging**: If wallet plugging becomes more widespread on TON, future versions could incorporate ERC-4626-style mint/redeem operations, enhancing flexibility for direct asset pulls while aligning with evolving user habits.
   
-- **Gasless Vault Operations**: To improve UX, extensions could support gasless interactions (e.g., via meta-transactions or TON's emerging fee abstraction), reducing barriers for deposits/withdrawals without compromising security.
+- **Gasless Vault Operations**: To improve UX, extensions could support gasless interactions, reducing barriers for deposits/withdrawals without compromising security.
 
 These possibilities depend on TON's technical progress and community input. Contributions via discussions or PRs are encouraged to develop them further.
 
