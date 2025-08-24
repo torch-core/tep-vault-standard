@@ -683,7 +683,7 @@ The vault interface follows ERC-4626 design principles while adapting to the uni
 **Alternatives**: Implementing them was considered, but skipped due to low adoption and added complexity/async risks; direct transfers fit TON norms better.
 
 ### Provide/Take Quote Mechanism and Timeliness
-**Rationale**: Fetching exchange rates faces Jetton balance query issues—rates may change by response time. Adding timestamps to OP_TAKE_QUOTE lets receivers validate freshness.  
+**Rationale**: Fetching exchange rates faces Jetton balance query issues—rates may change by response time. Adding timestamps to `OP_TAKE_QUOTE` lets receivers validate freshness. We believe the timestamp generated during rate calculation is sufficient for judging staleness. If stricter control over the entire process is needed, developers can embed a `validUntil` field in `forwardPayload` for custom expiration checks.
 **Alternatives**: Pure off-chain quotes reduce on-chain composability. Omitting timestamps risks stale data; timestamps enable time-bound checks.
 
 ### Slippage Protection via minShares/minWithdraw
