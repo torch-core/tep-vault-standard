@@ -76,7 +76,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
   |--------------|-----------------------|-------------------------------------|
   | `0000`       | **TON (native)**      | —                                   |
   | `0001`       | **Jetton**         | `jettonMasterAddress` (`Address`)   |
-  | `0010`       | **Extra Currency (XC)** | `tokenId` (`uint32`)              |
+  | `0010`       | **Extra Currency (XC)** | `tokenId` (`uint32`), not enabled for now |
 
   **Encoding Examples (Tolk)**
   ```tolk
@@ -358,7 +358,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     | `quoteAsset`             | `Cell<Asset>?`   | For vaults that support multiple assets, quoteAsset is used as the basis for calculating the exchange rate. If this field is null, the exchange rate will be calculated using the baseAsset. |
     | `receiver`            | `Address`   | Address receiving `OP_TAKE_QUOTE`. |
     | `quoteOptions` | `Cell<QuoteOptions>?`     | Additional data for asset/share calculations. |
-    | `forwardPayload`      | `Cell`      | Initiator-defined payload for further `receiver` operations. |
+    | `forwardPayload`      | `Cell`      | Initiator-defined payload for further `receiver` operations. This can include custom fields such as validUntil |
 
   - **`OP_TAKE_QUOTE`**:
 
