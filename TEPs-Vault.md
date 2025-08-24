@@ -23,7 +23,7 @@ While TON has a powerful asynchronous and message-driven architecture, its ecosy
 - **Inconsistent Callbacks**: Success/failure payload formats vary across implementations, which complicates subsequent operations or rollbacks in interacting protocols—especially in TON's asynchronous message-passing environment—increasing error risks.
 - **Non-Uniform Query Interfaces**: Get methods use inconsistent names and structures, forcing frontends and wallets to implement custom logic for each protocol. For example, some expose only the Jetton balance, while others require applying a conversion rate to show real asset value.
 - **Divergent Event Formats**: Emitted events use varied formats, making it difficult for off-chain systems to monitor and parse events uniformly.
-- **Inconsistent On-Chain Price Queries**: Vaults provide price information through different message-based query formats, forcing aggregators to implement multiple parsing logics. This increases development complexity and integration costs.
+- **Inconsistent On-Chain Rate Queries**: Vaults provide rate information through different message-based query formats, forcing aggregators to implement multiple parsing logics. This increases development complexity and integration costs.
 - **Lack of Gas Estimation Standards**: No unified method to query gas consumption, making it difficult for developers to estimate interaction costs.
 - **Varied Deposit/Withdrawal Processes**: Deposit and withdrawal flows and parameters differ across vaults, including how Jetton transfers and burn notifications are handled, increasing development complexity and integration costs.
   
