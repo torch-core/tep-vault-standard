@@ -57,7 +57,8 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 #### General Types
 
 - **`Opcode`**: `uint32`  
-- **`QueryId`**: `uint64`  
+- **`QueryId`**: `uint64`
+- **`Timestamp`**: `uint32`  
 - **`Hash`**: `uint256`
 - **`RoundingType`**: `uint2`  
   - `ROUND_DOWN = 0`  
@@ -369,7 +370,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     | `quoteAsset`             | `Cell<Asset>`   | Base asset used for calculating the exchange rate. |
     | `totalSupply`    | `Coins`   | Total vault shares. |
     | `totalAssets`    | `Coins`   | Total underlying assets. |
-    | `timestamp`      | `Uint32`  | Timestamp of `totalSupply` and `totalAssets` calculation. |
+    | `timestamp`      | `Timestamp`  | Timestamp of `totalSupply` and `totalAssets` calculation. |
     | `forwardPayload` | `Cell?`   | Initiator-defined payload. |
 
 #### Functions and Get-Methods
@@ -603,7 +604,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `depositAmount`       | `Coins`                       | Deposited asset amount. |
     | `shares`              | `Coins`                       | Minted shares. |
     | `optionalDepositLogs` | `Cell<OptionalDepositLogs>?`  | Custom deposit logs. |
-    | `timestamp`           | `Uint32`                      | Event timestamp for off-chain indexing. |
+    | `timestamp`           | `Timestamp`                      | Event timestamp for off-chain indexing. |
 
 - **`Withdrawn`**
   - **Description**: Emitted when initiator exchanges shares for assets, transferring them to receiver.
@@ -617,7 +618,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `withdrawAmount`       | `Coins`                        | Withdrawn asset amount. |
     | `burnedShares`         | `Coins`                        | Burned shares. |
     | `optionalWithdrawLogs` | `Cell<OptionalWithdrawLogs>?`  | Custom withdrawal logs. |
-    | `timestamp`            | `Uint32`                       | Event timestamp for off-chain indexing. |
+    | `timestamp`            | `Timestamp`                       | Event timestamp for off-chain indexing. |
 
 - **`Quoted`**
   - **Description**: Emitted when the vault provides a quote for asset-to-share conversion, including total supply and assets at the time of calculation.
@@ -631,7 +632,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `receiver`      | `Address`      | Address receiving the quote response. |
     | `totalSupply`   | `Coins`        | Total vault shares at the time of quote. |
     | `totalAssets`   | `Coins`        | Total underlying assets at the time of quote. |
-    | `timestamp`     | `Uint32`       | Event timestamp for off-chain indexing. |
+    | `timestamp`     | `Timestamp`       | Event timestamp for off-chain indexing. |
 
 ## Drawbacks
 
