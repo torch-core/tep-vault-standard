@@ -655,10 +655,16 @@ The vault interface follows ERC-4626 design principles while adapting to the uni
 
 ### Asynchronous Notifications and Security Risks
 **Rationale**: TON is an asynchronous system, making rollbacks or inter-protocol interactions challenging. Without standards, integrations become difficult and prone to vulnerabilities, such as those seen in TON from improper use of success/failure payloads. Thus, a notification system is essential for vaults, allowing interacting contracts to perform next steps based on outcomes. However, this introduces risks if the vault's admin is compromised, enabling forged messages via contract upgrades.  
-**Alternatives**: To mitigate, three approaches are recommended: (1) Use multisig for admin; (2) Implement timelocks for upgrades, with third-party guardians independent of the admin able to cancel; (3) Disable code upgrades entirely. Many TON DeFi contracts allow upgrades, but combining (1) and (2) effectively limits attacks.
+**Alternatives**: To mitigate, three approaches are recommended: 
+1. Use multisig for admin
+2. Implement timelocks for upgrades, with third-party guardians independent of the admin able to cancel
+3. Disable code upgrades entirely. Many TON DeFi contracts allow upgrades, but combining (1) and (2) effectively limits attacks.
 
 ### Multi-Asset Support
-**Rationale**: Unlike ERC-4626's single-asset model, TEP-4626 supports multi-assets for two reasons: (1) Top Ethereum vaults (e.g., Veda Labs' Boring Vault) feature multi-asset functionality; (2) User experience benefits, e.g., a stablecoin vault accepting USDT/USDe/USDC avoids extra swaps, reducing uncertainty. Vaults can handle conversions post-deposit via oracles, DEX, OTC, or cross-chain liquidity for better UX.  
+**Rationale**: Unlike ERC-4626's single-asset model, TEP-4626 supports multi-assets for two reasons: 
+1. Top Ethereum vaults (e.g., Veda Labs' Boring Vault) feature multi-asset functionality
+2. User experience benefits, e.g., a stablecoin vault accepting USDT/USDe/USDC avoids extra swaps, reducing uncertainty. Vaults can handle conversions post-deposit via oracles, DEX, OTC, or cross-chain liquidity for better UX.
+  
 **Alternatives**: A single-asset-only design was considered for simplicity, but it limits innovation. Full dict unification for all vaults (even single-asset) was evaluated for code reuse, but rejected due to gas overhead; the dual approach optimizes common cases.
 
 ### Off-Chain Data Integration via VaultOptions
