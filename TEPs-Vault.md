@@ -66,7 +66,9 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
   - `ROUND_GENERIC = 2` — standard rounding (i.e., round half up)  
 - **`Result`**: `uint16`  
   - Outcome of the vault operation.  
-  - Values: `0` (success), error codes (e.g., `1`: Insufficient amount, `2`: Limit exceeded).  
+  - Values: 
+    - `0` (success)
+    - Error codes (e.g., `1`: Insufficient amount, `2`: Limit exceeded).  
 - **`Asset`**: Represents various asset types (TON, Jetton, Extra Currency) using a compact encoding scheme for unified handling.
 
   **Format**  
