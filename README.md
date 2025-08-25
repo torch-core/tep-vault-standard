@@ -1,27 +1,27 @@
-# tep-vault-standard
+# TEP-4626: Tokenized Vaults Standard for TON
 
-## Project structure
+This is a **single-asset** vault reference implementation of the TEP-4626 Tokenized Vaults Standard for TON blockchain.
 
--   `contracts` - source code of all the smart contracts of the project and their dependencies.
--   `wrappers` - wrapper classes (implementing `Contract` from ton-core) for the contracts, including any [de]serialization primitives and compilation functions.
--   `tests` - tests for the contracts.
--   `scripts` - scripts used by the project, mainly the deployment scripts.
+For detailed specifications, technical documentation, and implementation details, please refer to [TEPs-Vault.md](./TEPs-Vault.md).
 
-## How to use
+## How to Run
 
-### Build
+### Install dependencies
+```bash
+pnpm install
+```
 
-`npx blueprint build` or `yarn blueprint build`
+### Build contracts
+```bash
+pnpm build:all
+```
 
-### Test
+### Run tests
+```bash
+pnpm test
+```
 
-`npx blueprint test` or `yarn blueprint test`
-
-### Deploy or run another script
-
-`npx blueprint run` or `yarn blueprint run`
-
-### Add a new contract
-
-`npx blueprint create ContractName` or `yarn blueprint create ContractName`
-# tep-vault-standard
+### Deploy or run scripts
+```bash
+pnpm blueprint run
+```
