@@ -16,6 +16,7 @@ import { expectWithdrawnEmitLog } from './helper/emitLog';
 import { VaultErrors } from '../wrappers/constants/error';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
+import { MAX_COINS_VALUE } from './helper/constants';
 
 describe('Withdraw from TON Vault', () => {
     let blockchain: Blockchain;
@@ -553,6 +554,18 @@ describe('Withdraw from TON Vault', () => {
                 success: false,
                 exitCode: VaultErrors.MissingCustomPayload,
             });
+        });
+    });
+
+    describe('Get methods', () => {
+        it('should preview ton withdraw fee', async () => {
+            const fee = await tonVault.getPreviewWithdrawFee();
+            expect(fee).toBe(toNano('0.012'));
+        });
+
+        it('should get max withdraw', async () => {
+            const maxWithdrawAmount = await tonVault.getMaxWithdraw();
+            expect(maxWithdrawAmount).toBe(MAX_COINS_VALUE);
         });
     });
 });

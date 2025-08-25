@@ -12,6 +12,7 @@ import { expectTonDepositorBalances } from './helper/expectBalances';
 import { JettonWallet } from '@ton/ton';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
+import { MAX_COINS_VALUE } from './helper/constants';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
@@ -565,6 +566,18 @@ describe('Deposit to TON Vault', () => {
                 success: false,
                 exitCode: VaultErrors.InvalidDepositAmount,
             });
+        });
+    });
+
+    describe('Get methods', () => {
+        it('should preview ton deposit fee', async () => {
+            const fee = await tonVault.getPreviewTonDepositFee();
+            expect(fee).toBe(toNano('0.012'));
+        });
+
+        it('should get max deposit', async () => {
+            const maxDepositAmount = await tonVault.getMaxDeposit();
+            expect(maxDepositAmount).toBe(MAX_COINS_VALUE);
         });
     });
 });

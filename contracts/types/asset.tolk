@@ -1,24 +1,9 @@
-type AssetType = uint4;
-
-const ASSET_TYPE_TON = 0;
-const ASSET_TYPE_JETTON = 1;
-
-@pure
-fun AssetType.ton() {
-    return ASSET_TYPE_TON;
+struct (0x0000) TonAsset {
+    // assetType: uint4 = 0;
 }
 
-@pure
-fun AssetType.jetton() {
-    return ASSET_TYPE_JETTON;
-}
-
-struct TonAsset {
-    assetType: AssetType = ASSET_TYPE_TON;
-}
-
-struct JettonAsset {
-    assetType: AssetType = ASSET_TYPE_JETTON;
+struct (0x0001) JettonAsset {
+    // assetType: AssetType = ASSET_TYPE_JETTON;
     jettonMaster: address;
 }
 

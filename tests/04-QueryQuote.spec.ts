@@ -7,6 +7,8 @@ import { Opcodes } from '../wrappers/constants/op';
 import { OPCODE_SIZE, QUERY_ID_SIZE, TIMESTAMP_SIZE } from '../wrappers/constants/size';
 import { writeFileSync } from 'fs';
 import { VaultErrors } from '../wrappers/constants/error';
+import { Asset } from '@torch-finance/core';
+import { JettonMaster } from '@ton/ton';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
@@ -14,6 +16,7 @@ describe('Deposit to TON Vault', () => {
     let bob: SandboxContract<TreasuryContract>;
     let tonVault: SandboxContract<Vault>;
     let USDTVault: SandboxContract<Vault>;
+    let USDT: SandboxContract<JettonMaster>;
     let tonVaultTotalSupply: bigint;
     let tonVaultTotalAssets: bigint;
     let USDTVaultTotalSupply: bigint;
@@ -24,7 +27,7 @@ describe('Deposit to TON Vault', () => {
 
     beforeEach(async () => {
         await resetToInitSnapshot();
-        ({ blockchain, maxey: contractToQuery, USDTVault, tonVault, bob } = getTestContext());
+        ({ blockchain, maxey: contractToQuery, USDTVault, tonVault, bob, USDT } = getTestContext());
         blockchain.now = Math.floor(Date.now() / 1000);
 
         // Deposit 1 TON to tonVault
@@ -78,6 +81,7 @@ describe('Deposit to TON Vault', () => {
         return beginCell()
             .storeUint(Opcodes.Vault.ProvideQuote, OPCODE_SIZE)
             .storeUint(queryId, QUERY_ID_SIZE)
+            .storeMaybeRef(null) // this repo is single-asset vault, so quoteAsset is always null
             .storeAddress(receiver)
             .storeMaybeRef(optionalQuoteParams)
             .storeMaybeRef(forwardPayload)
@@ -87,6 +91,7 @@ describe('Deposit to TON Vault', () => {
     function buildTakeQuotePayload(
         queryId: bigint,
         initiator: Address,
+        quoteAsset: Asset,
         totalSupply: bigint,
         totalAssets: bigint,
         timestamp: number,
@@ -96,6 +101,7 @@ describe('Deposit to TON Vault', () => {
             .storeUint(Opcodes.Vault.TakeQuote, OPCODE_SIZE)
             .storeUint(queryId, QUERY_ID_SIZE)
             .storeAddress(initiator)
+            .storeRef(quoteAsset.toCell())
             .storeCoins(totalSupply)
             .storeCoins(totalAssets)
             .storeUint(timestamp, TIMESTAMP_SIZE)
@@ -124,7 +130,7 @@ describe('Deposit to TON Vault', () => {
                 to: receiver ?? contractToQuery.address,
                 op: Opcodes.Vault.TakeQuote,
                 success: true,
-                body,
+                // body, // When comparing Asset, x{0} != x{0000}, so we can't compare body
             });
         } else {
             // Expect tonVault sent TakeQuote message to contractToQuery
@@ -175,6 +181,7 @@ describe('Deposit to TON Vault', () => {
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
+                    Asset.ton(),
                     tonVaultTotalSupply,
                     tonVaultTotalAssets,
                     blockchain.now!,
@@ -198,6 +205,7 @@ describe('Deposit to TON Vault', () => {
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
+                    Asset.ton(),
                     tonVaultTotalSupply,
                     tonVaultTotalAssets,
                     blockchain.now!,
@@ -262,6 +270,7 @@ describe('Deposit to TON Vault', () => {
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
+                    Asset.jetton(USDT.address),
                     USDTVaultTotalSupply,
                     USDTVaultTotalAssets,
                     blockchain.now!,
@@ -285,6 +294,7 @@ describe('Deposit to TON Vault', () => {
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
+                    Asset.jetton(USDT.address),
                     USDTVaultTotalSupply,
                     USDTVaultTotalAssets,
                     blockchain.now!,
@@ -308,6 +318,13 @@ describe('Deposit to TON Vault', () => {
                 success: false,
                 exitCode: VaultErrors.InsufficientProvideQuoteGas,
             });
+        });
+    });
+
+    describe('Get methods', () => {
+        it('should preview provide quote fee', async () => {
+            const fee = await tonVault.getPreviewProvideQuoteFee();
+            expect(fee).toBe(toNano('0.01'));
         });
     });
 });

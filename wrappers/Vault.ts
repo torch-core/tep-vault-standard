@@ -302,6 +302,44 @@ export class Vault implements Contract {
         return res.stack.readBigNumber();
     }
 
+    async getPreviewTonDepositFee(provider: ContractProvider) {
+        const res = await provider.get('getPreviewTonDepositFee', []);
+        return res.stack.readBigNumber();
+    }
+
+    async getPreviewJettonDepositFee(provider: ContractProvider) {
+        const res = await provider.get('getPreviewJettonDepositFee', []);
+        return res.stack.readBigNumber();
+    }
+
+    async getMaxDeposit(provider: ContractProvider) {
+        const res = await provider.get('getMaxDeposit', [
+            {
+                type: 'null',
+            },
+        ]);
+        return res.stack.readBigNumber();
+    }
+
+    async getMaxWithdraw(provider: ContractProvider) {
+        const res = await provider.get('getMaxWithdraw', [
+            {
+                type: 'null',
+            },
+        ]);
+        return res.stack.readBigNumber();
+    }
+
+    async getPreviewWithdrawFee(provider: ContractProvider) {
+        const res = await provider.get('getPreviewWithdrawFee', []);
+        return res.stack.readBigNumber();
+    }
+
+    async getPreviewProvideQuoteFee(provider: ContractProvider) {
+        const res = await provider.get('getPreviewProvideQuoteFee', []);
+        return res.stack.readBigNumber();
+    }
+
     async getStorage(provider: ContractProvider) {
         const { state } = await provider.getState();
         if (state.type !== 'active' || !state.code || !state.data) {

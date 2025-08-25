@@ -680,4 +680,11 @@ describe('Deposit to Jetton Vault', () => {
             });
         });
     });
+
+    describe('Get methods', () => {
+        it('should preview jetton deposit fee', async () => {
+            const fee = await USDTVault.getPreviewJettonDepositFee();
+            expect(fee).toBe(toNano('0.012'));
+        });
+    });
 });
