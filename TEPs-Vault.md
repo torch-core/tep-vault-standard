@@ -10,7 +10,7 @@
 
 This proposal defines a standardized API for tokenized vaults on the TON blockchain, built upon the [TEP-74 Jetton standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md) and inspired by the design principles of [ERC-4626](https://eips.ethereum.org/EIPS/eip-4626). It is adapted to TON’s **message-driven async design** and Jetton framework.  
 
-The standard supports **deposit, withdrawal, conversion rate queries, and gas operation previews.**. It also introduces a standardized **cross-protocol communication interface** with unified notification mechanisms for operation results and callbacks.  
+The standard supports **deposit, withdrawal, conversion rate queries, and gas operation previews**. It also introduces a standardized **cross-protocol communication interface** with unified notification mechanisms for operation results and callbacks.  
 
 By unifying these core operations, the standard enhances **composability and interoperability** in TON’s DeFi ecosystem. It reduces duplicated implementations, minimizes fragmentation across protocols, and enables developers to build consistent and efficient vault logic.  
 
@@ -23,8 +23,8 @@ While TON has a powerful asynchronous and message-driven architecture, its ecosy
 - **Inconsistent Callbacks**: Success/failure payload formats vary across implementations, which complicates subsequent operations or rollbacks in interacting protocols—especially in TON's asynchronous message-passing environment—increasing error risks.
 - **Non-Uniform Query Interfaces**: Get methods use inconsistent names and structures, forcing frontends and wallets to implement custom logic for each protocol. For example, some expose only the Jetton balance, while others require applying a conversion rate to show real asset value.
 - **Divergent Event Formats**: Emitted events use varied formats, making it difficult for off-chain systems to monitor and parse events uniformly.
-- **Inconsistent On-Chain Rate Queries**: Vaults provide rate information through different message-based query formats, forcing aggregators to implement multiple parsing logics. This increases development complexity and integration costs.
-- **Lack of Gas Estimation Standards**: No unified method to query gas consumption, making it difficult for developers to estimate interaction costs.
+- **Inconsistent On-Chain Rate Queries**: Vaults provide rate information through varying message-based query formats, including inconsistent opcodes and structures for both requests and responses. This forces aggregators to implement multiple custom logics, increasing development complexity and integration costs.
+- **Lack of Unified Gas Estimation Methods**: No unified method to query gas consumption, making it difficult for developers to estimate interaction costs.
 - **Varied Deposit/Withdrawal Processes**: Deposit and withdrawal flows and parameters differ across vaults, including how Jetton transfers and burn notifications are handled, increasing development complexity and integration costs.
   
 These issues force protocols to develop custom adapters, increasing errors, costs, and development time. 
@@ -78,7 +78,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
   |--------------|-----------------------|-------------------------------------|
   | `0000`       | **TON (native)**      | —                                   |
   | `0001`       | **Jetton**         | `jettonMasterAddress` (`Address`)   |
-  | `0010`       | **Extra Currency (XC)** | `tokenId` (`uint32`), not enabled for now |
+  | `0010`       | **Extra Currency** | `tokenId` (`uint32`), not enabled for now |
 
   **Encoding Examples (Tolk)**
   ```tolk
@@ -88,7 +88,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
   // Jetton
   beginCell().storeUint(1, 4).storeAddress(jettonMasterAddress).endCell()
 
-  // Extra Currency (XC)
+  // Extra Currency
   beginCell().storeUint(2, 4).storeUint(token_id, 32).endCell()
   ```
 - **`Nested<Cell<T>>`**: Because TON's Cell can have at most 4 references, if you need to store more than 4 references of the same type data structure, we will enable `Nested<Cell<T>>`, where access is such that 1 cell holds at most 3 references, and the remaining one reference is used to connect to the next layer cell, and then the next layer cell can continue to store at most 3 references and so on, as shown in the diagram below.
