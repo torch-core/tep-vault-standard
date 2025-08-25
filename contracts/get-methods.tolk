@@ -61,6 +61,10 @@ get fun getPreviewWithdrawFee() {
     return previewWithdrawFee();
 }
 
+get fun getPreviewProvideQuoteFee() {
+    return previewProvideQuoteFee();
+}
+
 // For Jetton
 
 struct JettonDataReply {

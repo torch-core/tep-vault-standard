@@ -608,7 +608,6 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `depositAmount`       | `Coins`                       | Deposited asset amount. |
     | `shares`              | `Coins`                       | Minted shares. |
     | `optionalDepositLogs` | `Cell<OptionalDepositLogs>?`  | Custom deposit logs. |
-    | `timestamp`           | `Timestamp`                      | Event timestamp for off-chain indexing. |
 
 - **`Withdrawn`**
   - **Description**: Emitted when initiator exchanges shares for assets, transferring them to receiver.
@@ -622,7 +621,6 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `withdrawAmount`       | `Coins`                        | Withdrawn asset amount. |
     | `burnedShares`         | `Coins`                        | Burned shares. |
     | `optionalWithdrawLogs` | `Cell<OptionalWithdrawLogs>?`  | Custom withdrawal logs. |
-    | `timestamp`            | `Timestamp`                       | Event timestamp for off-chain indexing. |
 
 - **`Quoted`**
   - **Description**: Emitted when the vault provides a quote for asset-to-share conversion, including total supply and assets at the time of calculation.

@@ -124,16 +124,15 @@ struct (0xb00d7656) VaultNotificationFp {
 }
 
 // ===== Provide Quote Messages =====
-struct OptionalQuoteParams {
-    // Add your optional params based on your needs
-    // Leave it empty if you don't need any extra params
+struct QuoteOptions {
+    vaultOptions: Cell<VaultOptions>? = null
 }
 
 struct (0xc643cc91) ProvideQuote {
     queryId: QueryId
     quoteAsset: Cell<Asset>? = null
     receiver: address
-    optionalQuoteParams: Cell<OptionalQuoteParams>? = null
+    quoteOptions: Cell<QuoteOptions>? = null
     forwardPayload: cell?
 }
 
