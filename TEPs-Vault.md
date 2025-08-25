@@ -72,7 +72,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 - **`Asset`**: Represents various asset types (TON, Jetton, Extra Currency) using a compact encoding scheme for unified handling.
 
   **Format**  
-  Each asset is encoded using a 4-bit prefix, read via `preloadUint(4)`, followed by type-specific data:
+  Each asset is encoded using a 4-bit prefix, followed by type-specific data:
 
   | Prefix (bin) | Type                  | Additional Data                     |
   |--------------|-----------------------|-------------------------------------|
@@ -107,14 +107,14 @@ Vault contracts MUST implement the following persistent storage variables in the
 
 - **`adminAddress`**
   - **Description**: The administrative address for the vault contract.
-  - **Requirements**: SHOULD deploy the contract and set Jetton Master parameters when the underlying asset is a Jetton, ensuring correct provide and take jetton wallet address interactions.
+  - **Requirements**: SHOULD deploy the contract and set Jetton Master parameters when the underlying asset is a Jetton, ensuring correct provide and take wallet address interactions.
   - **Type**: `Address`
 
 - **`jettonContent`**
   - **Description**: Metadata cell for Jetton shares, compliant with `TEP-64` (Token Data Standard).
   - **Requirements**: 
-    - MUST contain token metadata (`name`, `symbol`, `decimals`). `name` and `symbol` 
-    - SHOULD include both the vault provider’s information and the underlying asset’s details in the token metadata, with `name` and `symbol` reflecting the underlying asset.
+    - MUST contain token metadata (`name`, `symbol`, `decimals`).
+    - SHOULD include both the vault provider’s information and the underlying asset’s details in the token metadata
   - **Type**: `Cell`
 
 - **`jettonWalletCode`**
@@ -156,7 +156,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **`totalAssetsDict`**
   - **Description**: Dictionary mapping underlying asset identifiers to the total amounts managed by the vault.
   - **Requirements**:
-    - Key MUST be the hash (`uint256`) of the `Asset` cell, computed as `Asset.toCell().hash()`.
+    - Key MUST be the hash of the `Asset` cell, computed as `Asset.toCell().hash()`.
     - Values SHOULD include compounding from yield or accrued fees.
     - MUST include fees charged against managed assets.
   - **Type**: `Dict<Hash, Coins>`
@@ -184,6 +184,7 @@ For vaults managing multiple underlying assets, the following persistent storage
   - **Description**: Cell of a nested structure (`Nested<Cell<Asset>>`) for storing underlying asset data in multi-asset vaults.
   - **Requirements**:
     - MUST contain all underlying assets accepted by the vault.
+    - MAY be sorted based on the asset cell hash to ensure a unique address.
   - **Type**: `Cell`
 
 #### Internal Messages
@@ -192,7 +193,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 
 ![vault-notification](./assets/vault-notification.png)
 
-- **Description**: After vault interaction (`Deposit` or `Withdraw`), the vault sends a notification message to the receiver or initiator, with user-defined callback payloads for further operations.
+- **Description**: After vault interaction (`Deposit` or `Withdraw`), the vault sends a notification message to the `receiver` or `initiator`, with user-defined callback payloads for further operations.
 
 - **Messages**:
   - **`VaultOptions`**
@@ -212,7 +213,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 
     | Field       | Type | Description |
     |-------------|------|-------------|
-    | `includeBody` | `Bool` | Whether to include the Vault interaction message payload (e.g., OP_DEPOSIT) in the response to the `receiver`/`initiator`. |
+    | `includeBody` | `Bool` | Whether to include the Vault interaction message payload (e.g., `OP_DEPOSIT`) in the response to the `receiver`/`initiator`. |
     | `payload`     | `Cell` | If defined, sends user-defined callback payload to `receiver` (on success) or `initiator` (on failure). |
 
   - **`Callbacks`**:
@@ -228,10 +229,10 @@ For vaults managing multiple underlying assets, the following persistent storage
     |-----------------|---------|-------------|
     | `result`          | `Result`  | Outcome of the vault operation. |
     | `initiator`       | `Address` | Address initiating the vault interaction. |
-    | `callbackPayload` | `Cell?`   | `successCallback.payload` (on success) or `failureCallback.payload` (on failure). Null if not specified in `CallbackParams`. |
-    | `inBody`          | `Cell?`   | The vault Interaction message payload if `includeBody` is `true`; otherwise, null. |
+    | `callbackPayload` | `Cell?`   | `successCallback.payload` (on success) or `failureCallback.payload` (on failure). `Null` if not specified in `CallbackParams`. |
+    | `inBody`          | `Cell?`   | The vault Interaction message payload if `includeBody` is `true`; otherwise, `Null`. |
 
-  - **`OP_VAULT_NOTIFICATION`**: For `Withdraw` or TON refund.
+  - **`OP_VAULT_NOTIFICATION`**: For withdrawing or refunding TON.
 
     | Field                    | Type                   | Description |
     |--------------------------|------------------------|-------------|
@@ -360,7 +361,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     | `quoteAsset`             | `Cell<Asset>?`   | For vaults that support multiple assets, quoteAsset is used as the basis for calculating the exchange rate. If this field is null, the exchange rate will be calculated using the baseAsset. |
     | `receiver`            | `Address`   | Address receiving `OP_TAKE_QUOTE`. |
     | `quoteOptions` | `Cell<QuoteOptions>?`     | Additional data for asset/share calculations. |
-    | `forwardPayload`      | `Cell`      | Initiator-defined payload for further `receiver` operations. This can include custom fields such as validUntil |
+    | `forwardPayload`      | `Cell`      | Initiator-defined payload for further `receiver` operations. This can include custom fields such as `validUntil` |
 
   - **`OP_TAKE_QUOTE`**:
 
@@ -406,10 +407,10 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - For multi-asset vaults, calculations may use a quote asset specified in the config for exchange rate conversions; if not specified, the base asset is used.
   - **Requirements**:
     - MUST NOT include fees charged against assets.
-    - MUST NOT vary by caller.
+    - MUST NOT vary by sender.
     - MUST NOT reflect slippage or on-chain conditions.
     - MUST NOT revert unless due to integer overflow from unreasonably large input.
-    - MUST round down to 0.
+    - MUST round down to `0`.
     - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
     - For multi-asset vaults, SHOULD handle conversions via config if needed.
   - **Input**:
@@ -417,7 +418,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     |-----------------|-------------------|-------------|
     | `depositAmount` | `Coins`           | Asset amount to convert. |
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
-    | `rounding`      | `RoundingType`    | Rounding mode (default: ROUND_DOWN). |
+    | `rounding`      | `RoundingType`    | Rounding mode (default: `ROUND_DOWN`). |
 
     *Note: For the get-method (`getConvertToShares`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
@@ -431,10 +432,10 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - For multi-asset vaults, calculations may use a quote asset specified in the config for exchange rate conversions; if not specified, the base asset is used.
   - **Requirements**:
     - MUST NOT include fees charged against assets.
-    - MUST NOT vary by caller.
+    - MUST NOT vary by sender.
     - MUST NOT reflect slippage or on-chain conditions.
     - MUST NOT revert unless due to integer overflow from unreasonably large input.
-    - MUST round down to 0.
+    - MUST round down to `0`.
     - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
     - For multi-asset vaults, SHOULD handle conversions via config if needed.
   - **Input**:
@@ -442,7 +443,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     |------------------|--------------------|-------------|
     | `shares`         | `Coins`            | Share amount to convert. |
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
-    | `rounding`       | `RoundingType`     | Rounding mode (default: ROUND_DOWN). |
+    | `rounding`       | `RoundingType`     | Rounding mode (default: `ROUND_DOWN`). |
 
     *Note: For the get-method (`getConvertToAssets`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
@@ -457,7 +458,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
   - **Requirements**:
     - MUST return the maximum deposit amount that won’t revert, underestimating if necessary.
     - Assumes the user has unlimited assets.
-    - MUST consider global or asset-specific constraints (e.g., return 0 if deposits are disabled).
+    - MUST consider global or asset-specific constraints (e.g., return `0` if deposits are disabled).
     - MAY return `531691198313966349161522824112137833` (maximum `Coins` value) if no deposit limits exist.
     - For multi-asset vaults, SHOULD handle limits via config if needed.
   - **Input**:
@@ -473,7 +474,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 
 - **`previewDeposit`**
   - **Description**: 
-    - Simulates the deposit outcome based on the current block state (callable off-chain via get-method).
+    - Simulates the deposit outcome based on the current block state.
     - For multi-asset vaults, the specific asset to query can be specified in the config; if not, the base asset is used.
   - **Requirements**:
     - MUST return a value as close as possible to (but not exceeding) the shares minted in an actual deposit.
@@ -500,7 +501,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - For multi-asset vaults, the specific asset to query can be specified in the config; if not, the base asset is used.
   - **Requirements**:
     - MUST return the maximum shares that can be withdrawn without reverting, underestimating if necessary.
-    - MUST consider global constraints (e.g., return 0 if withdrawals are disabled).
+    - MUST consider global constraints (e.g., return `0` if withdrawals are disabled).
     - MAY return `531691198313966349161522824112137833` (maximum `Coins` value) if no withdraw limits exist.
     - For multi-asset vaults, SHOULD handle limits via config if needed.
   - **Input**:
@@ -516,7 +517,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 
 - **`previewWithdraw`**
   - **Description**: 
-    - Simulates the withdrawal outcome based on the current block state (callable off-chain via get-method).
+    - Simulates the withdrawal outcome based on the current block state.
     - For multi-asset vaults, the specific asset to query can be specified in the config; if not, the base asset is used.
   - **Requirements**:
     - MUST return a value as close as possible to (but not exceeding) the assets withdrawn in an actual withdrawal.
@@ -538,12 +539,12 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `assets` | `Coins` | Estimated assets withdrawn.
 
 - **`previewTonDepositFee`**
-  - **Description**: Returns the gas fee required for depositing TON to the vault.
+  - **Description**: Returns the gas fee required for depositing TON to the vault. This fee is charged by the vault contract to the `initiator`.
   - **Requirements**:
     - MUST exclude forward and storage fees.
     - MUST exclude fees for subsequent contract interactions (e.g., Jetton Transfer).
     - MUST NOT revert.
-    - SHOULD return a conservative (upper-bound) estimate to account for network variability.
+    - SHOULD return a conservative estimate.
   - **Input**: None
   - **Output**:
 
@@ -552,7 +553,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `tonDepositGasFee` | `Coins` | Gas fee for TON deposit. |
 
 - **`previewJettonDepositFee`**
-  - **Description**: Returns the gas fee required for depositing Jetton to the vault.
+  - **Description**: Returns the gas fee required for depositing Jetton to the vault. This fee is charged by the vault contract to the `initiator`
   - **Requirements**:
     - MUST exclude forward and storage fees.
     - MUST exclude fees for subsequent contract interactions (e.g., Jetton Transfer).
@@ -566,7 +567,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `jettonDepositGasFee`  | `Coins` | Gas fee for Jetton deposit. |
 
 - **`previewWithdrawFee`**
-  - **Description**: Returns the gas fee required for withdrawing from the vault.
+  - **Description**: Returns the gas fee required for withdrawing from the vault. This fee is charged by the vault contract to the `initiator`
   - **Requirements**:
     - MUST exclude forward and storage fees.
     - MUST exclude fees for subsequent contract interactions (e.g., Jetton Transfer).
@@ -580,7 +581,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `withdrawGasFee`  | `Coins` | Gas fee for withdrawal. |
 
 - **`previewProvideQuoteFee`**
-  - **Description**: Returns the gas fee required for querying `totalAssets` and `totalSupply`.
+  - **Description**: Returns the gas fee required for querying `totalAssets` and `totalSupply`. This fee is charged by the vault contract to the `initiator`
   - **Requirements**:
     - MUST exclude forward and storage fees.
     - MUST exclude fees for subsequent contract interactions (e.g., Jetton Transfer).
@@ -643,9 +644,9 @@ While TEP-4626 provides a standardized interface for tokenized vaults on TON, it
 
 - **Security Risks in Notifications**: The `VaultNotification` mechanism enhances communication between protocols for handling success or failure outcomes. However, if the vault's administrative privileges (e.g., via `adminAddress`) are compromised, an attacker could upgrade the contract and send forged messages, potentially deceiving integrated protocols. This underscores the need for robust access controls and verification in vault implementations.
   
-- **Lack of Per-Address Limits**: The standard does not include built-in restrictions on deposit or withdrawal amounts for individual addresses. This could expose vaults to risks like flash loan exploits or whale manipulations, requiring developers to implement custom limits via `DepositOptions` or `WithdrawOptions` if needed.
+- **Lack of Per-Address Limits**: The standard does not include built-in restrictions on deposit or withdrawal amounts for individual addresses.
   
-- **Timeliness Issues in Quotes**: The `provideQuote` and `takeQuote` mechanisms may suffer from delays inherent to TON's asynchronous messaging architecture. Quotes are based on snapshot values of `totalSupply` and `totalAssets`, but by the time the quote is received, the vault's state could have changed due to concurrent operations, network congestion, or cross-shard interactions. This could lead to unexpected slippage or failed operations, necessitating off-chain monitoring or time-bound validity checks in integrations.
+- **Timeliness Issues in Quotes**: The provide and take quote mechanisms may suffer from delays inherent to TON's asynchronous messaging architecture. Quotes are calculated based on the vault's state at the moment of computation, including its current `totalSupply` and `totalAssets`. However, by the time the quote is received, the vault's state could have changed.
 
 These drawbacks will be further explored in the Rationale and Alternatives section, where we explain potential solutions and design choices to address them.
 
@@ -656,9 +657,11 @@ The vault interface follows ERC-4626 design principles while adapting to the uni
 ### Asynchronous Notifications and Security Risks
 **Rationale**: TON is an asynchronous system, making rollbacks or inter-protocol interactions challenging. Without standards, integrations become difficult and prone to vulnerabilities, such as those seen in TON from improper use of success/failure payloads. Thus, a notification system is essential for vaults, allowing interacting contracts to perform next steps based on outcomes. However, this introduces risks if the vault's admin is compromised, enabling forged messages via contract upgrades.  
 **Alternatives**: To mitigate, three approaches are recommended: 
-1. Use multisig for admin
+1. Use multisig wallet for admin
 2. Implement timelocks for upgrades, with third-party guardians independent of the admin able to cancel
-3. Disable code upgrades entirely. Many TON DeFi contracts allow upgrades, but combining (1) and (2) effectively limits attacks.
+3. Disable code upgrades entirely. 
+
+Many TON DeFi contracts allow upgrades. Combining Point 1 (multisig) and Point 2 (timelocks) is an effective way to significantly reduce the risk of attack, providing robust security for contracts that require upgradeability.
 
 ### Multi-Asset Support
 **Rationale**: Unlike ERC-4626's single-asset model, TEP-4626 supports multi-assets for two reasons: 
@@ -668,32 +671,31 @@ The vault interface follows ERC-4626 design principles while adapting to the uni
 **Alternatives**: A single-asset-only design was considered for simplicity, but it limits innovation. Full dict unification for all vaults (even single-asset) was evaluated for code reuse, but rejected due to gas overhead; the dual approach optimizes common cases.
 
 ### Off-Chain Data Integration via VaultOptions
-**Rationale**: TON lacks on-chain price fetching like Ethereum, so off-chain data (e.g., prices) is carried via messages. VaultOptions allows passing such data, validated into VaultConfig for use.
+**Rationale**: TON lacks on-chain price fetching like Ethereum, so off-chain data (e.g., prices) is carried via messages. `VaultOptions` allows passing such data, validated into `VaultConfig` for use.
 
 ### Omission of Extra Currency Support
 **Rationale**: TON supports Extra Currency, but its usage is not widespread, with no DeFi protocols adopting it yet. Thus, the current design excludes it.  
-**Alternatives**: Immediate inclusion was considered, but deferred due to ecosystem immaturity; future versions could add it as adoption grows (see Future Possibilities).
+**Alternatives**: Immediate inclusion was considered, but deferred due to ecosystem immaturity; future versions could add it as adoption grows.
 
 ### Asset-Based Limits Instead of Per-Address
-**Rationale**: ERC-4626 limits maxDeposit/maxWithdraw per address, but TEP-4626 uses asset-based checks. On TON, querying initiator's shares on-chain is difficult without dicts (inefficient) or sub-contracts/Jetton wallets (complex).  
-**Alternatives**: Per-user dict tracking was evaluated, but adds gas costs. Sub-contracts increase fragmentation; asset-based limits provide adequate protection without overhead.
+**Rationale**: ERC-4626 limits `maxDeposit`/`maxWithdraw` per address, but TEP-4626 uses asset-based checks. On TON, querying initiator's shares on-chain is difficult without dicts (inefficient) or sub-contracts/Jetton wallets (complex).  
+**Alternatives**: Per-user dict tracking was evaluated, but adds gas costs. Sub-contracts increase complexity; asset-based limits provide adequate protection without overhead.
 
 ### Omission of Mint/Redeem Functions
-**Rationale**: ERC-4626's mint (specify shares, vault pulls assets) and redeem (specify assets, vault pulls shares) require wallet plugging, uncommon on TON. Omitting them aligns with user habits of direct transfers, reducing cognitive load.  
+**Rationale**: ERC-4626's `mint` (specify shares, vault pulls assets) and `redeem` (specify assets, vault pulls shares) require wallet plugging, uncommon on TON. Omitting them aligns with user habits of direct transfers, reducing cognitive load.  
 **Alternatives**: Implementing them was considered, but skipped due to low adoption and added complexity/async risks; direct transfers fit TON norms better.
 
 ### Provide/Take Quote Mechanism and Timeliness
-**Rationale**: Fetching exchange rates faces Jetton balance query issues—rates may change by response time. Adding timestamps to `OP_TAKE_QUOTE` lets receivers validate freshness. We believe the timestamp generated during rate calculation is sufficient for judging staleness. If stricter control over the entire process is needed, developers can embed a `validUntil` field in `forwardPayload` for custom expiration checks.
-**Alternatives**: Pure off-chain quotes reduce on-chain composability. Omitting timestamps risks stale data; timestamps enable time-bound checks.
+**Rationale**: Fetching exchange rates faces Jetton balance query issues—rates may change by response time. Adding timestamps to `OP_TAKE_QUOTE` lets `receivers` validate freshness. We believe the timestamp generated during rate calculation is sufficient for judging staleness. If stricter control over the entire process is needed, developers can embed a `validUntil` field in `forwardPayload` for custom expiration checks.
 
 ### Slippage Protection via minShares/minWithdraw
-**Rationale**: Adding minShares/minWithdraw checks in deposit/withdraw refunds on failure, protecting against rate volatility for better UX.
+**Rationale**: Adding `minShares`/`minWithdraw` checks in deposit/withdraw refunds on failure, protecting against rate volatility for better UX.
 
 ### Mitigation of Donation Attacks
-**Rationale**: No donation attacks per design, as transfers require valid payloads to update totalAssets. Direct transfers without payloads are ignored. Issues arise only if rates are off-chain calculated from balances—in such cases, vaults should avoid relying on direct balance checks to prevent manipulation.
+**Rationale**: No donation attacks per design, as transfers require valid payloads to update `totalAssets`. Direct transfers without payloads are ignored. Issues arise only if rates are off-chain calculated from balances—in such cases, vaults should avoid relying on direct balance checks to prevent manipulation.
 
 ### Gas Estimation for Developer Experience
-**Rationale**: TON interactions often fail due to insufficient TON despite docs. Preview fees (e.g., previewDeposit) let developers estimate costs, reducing errors and improving DX.
+**Rationale**: TON interactions often fail due to insufficient TON despite docs. Preview fees (e.g., `previewDeposit`) let developers estimate costs, reducing errors and improving DX.
 
 These design choices address the limitations outlined in the Drawbacks section, with unresolved questions and future extensions explored in subsequent sections.
 
