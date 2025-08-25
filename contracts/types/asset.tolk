@@ -1,9 +1,7 @@
 struct (0x0000) TonAsset {
-    // assetType: uint4 = 0;
 }
 
 struct (0x0001) JettonAsset {
-    // assetType: AssetType = ASSET_TYPE_JETTON;
     jettonMaster: address;
 }
 
