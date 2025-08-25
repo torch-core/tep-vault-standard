@@ -130,7 +130,7 @@ describe('Deposit to TON Vault', () => {
                 to: receiver ?? contractToQuery.address,
                 op: Opcodes.Vault.TakeQuote,
                 success: true,
-                // body, // When comparing Asset, x{0} != x{0000}, so we can't compare body
+                body, 
             });
         } else {
             // Expect tonVault sent TakeQuote message to contractToQuery

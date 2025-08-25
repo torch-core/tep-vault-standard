@@ -1,7 +1,6 @@
-struct (0x0000) TonAsset {
-}
+struct (0x0) TonAsset {}
 
-struct (0x0001) JettonAsset {
+struct (0x1) JettonAsset {
     jettonMaster: address;
 }
 
