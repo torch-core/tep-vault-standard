@@ -133,7 +133,7 @@ export const createTestEnvironment = () => {
         const usdtVaultJettonData = await USDTVault.getJettonData();
         expect(usdtVaultJettonData.totalSupply).toBe(0n);
         expect(usdtVaultJettonData.mintable).toBe(true);
-        expect(usdtVaultJettonData.adminAddress.equals(USDTVault.address)).toBeTruthy();
+        expect(usdtVaultJettonData.adminAddress.equals(admin.address)).toBeTruthy();
         expect(usdtVaultJettonData.content.equals(content)).toBeTruthy();
         expect(usdtVaultJettonData.walletCode.equals(jettonWalletCode)).toBeTruthy();
 

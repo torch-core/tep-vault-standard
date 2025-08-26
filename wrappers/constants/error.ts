@@ -11,4 +11,5 @@ export const VaultErrors = {
     InsufficientJettonDepositGas: 2004,
     InsufficientWithdrawGas: 3003,
     InsufficientProvideQuoteGas: 5000,
+    WrongOpCode: 0xffff,
 };

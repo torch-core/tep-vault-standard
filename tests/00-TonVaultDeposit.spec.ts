@@ -14,6 +14,7 @@ import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
 import { MAX_COINS_VALUE } from './helper/constants';
 import { Asset } from '@torch-finance/core';
+import { OPCODE_SIZE } from '../wrappers/constants/size';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
@@ -594,6 +595,39 @@ describe('Deposit to TON Vault', () => {
         it('should get convert to shares', async () => {
             const convertToShares = await tonVault.getConvertToShares(toNano('10'));
             expect(convertToShares).toBe(toNano('10'));
+        });
+    });
+
+    describe('Other cases', () => {
+        it('should throw when wrong op to ton vault', async () => {
+            const result = await maxey.send({
+                to: tonVault.address,
+                value: toNano('0.05'),
+                body: beginCell().storeUint(123, OPCODE_SIZE).endCell(),
+            });
+
+            // Expect maxey sends OP_INCREASE to ton vault and exit with NOT_AUTHORIZED
+            expect(result.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: tonVault.address,
+                success: false,
+                exitCode: VaultErrors.WrongOpCode,
+            });
+        });
+
+        it('should ton vault receive TON', async () => {
+            const sendingAmount = toNano('0.05');
+            const result = await maxey.send({
+                to: tonVault.address,
+                value: sendingAmount,
+            });
+
+            // Expect maxey sends TON to ton vault and success
+            expect(result.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: tonVault.address,
+                success: true,
+            });
         });
     });
 });
