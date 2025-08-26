@@ -154,7 +154,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **`totalAssetsDict`**
   - **Description**: Dictionary mapping underlying asset identifiers to the total amounts managed by the vault.
   - **Requirements**:
-    - Key MUST be the hash of the `Asset` cell, computed as `Asset.toCell().hash()`.
+    - Key MUST be the hash of the [Asset](#asset) cell, computed as `Asset.toCell().hash()`.
     - Values SHOULD include compounding from yield or accrued fees.
     - MUST include fees charged against managed assets.
   - **Type**: Dict<[Hash](#hash), `Coins`>
@@ -448,7 +448,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
     | `rounding`       | [RoundingType](#roundingtype)     | Rounding mode (default: `ROUND_DOWN`). |
 
-    *Note: For the get-method (`getConvertToAssets`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<[WithdrawOptions](#withdrawoptions)>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
+    *Note: For the get-method (`getConvertToAssets`), replace `withdrawConfig` with `withdrawOptionsCell`: Cell<[WithdrawOptions](#withdrawoptions)>?. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|
@@ -512,7 +512,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     |------------------|--------------------|-------------|
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for asset-specific limits in multi-asset scenarios). |
 
-    *Note: For the get-method (`getMaxWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<[WithdrawOptions](#withdrawoptions)>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
+    *Note: For the get-method (`getMaxWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell`: Cell<[WithdrawOptions](#withdrawoptions)>?. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
     | Field       | Type    | Description |
     |-------------|---------|-------------|
@@ -535,7 +535,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `shares`         | `Coins`            | Share amount to withdraw. |
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates or fees in multi-asset scenarios). |
 
-    *Note: For the get-method (`getPreviewWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<[WithdrawOptions](#withdrawoptions)>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
+    *Note: For the get-method (`getPreviewWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell`: Cell<[WithdrawOptions](#withdrawoptions)>?. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|
