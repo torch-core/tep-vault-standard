@@ -52,24 +52,22 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 - **`baseAsset`**: The primary or default underlying asset for vault calculations, used for standardization in multi-asset scenarios. For single-asset vaults, it is the sole asset. If no other specified asset is provided, the vault will utilize the base asset for exchange rate conversions and output standardization, to ensure operational consistency and simplify integrations.
 - **`XXX_FP`**: If a name ends with `_FP` (e.g., `OP_DEPOSIT_FP`), it refers to fields in `forwardPayload` (Jetton Notification) or `customPayload` (Burn Notification). Names without `_FP` (e.g., `OP_DEPOSIT`) refer to actions involving TON transfers.
 
-### Vault Smart Contract
-
 #### General Types
 
-- **`Opcode`**: `uint32`  
-- **`QueryId`**: `uint64`
-- **`Timestamp`**: `uint32`  
-- **`Hash`**: `uint256`
-- **`RoundingType`**: `uint2`  
+- **`Opcode`** <a id="opcode"></a>: `uint32`
+- **`QueryId`** <a id="queryid"></a>: `uint64`
+- **`Timestamp`** <a id="timestamp"></a>: `uint32`  
+- **`Hash`** <a id="hash"></a>: `uint256`
+- **`RoundingType`** <a id="roundingtype"></a>: `uint2`  
   - `ROUND_DOWN = 0`  
   - `ROUND_UP = 1`  
   - `ROUND_GENERIC = 2` — standard rounding (i.e., round half up)  
-- **`Result`**: `uint16`  
+- **`Result`** <a id="result"></a>: `uint16`  
   - Outcome of the vault operation.  
   - Values: 
     - `0` (success)
     - Error codes (e.g., `1000`: Insufficient amount, `2000`: Limit exceeded).  
-- **`Asset`**: Represents various asset types (TON, Jetton, Extra Currency) using a compact encoding scheme for unified handling.
+- **`Asset`** <a id="asset"></a>: Represents various asset types (TON, Jetton, Extra Currency) using a compact encoding scheme for unified handling.
 
   **Format**  
   Each asset is encoded using a 4-bit prefix, followed by type-specific data:
@@ -91,7 +89,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
   // Extra Currency
   beginCell().storeUint(2, 4).storeUint(token_id, 32).endCell()
   ```
-- **`Nested<Cell<T>>`**: Because TON's Cell can have at most 4 references, if you need to store more than 4 references of the same type data structure, we will enable `Nested<Cell<T>>`, where access is such that 1 cell holds at most 3 references, and the remaining one reference is used to connect to the next layer cell, and then the next layer cell can continue to store at most 3 references and so on, as shown in the diagram below.
+- **`Nested<Cell<T>>`** <a id="nestedcellt"></a>: Because TON's Cell can have at most 4 references, if you need to store more than 4 references of the same type data structure, we will enable `Nested<Cell<T>>`, where access is such that 1 cell holds at most 3 references, and the remaining one reference is used to connect to the next layer cell, and then the next layer cell can continue to store at most 3 references and so on, as shown in the diagram below.
 ![nested-cell](./assets/nested-cell.png)
 
 #### Storage
@@ -159,7 +157,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     - Key MUST be the hash of the `Asset` cell, computed as `Asset.toCell().hash()`.
     - Values SHOULD include compounding from yield or accrued fees.
     - MUST include fees charged against managed assets.
-  - **Type**: `Dict<Hash, Coins>`
+  - **Type**: Dict<[Hash](#hash), `Coins`>
 
 - **`assetMastersDict`**
   - **Description**: Dictionary mapping Jetton Master address to the vault's corresponding Jetton Wallet address.
@@ -181,7 +179,7 @@ For vaults managing multiple underlying assets, the following persistent storage
   - **Type**: `Dict<Address, Address>`
 
 - **`assetsCell`**
-  - **Description**: Cell of a nested structure (`Nested<Cell<Asset>>`) for storing underlying asset data in multi-asset vaults.
+  - **Description**: Cell of a nested structure ([Nested<Cell<T>>](#nestedcellt)) for storing underlying asset data in multi-asset vaults.
   - **Requirements**:
     - MUST contain all underlying assets accepted by the vault.
     - MAY be sorted based on the asset cell hash to ensure a unique address.
@@ -196,56 +194,56 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Description**: After vault interaction (`Deposit` or `Withdraw`), the vault sends a notification message to the `receiver` or `initiator`, with user-defined callback payloads for further operations.
 
 - **Messages**:
-  - **`VaultOptions`**
+  - **`VaultOptions`** <a id="vaultoptions"></a>
 
     | Field            | Type   | Description |
     |------------------|--------|-------------|
     | *(user-defined)* | `any` | Optional parameters used across deposit, withdraw, and query quote messages. Its structure is not predefined — developers may include data such as **off-chain computed prices**, **signature payloads**, or **referral information**. |
 
-  - **`VaultConfig`**
+  - **`VaultConfig`** <a id="vaultconfig"></a>
 
     | Field                  | Type   | Description |
     |------------------------|--------|-------------|
-    | *(user-defined)* | `any` | Internal configuration struct resolved from `VaultOptions`. Represents processed and validated parameters, such as a **verified price** used in vault operations. |
+    | *(user-defined)* | `any` | Internal configuration struct resolved from [VaultOptions](#vaultoptions). Represents processed and validated parameters, such as a **verified price** used in vault operations. |
 
 
-  - **`CallbackParams`**:
+  - **`CallbackParams`** <a id="callbackparams"></a>
 
     | Field       | Type | Description |
     |-------------|------|-------------|
     | `includeBody` | `Bool` | Whether to include the Vault interaction message payload (e.g., `OP_DEPOSIT`) in the response to the `receiver`/`initiator`. |
     | `payload`     | `Cell` | If defined, sends user-defined callback payload to `receiver` (on success) or `initiator` (on failure). |
 
-  - **`Callbacks`**:
+  - **`Callbacks`** <a id="callbacks"></a>
 
     | Field             | Type                   | Description |
     |-------------------|------------------------|-------------|
-    | `successCallback`   | `Cell<CallbackParams>?` | Sends `successCallback.payload` to `receiver` on successful vault interaction. |
-    | `failureCallback`   | `Cell<CallbackParams>?` | Sends `failureCallback.payload` to `initiator` on failed vault interaction. |
+    | `successCallback`   | Cell<[CallbackParams](#callbackparams)>? | Sends `successCallback.payload` to `receiver` on successful vault interaction. |
+    | `failureCallback`   | Cell<[CallbackParams](#callbackparams)>? | Sends `failureCallback.payload` to `initiator` on failed vault interaction. |
 
-  - **`VaultNotificationParams`**:
+  - **`VaultNotificationParams`** <a id="vaultnotificationparams"></a>
 
     | Field           | Type    | Description |
     |-----------------|---------|-------------|
-    | `result`          | `Result`  | Outcome of the vault operation. |
+    | `result`          | [Result](#result)  | Outcome of the vault operation. |
     | `initiator`       | `Address` | Address initiating the vault interaction. |
-    | `callbackPayload` | `Cell?`   | `successCallback.payload` (on success) or `failureCallback.payload` (on failure). `Null` if not specified in `CallbackParams`. |
+    | `callbackPayload` | `Cell?`   | `successCallback.payload` (on success) or `failureCallback.payload` (on failure). `Null` if not specified in [CallbackParams](#callbackparams). |
     | `inBody`          | `Cell?`   | The vault Interaction message payload if `includeBody` is `true`; otherwise, `Null`. |
 
-  - **`OP_VAULT_NOTIFICATION`**: For withdrawing or refunding TON.
+  - **`OP_VAULT_NOTIFICATION`** <a id="op_vault_notification"></a>: For withdrawing or refunding TON.
 
     | Field                    | Type                   | Description |
     |--------------------------|------------------------|-------------|
-    | `OP_VAULT_NOTIFICATION`    | `Opcode`                 | `0x86eba146` |
-    | `queryId`                  | `QueryId`                | Unique query identifier. |
-    | `vaultNotificationParams`  | `VaultNotificationParams`|  |
+    | `OP_VAULT_NOTIFICATION`    | [Opcode](#opcode)                 | `0x86eba146` |
+    | `queryId`                  | [QueryId](#queryid)                | Unique query identifier. |
+    | `vaultNotificationParams`  | [VaultNotificationParams](#vaultnotificationparams)|  |
 
-  - **`OP_VAULT_NOTIFICATION_FP`**: For minting shares, withdrawing, or refunding Jetton.
+  - **`OP_VAULT_NOTIFICATION_FP`** <a id="op_vault_notification_fp"></a>: For minting shares, withdrawing, or refunding Jetton.
 
     | Field                    | Type                   | Description |
     |--------------------------|------------------------|-------------|
-    | `OP_VAULT_NOTIFICATION_FP` | `Opcode`                 | `0xb00d7656` |
-    | `vaultNotificationParams`  | `VaultNotificationParams`|  |
+    | `OP_VAULT_NOTIFICATION_FP` | [Opcode](#opcode)                 | `0xb00d7656` |
+    | `vaultNotificationParams`  | [VaultNotificationParams](#vaultnotificationparams)|  |
 
 **Deposit (For TON)**
 
@@ -254,34 +252,35 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of TON.
 - **Requirements**:
   - MUST verify `in.valueCoins` covers `depositAmount` plus required gas.
-  - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund TON and send `OP_VAULT_NOTIFICATION` with `failureCallback.payload` to `initiator`.
-  - On successful share minting, MUST send `OP_VAULT_NOTIFICATION_FP` with `successCallback.payload` to `receiver`.
+  - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund TON and send [OP_VAULT_NOTIFICATION](#op_vault_notification) with `failureCallback.payload` to `initiator`.
+  - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
   - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
   - MUST emit `TOPIC_DEPOSITED` event.
 
 - **Message**:
-  - **`DepositOptions`**
+  - **`DepositOptions`** <a id="depositoptions"></a>
 
     | Field        | Type                 | Description |
     |--------------|----------------------|-------------|
-    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, query quote). |
+    | `vaultOptions` | Cell<[VaultOptions](#vaultoptions)>? | Reference to common options shared across vault operations (deposit, withdraw, query quote). |
     | *(user-defined)* | `any` | Deposit-specific parameters defined by the developer. |
 
-  - **`DepositParams`**:
+  - **`DepositParams`** <a id="depositparams"></a>
 
     | Field          | Type                   | Description |
     |----------------|------------------------|-------------|
     | `receiver`       | `Address`                | Address receiving vault share jetton and callback payload. |
     | `minShares`      | `Coins`                  | Minimum shares to receive, else refund. |
-    | `depositOptions` | `Cell<DepositOptions>?`  | Optional parameters (e.g., price data). |
-    | `callbacks`      | `Callbacks`              | Success and failure callbacks. |
+    | `depositOptions` | `Cell<[DepositOptions](#depositoptions)>?`  | Optional parameters (e.g., price data). |
+    | `callbacks`      | [Callbacks](#callbacks)              | Success and failure callbacks. |
 
+  <a id="op_deposit"></a>
   | Field        | Type          | Description |
   |--------------|---------------|-------------|
-  | `OP_DEPOSIT`   | `Opcode`        | `0x5a66a4a5` |
-  | `queryId`      | `QueryId`       | Unique query identifier. |
+  | `OP_DEPOSIT`   | [Opcode](#opcode)        | `0x5a66a4a5` |
+  | `queryId`      | [QueryId](#queryid)       | Unique query identifier. |
   | `depositAmount`| `Coins`         | TON amount to deposit. |
-  | `depositParams`| `DepositParams` |  |
+  | `depositParams`| [DepositParams](#depositparams) |  |
 
 **Deposit Forward Payload (For Jetton)**
 
@@ -291,17 +290,18 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Requirements**:
   - MUST verify `in.valueCoins` covers required gas.
   - MUST verify `in.senderAddress` matches the vault’s underlying Jetton Wallet address.
-  - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund Jetton and send `OP_VAULT_NOTIFICATION_FP` with `failureCallback.payload` to `initiator`.
-  - On successful share minting, MUST send `OP_VAULT_NOTIFICATION_FP` with `successCallback.payload` to `receiver`.
+  - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund Jetton and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`.
+  - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
   - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
   - MUST emit `TOPIC_DEPOSITED` event.
 
 - **Message**:
 
+  <a id="op_deposit_fp"></a>
   | Field         | Type          | Description |
   |---------------|---------------|-------------|
-  | `OP_DEPOSIT_FP` | `Opcode`        | `0xb534fe7b` |
-  | `depositParams` | `DepositParams` | Deposit parameters. |
+  | `OP_DEPOSIT_FP` | [Opcode](#opcode)        | `0xb534fe7b` |
+  | `depositParams` | [DepositParams](#depositparams) | Deposit parameters. |
 
 **Withdraw (In Burn Notification)**
 
@@ -311,26 +311,27 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Requirements**:
   - MUST verify `in.valueCoins` covers required gas.
   - MUST verify `in.senderAddress` is the Jetton Wallet of the shares, not another Jetton wallet.
-  - If withdrawal fails (e.g., burned shares exceed vault limit or withdrawn amount < `minWithdraw`), MUST refund shares and send `OP_VAULT_NOTIFICATION_FP` with `failureCallback.payload` to `initiator`.
-  - On successful withdrawal, MUST send `OP_VAULT_NOTIFICATION_FP` (for Jetton) or `OP_VAULT_NOTIFICATION` (for TON) with `successCallback.payload` to `receiver`.
+  - If withdrawal fails (e.g., burned shares exceed vault limit or withdrawn amount < `minWithdraw`), MUST refund shares and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`.
+  - On successful withdrawal, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) (for Jetton) or [OP_VAULT_NOTIFICATION](#op_vault_notification) (for TON) with `successCallback.payload` to `receiver`.
   - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
   - MUST emit `TOPIC_WITHDRAWN` event.
 
 - **Message**:
-  - **`WithdrawOptions`**
+  - **`WithdrawOptions`** <a id="withdrawoptions"></a>
 
     | Field        | Type                 | Description |
     |--------------|----------------------|-------------|
-    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, query quote). |
+    | `vaultOptions` | Cell<[VaultOptions](#vaultoptions)>? | Reference to common options shared across vault operations (deposit, withdraw, query quote). |
     | *(user-defined)* | `any` | Withdraw-specific parameters defined by the developer. |
 
+  <a id="op_withdraw_fp"></a>
   | Field               | Type                   | Description |
   |---------------------|------------------------|-------------|
-  | `OP_WITHDRAW_FP`      | `Opcode`                 | `0xecb4d6bf` |
+  | `OP_WITHDRAW_FP`      | [Opcode](#opcode)                 | `0xecb4d6bf` |
   | `receiver`            | `Address`                | Address receiving withdrawn assets. |
   | `minWithdraw`         | `Coins`                  | Minimum asset amount to receive, else refund. |
-  | `withdrawOptions` | `Cell<WithdrawOptions>?`  | Optional parameters (e.g., price data). |
-  | `callbacks`           | `Callbacks`              | Success/failure callbacks. |
+  | `withdrawOptions` | Cell<[WithdrawOptions](#withdrawoptions)>?  | Optional parameters (e.g., price data). |
+  | `callbacks`           | [Callbacks](#callbacks)              | Success/failure callbacks. |
 
 **Provide Quote and Take Quote**
 
@@ -340,46 +341,48 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Description**: Fetches current asset-to-share conversion information from the vault.
 - **Requirements**:
   - MUST verify `in.valueCoins` covers gas for Provide Quote.
-  - MUST send `OP_TAKE_QUOTE` to `receiver`.
+  - MUST send [OP_TAKE_QUOTE](#op_take_quote) to `receiver`.
   - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
   - MAY emit `TOPIC_QUOTED` event.
 
 - **Messages**:
-  - **`QuoteOptions`**
+  - **`QuoteOptions`** <a id="quoteoptions"></a>
 
     | Field        | Type                 | Description |
     |--------------|----------------------|-------------|
-    | `vaultOptions` | `Cell<VaultOptions>?` | Reference to common options shared across vault operations (deposit, withdraw, query quote). |
+    | `vaultOptions` | Cell<[VaultOptions](#vaultoptions)>? | Reference to common options shared across vault operations (deposit, withdraw, query quote). |
     | *(user-defined)* | `any` | Quote-specific parameters defined by the developer. |
 
+  <a id="op_provide_quote"></a>
   - **`OP_PROVIDE_QUOTE`**:
 
     | Field               | Type      | Description |
     |---------------------|-----------|-------------|
-    | `OP_PROVIDE_QUOTE`    | `Opcode`    | `0xc643cc91` |
-    | `queryId`             | `QueryId`   | Unique query identifier. |
-    | `quoteAsset`             | `Cell<Asset>?`   | For vaults that support multiple assets, quoteAsset is used as the basis for calculating the exchange rate. If this field is null, the exchange rate will be calculated using the baseAsset. |
+    | `OP_PROVIDE_QUOTE`    | [Opcode](#opcode)    | `0xc643cc91` |
+    | `queryId`             | [QueryId](#queryid)   | Unique query identifier. |
+    | `quoteAsset`             | Cell<[Asset](#asset)>?   | For vaults that support multiple assets, quoteAsset is used as the basis for calculating the exchange rate. If this field is null, the exchange rate will be calculated using the baseAsset. |
     | `receiver`            | `Address`   | Address receiving `OP_TAKE_QUOTE`. |
-    | `quoteOptions` | `Cell<QuoteOptions>?`     | Additional data for asset/share calculations. |
+    | `quoteOptions` | Cell<[QuoteOptions](#quoteoptions)>?     | Additional data for asset/share calculations. |
     | `forwardPayload`      | `Cell`      | Initiator-defined payload for further `receiver` operations. This can include custom fields such as `validUntil` |
 
+  <a id="op_take_quote"></a>
   - **`OP_TAKE_QUOTE`**:
 
     | Field          | Type    | Description |
     |----------------|---------|-------------|
-    | `OP_TAKE_QUOTE`  | `Opcode`  | `0x68ec31ea` |
-    | `queryId`        | `QueryId` | Unique query identifier. |
+    | `OP_TAKE_QUOTE`  | [Opcode](#opcode)  | `0x68ec31ea` |
+    | `queryId`        | [QueryId](#queryid) | Unique query identifier. |
     | `initiator`      | `Address` | Address sending `OP_PROVIDE_QUOTE`. |
-    | `quoteAsset`             | `Cell<Asset>`   | Base asset used for calculating the exchange rate. |
+    | `quoteAsset`             | Cell<[Asset](#asset)>   | Base asset used for calculating the exchange rate. |
     | `totalSupply`    | `Coins`   | Total vault shares. |
     | `totalAssets`    | `Coins`   | Total underlying assets. |
-    | `timestamp`      | `Timestamp`  | Timestamp of `totalSupply` and `totalAssets` calculation. |
+    | `timestamp`      | [Timestamp](#timestamp)  | Timestamp of `totalSupply` and `totalAssets` calculation. |
     | `forwardPayload` | `Cell?`   | Initiator-defined payload. |
 
 #### Functions and Get-Methods
 TEP-4626 vaults MUST implement the following functions for querying vault state and conversion rates. Each function has two forms:
-- **Internal Function**: Core logic for calculations, used within vault operations (e.g., deposit/withdraw). Parameters MUST include resolved configs (e.g., `DepositConfig` or `VaultConfig`), which are parsed and validated structures derived from user options.
-- **Get-Method**: Exposed query method (e.g., `getConvertToShares`) that wraps the internal function. It accepts user-provided options (e.g., `DepositOptions` or `VaultOptions` as Cell), resolves them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
+- **Internal Function**: Core logic for calculations, used within vault operations (e.g., deposit/withdraw). Parameters MUST include resolved configs (e.g., `DepositConfig` or [VaultConfig](#vaultconfig)), which are parsed and validated structures derived from user options.
+- **Get-Method**: Exposed query method (e.g., `getConvertToShares`) that wraps the internal function. It accepts user-provided options (e.g., [DepositOptions](#depositoptions) or [VaultOptions](#vaultoptions) as Cell), resolves them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
 ![options-params](./assets/option.png)
 
 - **`totalAssets`**
@@ -393,9 +396,9 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
   - **Input**:
     | Field         | Type           | Description |
     |---------------|----------------|-------------|
-    | `vaultConfig` | `VaultConfig?` | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
+    | `vaultConfig` | [VaultConfig](#vaultconfig)? | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
 
-    *Note: For the get-method (`getTotalAssets`), replace `vaultConfig` with `vaultOptionsCell: Cell<VaultOptions>?`. The get-method should resolve `vaultOptionsCell` into `vaultConfig` before calling the internal function.*
+    *Note: For the get-method (`getTotalAssets`), replace `vaultConfig` with `vaultOptionsCell`: Cell<[VaultOptions](#vaultoptions)>?. The get-method should resolve `vaultOptionsCell` into `vaultConfig` before calling the internal function.*
   - **Output**:
     | Field                | Type    | Description                                      |
     |----------------------|---------|--------------------------------------------------|
@@ -418,9 +421,9 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     |-----------------|-------------------|-------------|
     | `depositAmount` | `Coins`           | Asset amount to convert. |
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
-    | `rounding`      | `RoundingType`    | Rounding mode (default: `ROUND_DOWN`). |
+    | `rounding`      | [RoundingType](#roundingtype)    | Rounding mode (default: `ROUND_DOWN`). |
 
-    *Note: For the get-method (`getConvertToShares`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
+    *Note: For the get-method (`getConvertToShares`), replace `depositConfig` with `depositOptionsCell: Cell<[DepositOptions](#depositoptions)>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|
@@ -443,9 +446,9 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     |------------------|--------------------|-------------|
     | `shares`         | `Coins`            | Share amount to convert. |
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
-    | `rounding`       | `RoundingType`     | Rounding mode (default: `ROUND_DOWN`). |
+    | `rounding`       | [RoundingType](#roundingtype)     | Rounding mode (default: `ROUND_DOWN`). |
 
-    *Note: For the get-method (`getConvertToAssets`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
+    *Note: For the get-method (`getConvertToAssets`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<[WithdrawOptions](#withdrawoptions)>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|
@@ -466,7 +469,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     |-----------------|-------------------|-------------|
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for asset-specific limits in multi-asset scenarios). |
 
-    *Note: For the get-method (`getMaxDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
+    *Note: For the get-method (`getMaxDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<[DepositOptions](#depositoptions)>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
     | Field              | Type    | Description |
     |--------------------|---------|-------------|
@@ -489,7 +492,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `depositAmount` | `Coins`           | Asset amount to deposit. |
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates or fees in multi-asset scenarios). |
 
-    *Note: For the get-method (`getPreviewDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<DepositOptions>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
+    *Note: For the get-method (`getPreviewDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<[DepositOptions](#depositoptions)>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|
@@ -509,7 +512,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     |------------------|--------------------|-------------|
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for asset-specific limits in multi-asset scenarios). |
 
-    *Note: For the get-method (`getMaxWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
+    *Note: For the get-method (`getMaxWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<[WithdrawOptions](#withdrawoptions)>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
     | Field       | Type    | Description |
     |-------------|---------|-------------|
@@ -532,7 +535,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `shares`         | `Coins`            | Share amount to withdraw. |
     | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates or fees in multi-asset scenarios). |
 
-    *Note: For the get-method (`getPreviewWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<WithdrawOptions>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
+    *Note: For the get-method (`getPreviewWithdraw`), replace `withdrawConfig` with `withdrawOptionsCell: Cell<[WithdrawOptions](#withdrawoptions)>?`. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|
@@ -600,9 +603,10 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
   - **Description**: Emitted when initiator exchanges `depositAmount` for shares, transferring them to receiver.
   - **Message**:
 
+  <a id="topic_deposited"></a>
     | Field               | Type                        | Description |
     |---------------------|-----------------------------|-------------|
-    | `TOPIC_DEPOSITED`     | `Opcode`                      | `0x11475d67`  |
+    | `TOPIC_DEPOSITED`     | [Opcode](#opcode)                      | `0x11475d67`  |
     | `initiator`           | `Address`                     | Address initiating the deposit. |
     | `receiver`            | `Address`                     | Address receiving shares. |
     | `depositAmount`       | `Coins`                       | Deposited asset amount. |
@@ -613,9 +617,10 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
   - **Description**: Emitted when initiator exchanges shares for assets, transferring them to receiver.
   - **Message**:
 
+  <a id="topic_withdrawn"></a>
     | Field                | Type                         | Description |
     |----------------------|------------------------------|-------------|
-    | `TOPIC_WITHDRAWN`      | `Opcode`                       | `0xedfb416d`  |
+    | `TOPIC_WITHDRAWN`      | [Opcode](#opcode)                       | `0xedfb416d`  |
     | `initiator`            | `Address`                      | Address initiating the withdrawal. |
     | `receiver`             | `Address`                      | Address receiving assets. |
     | `withdrawAmount`       | `Coins`                        | Withdrawn asset amount. |
@@ -626,15 +631,16 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
   - **Description**: Emitted when the vault provides a quote for asset-to-share conversion, including total supply and assets at the time of calculation.
   - **Message**:
 
+  <a id="topic_quoted"></a>
     | Field          | Type           | Description |
     |----------------|----------------|-------------|
-    | `TOPIC_QUOTED`  | `Opcode`       | `0xb7bfa697`  |
-    | `quoteAsset`    | `Cell<Asset>`  | `quoteAsset` is used as the basis for calculating the exchange rate. |
+    | `TOPIC_QUOTED`  | [Opcode](#opcode)       | `0xb7bfa697`  |
+    | `quoteAsset`    | `Cell<[Asset](#asset)>`  | `quoteAsset` is used as the basis for calculating the exchange rate. |
     | `initiator`     | `Address`      | Address initiating the quote request. |
     | `receiver`      | `Address`      | Address receiving the quote response. |
     | `totalSupply`   | `Coins`        | Total vault shares at the time of quote. |
     | `totalAssets`   | `Coins`        | Total underlying assets at the time of quote. |
-    | `timestamp`     | `Timestamp`       | Event timestamp for off-chain indexing. |
+    | `timestamp`     | [Timestamp](#timestamp)       | Event timestamp for off-chain indexing. |
 
 ## Drawbacks
 
@@ -669,7 +675,7 @@ Many TON DeFi contracts allow upgrades. Combining Point 1 (multisig) and Point 2
 **Alternatives**: A single-asset-only design was considered for simplicity, but it limits innovation. Full dict unification for all vaults (even single-asset) was evaluated for code reuse, but rejected due to gas overhead; the dual approach optimizes common cases.
 
 ### Off-Chain Data Integration via VaultOptions
-**Rationale**: TON lacks on-chain price fetching like Ethereum, so off-chain data (e.g., prices) is carried via messages. `VaultOptions` allows passing such data, validated into `VaultConfig` for use.
+**Rationale**: TON lacks on-chain price fetching like Ethereum, so off-chain data (e.g., prices) is carried via messages. [VaultOptions](#vaultoptions) allows passing such data, validated into [VaultConfig](#vaultconfig) for use.
 
 ### Omission of Extra Currency Support
 **Rationale**: TON supports Extra Currency, but its usage is not widespread, with no DeFi protocols adopting it yet. Thus, the current design excludes it.  
@@ -684,7 +690,7 @@ Many TON DeFi contracts allow upgrades. Combining Point 1 (multisig) and Point 2
 **Alternatives**: Implementing them was considered, but skipped due to low adoption and added complexity/async risks; direct transfers fit TON norms better.
 
 ### Provide/Take Quote Mechanism and Timeliness
-**Rationale**: Fetching exchange rates faces Jetton balance query issues—rates may change by response time. Adding timestamps to `OP_TAKE_QUOTE` lets `receivers` validate freshness. We believe the timestamp generated during rate calculation is sufficient for judging staleness. If stricter control over the entire process is needed, developers can embed a `validUntil` field in `forwardPayload` for custom expiration checks.
+**Rationale**: Fetching exchange rates faces Jetton balance query issues—rates may change by response time. Adding timestamps to [OP_TAKE_QUOTE](#op_take_quote) lets `receivers` validate freshness. We believe the timestamp generated during rate calculation is sufficient for judging staleness. If stricter control over the entire process is needed, developers can embed a `validUntil` field in `forwardPayload` for custom expiration checks.
 
 ### Slippage Protection via minShares/minWithdraw
 **Rationale**: Adding `minShares`/`minWithdraw` checks in deposit/withdraw refunds on failure, protecting against rate volatility for better UX.
@@ -715,7 +721,7 @@ These questions do not affect the core standard but provide opportunities for re
 
 TEP-4626 establishes a solid foundation for TON vaults, with potential for evolution as the ecosystem advances. The following extensions build on the current design:
 
-- **Extra Currency Integration**: Once Extra Currency adoption matures in TON DeFi, it could be added to the `Asset` encoding, enabling more diverse multi-asset vaults and broader token support.
+- **Extra Currency Integration**: Once Extra Currency adoption matures in TON DeFi, it could be added to the [Asset](#asset) encoding, enabling more diverse multi-asset vaults and broader token support.
   
 - **Mint and Redeem Functions via Wallet Plugging**: If wallet plugging becomes more widespread on TON, future versions could incorporate ERC-4626-style mint/redeem operations, enhancing flexibility for direct asset pulls while aligning with evolving user habits.
   
@@ -726,6 +732,3 @@ These possibilities depend on TON's technical progress and community input. Cont
 ## Backwards Compatibility
 
 `TEP-4626` extends `TEP-74` Jetton, ensuring compatibility with existing Jetton contracts. However, new messages and get-methods require updates to integrating protocols.
-
-
-
