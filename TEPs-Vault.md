@@ -417,10 +417,10 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | Field           | Type              | Description |
     |-----------------|-------------------|-------------|
     | `depositAmount` | `Coins`           | Asset amount to convert. |
-    | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
+    | `vaultConfig` | [VaultConfig](#vaultconfig)? | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
     | `rounding`      | [RoundingType](#roundingtype)    | Rounding mode (default: `ROUND_DOWN`). |
 
-    *Note: For the get-method (`getConvertToShares`), replace `depositConfig` with `depositOptionsCell`: Cell<[DepositOptions](#depositoptions)>?. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
+    *Note: For the get-method (`getConvertToShares`), replace `vaultConfig` with `vaultOptionsCell`: Cell<[VaultOptions](#vaultoptions)>?. The get-method should resolve `vaultOptionsCell` into `vaultConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|
@@ -442,10 +442,10 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | Field            | Type               | Description |
     |------------------|--------------------|-------------|
     | `shares`         | `Coins`            | Share amount to convert. |
-    | `withdrawConfig` | `WithdrawConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
+    | `vaultConfig` | [VaultConfig](#vaultconfig)? | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
     | `rounding`       | [RoundingType](#roundingtype)     | Rounding mode (default: `ROUND_DOWN`). |
 
-    *Note: For the get-method (`getConvertToAssets`), replace `withdrawConfig` with `withdrawOptionsCell`: Cell<[WithdrawOptions](#withdrawoptions)>?. The get-method should resolve `withdrawOptionsCell` into `withdrawConfig` before calling the internal function.*
+    *Note: For the get-method (`getConvertToAssets`), replace `vaultConfig` with `vaultOptionsCell`: Cell<[VaultOptions](#vaultoptions)>?. The get-method should resolve `vaultOptionsCell` into `vaultConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|

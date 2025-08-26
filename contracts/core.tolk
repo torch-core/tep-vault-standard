@@ -16,7 +16,7 @@ fun totalAssets(vaultConfig: VaultConfig? = null) {
     return storage.totalAssets;
 }
 
-fun convertToShares(depositAmount: coins, depositConfig: DepositConfig? = null, rounding: RoundingType = ROUND_DOWN) {
+fun convertToShares(depositAmount: coins, vaultConfig: VaultConfig? = null, rounding: RoundingType = ROUND_DOWN) {
     var storage = lazy VaultStorage.load();
     val totalAssets = totalAssets();
 
@@ -24,7 +24,7 @@ fun convertToShares(depositAmount: coins, depositConfig: DepositConfig? = null, 
     return totalAssets == 0 ? depositAmount : roundedMulDiv(depositAmount, storage.totalSupply, totalAssets, rounding) as coins;
 }
 
-fun convertToAssets(shares: coins, withdrawConfig: WithdrawConfig? = null, rounding: RoundingType = ROUND_DOWN) {
+fun convertToAssets(shares: coins, vaultConfig: VaultConfig? = null, rounding: RoundingType = ROUND_DOWN) {
     var storage = lazy VaultStorage.load();
 
     // No shares exist: 0 assets, otherwise proportional calculation

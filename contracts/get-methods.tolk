@@ -26,11 +26,11 @@ get fun getTotalAssets(vaultOptionsCell: Cell<VaultOptions>? = null) {
     return totalAssets();
 }
 
-get fun getConvertToShares(depositAmount: coins, depositOptionsCell: Cell<DepositOptions>? = null) {
+get fun getConvertToShares(depositAmount: coins, vaultOptionsCell: Cell<VaultOptions>? = null) {
     return convertToShares(depositAmount);
 }
 
-get fun getConvertToAssets(shares: coins, withdrawOptionsCell: Cell<WithdrawOptions>? = null) {
+get fun getConvertToAssets(shares: coins, vaultOptionsCell: Cell<VaultOptions>? = null) {
     return convertToAssets(shares);
 }
 
