@@ -268,7 +268,7 @@ For vaults managing multiple underlying assets, the following persistent storage
     |----------------|------------------------|-------------|
     | `receiver`       | `Address`                | Address receiving vault share jetton and callback payload. |
     | `minShares`      | `Coins`                  | Minimum shares to receive, else refund. |
-    | `depositOptions` | `Cell<[DepositOptions](#depositoptions)>?`  | Optional parameters (e.g., price data). |
+    | `depositOptions` | Cell<[DepositOptions](#depositoptions)>?  | Optional parameters (e.g., price data). |
     | `callbacks`      | [Callbacks](#callbacks)              | Success and failure callbacks. |
 
   <a id="op_deposit"></a>
@@ -420,7 +420,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
     | `rounding`      | [RoundingType](#roundingtype)    | Rounding mode (default: `ROUND_DOWN`). |
 
-    *Note: For the get-method (`getConvertToShares`), replace `depositConfig` with `depositOptionsCell: Cell<[DepositOptions](#depositoptions)>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
+    *Note: For the get-method (`getConvertToShares`), replace `depositConfig` with `depositOptionsCell`: Cell<[DepositOptions](#depositoptions)>?. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|
@@ -466,7 +466,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     |-----------------|-------------------|-------------|
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for asset-specific limits in multi-asset scenarios). |
 
-    *Note: For the get-method (`getMaxDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<[DepositOptions](#depositoptions)>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
+    *Note: For the get-method (`getMaxDeposit`), replace `depositConfig` with `depositOptionsCell`: Cell<[DepositOptions](#depositoptions)>?. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
     | Field              | Type    | Description |
     |--------------------|---------|-------------|
@@ -489,7 +489,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `depositAmount` | `Coins`           | Asset amount to deposit. |
     | `depositConfig` | `DepositConfig?`  | Resolved internal config (e.g., for exchange rates or fees in multi-asset scenarios). |
 
-    *Note: For the get-method (`getPreviewDeposit`), replace `depositConfig` with `depositOptionsCell: Cell<[DepositOptions](#depositoptions)>?`. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
+    *Note: For the get-method (`getPreviewDeposit`), replace `depositConfig` with `depositOptionsCell`: Cell<[DepositOptions](#depositoptions)>?. The get-method should resolve `depositOptionsCell` into `depositConfig` before calling the internal function.*
   - **Output**:
     | Field    | Type    | Description |
     |----------|---------|-------------|
@@ -632,7 +632,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | Field          | Type           | Description |
     |----------------|----------------|-------------|
     | `TOPIC_QUOTED`  | [Opcode](#opcode)       | `0xb7bfa697`  |
-    | `quoteAsset`    | `Cell<[Asset](#asset)>`  | `quoteAsset` is used as the basis for calculating the exchange rate. |
+    | `quoteAsset`    | Cell<[Asset](#asset)>  | `quoteAsset` is used as the basis for calculating the exchange rate. |
     | `initiator`     | `Address`      | Address initiating the quote request. |
     | `receiver`      | `Address`      | Address receiving the quote response. |
     | `totalSupply`   | `Coins`        | Total vault shares at the time of quote. |
@@ -728,4 +728,4 @@ These possibilities depend on TON's technical progress and community input. Cont
 
 ## Backwards Compatibility
 
-`TEP-4626` extends `TEP-74` Jetton, ensuring compatibility with existing Jetton contracts. However, new messages and get-methods require updates to integrating protocols.
+TEP-4626 extends the **TEP-74 Jetton** standard, ensuring compatibility with existing Jetton contracts. Crucially, this extension also integrates with the **TEP-64 Token Data** standard.
