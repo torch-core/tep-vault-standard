@@ -72,6 +72,13 @@ export const createTestEnvironment = () => {
             content,
         });
 
+        const tonVaultJettonData = await tonVault.getJettonData();
+        expect(tonVaultJettonData.totalSupply).toBe(0n);
+        expect(tonVaultJettonData.mintable).toBe(true);
+        expect(tonVaultJettonData.adminAddress.equals(admin.address)).toBeTruthy();
+        expect(tonVaultJettonData.content.equals(content)).toBeTruthy();
+        expect(tonVaultJettonData.walletCode.equals(jettonWalletCode)).toBeTruthy();
+
         // Deploy USDT Vault
         USDT = await deployJettonMinter(blockchain, admin, 'USDT');
 
@@ -122,6 +129,13 @@ export const createTestEnvironment = () => {
             jettonWalletCode,
             content,
         });
+
+        const usdtVaultJettonData = await USDTVault.getJettonData();
+        expect(usdtVaultJettonData.totalSupply).toBe(0n);
+        expect(usdtVaultJettonData.mintable).toBe(true);
+        expect(usdtVaultJettonData.adminAddress.equals(USDTVault.address)).toBeTruthy();
+        expect(usdtVaultJettonData.content.equals(content)).toBeTruthy();
+        expect(usdtVaultJettonData.walletCode.equals(jettonWalletCode)).toBeTruthy();
 
         initSnapshot = blockchain.snapshot();
     });

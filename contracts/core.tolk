@@ -10,6 +10,7 @@ import "messages/emit";
 import "messages/schemas/common"
 import "messages/schemas/deposit"
 import "messages/schemas/withdraw"
+
 fun totalAssets(vaultConfig: VaultConfig? = null) {
     var storage = lazy VaultStorage.load();
     return storage.totalAssets;

@@ -13,6 +13,7 @@ import { JettonWallet } from '@ton/ton';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
 import { MAX_COINS_VALUE } from './helper/constants';
+import { Asset } from '@torch-finance/core';
 
 describe('Deposit to TON Vault', () => {
     let blockchain: Blockchain;
@@ -578,6 +579,21 @@ describe('Deposit to TON Vault', () => {
         it('should get max deposit', async () => {
             const maxDepositAmount = await tonVault.getMaxDeposit();
             expect(maxDepositAmount).toBe(MAX_COINS_VALUE);
+        });
+
+        it('should get assets', async () => {
+            const assets = await tonVault.getAssets();
+            expect(assets[0].equals(Asset.ton())).toBeTruthy();
+        });
+
+        it('should get total assets', async () => {
+            const totalAssets = await tonVault.getTotalAssets();
+            expect(totalAssets).toBe(0n);
+        });
+
+        it('should get convert to shares', async () => {
+            const convertToShares = await tonVault.getConvertToShares(toNano('10'));
+            expect(convertToShares).toBe(toNano('10'));
         });
     });
 });

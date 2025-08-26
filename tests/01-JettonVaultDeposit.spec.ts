@@ -18,6 +18,7 @@ import { OPCODE_SIZE } from '../wrappers/constants/size';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectJettonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
 import { writeFileSync } from 'fs';
+import { Asset } from '@torch-finance/core';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;
@@ -685,6 +686,11 @@ describe('Deposit to Jetton Vault', () => {
         it('should preview jetton deposit fee', async () => {
             const fee = await USDTVault.getPreviewJettonDepositFee();
             expect(fee).toBe(toNano('0.012'));
+        });
+
+        it('should get assets', async () => {
+            const assets = await USDTVault.getAssets();
+            expect(assets[0].equals(Asset.jetton(USDT.address))).toBeTruthy();
         });
     });
 });

@@ -567,5 +567,10 @@ describe('Withdraw from TON Vault', () => {
             const maxWithdrawAmount = await tonVault.getMaxWithdraw();
             expect(maxWithdrawAmount).toBe(MAX_COINS_VALUE);
         });
+
+        it('should get convert to assets', async () => {
+            const convertToAssets = await tonVault.getConvertToAssets(toNano('1'));
+            expect(convertToAssets).toBe(toNano('1'));
+        });
     });
 });

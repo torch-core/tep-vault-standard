@@ -14,6 +14,7 @@ import { OPCODE_SIZE, QUERY_ID_SIZE } from './constants/size';
 import { Opcodes } from './constants/op';
 import { Maybe } from '@ton/core/dist/utils/maybe';
 import { JettonMaster } from '@ton/ton';
+import { parseAssetsFromNestedCell } from '@torch-finance/core';
 
 export type VaultConfig = {
     adminAddress: Address;
@@ -338,6 +339,63 @@ export class Vault implements Contract {
     async getPreviewProvideQuoteFee(provider: ContractProvider) {
         const res = await provider.get('getPreviewProvideQuoteFee', []);
         return res.stack.readBigNumber();
+    }
+
+    async getAssets(provider: ContractProvider) {
+        const res = await provider.get('getAssets', []);
+        const assetsCell = res.stack.readCell();
+        return parseAssetsFromNestedCell(assetsCell);
+    }
+
+    async getTotalAssets(provider: ContractProvider) {
+        const res = await provider.get('getTotalAssets', [
+            {
+                type: 'null',
+            },
+        ]);
+        return res.stack.readBigNumber();
+    }
+
+    async getConvertToShares(provider: ContractProvider, depositAmount: bigint) {
+        const res = await provider.get('getConvertToShares', [
+            {
+                type: 'int',
+                value: depositAmount,
+            },
+            {
+                type: 'null',
+            },
+        ]);
+        return res.stack.readBigNumber();
+    }
+
+    async getConvertToAssets(provider: ContractProvider, shares: bigint) {
+        const res = await provider.get('getConvertToAssets', [
+            {
+                type: 'int',
+                value: shares,
+            },
+            {
+                type: 'null',
+            },
+        ]);
+        return res.stack.readBigNumber();
+    }
+
+    async getJettonData(provider: ContractProvider) {
+        let res = await provider.get('get_jetton_data', []);
+        let totalSupply = res.stack.readBigNumber();
+        let mintable = res.stack.readBoolean();
+        let adminAddress = res.stack.readAddress();
+        let content = res.stack.readCell();
+        let walletCode = res.stack.readCell();
+        return {
+            totalSupply,
+            mintable,
+            adminAddress,
+            content,
+            walletCode,
+        };
     }
 
     async getStorage(provider: ContractProvider) {
