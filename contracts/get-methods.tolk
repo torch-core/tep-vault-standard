@@ -2,8 +2,10 @@ import "types/asset"
 import "storage"
 import "helper/packAssets"
 import "helper/jetton"
+import "messages/schemas/common"
+import "messages/schemas/deposit"
+import "messages/schemas/withdraw"
 import "core"
-import "messages/internal/schemas"
 import "fees-management"
 
 get fun getAsset() {

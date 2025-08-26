@@ -1,12 +1,14 @@
-import "../../constants/common-types";
-import "../../constants/errors"
-import "../../types/vault-result";
-import "../../types/callback-params";
-import "../../storage";
-import "../../helper/jetton";
-import "schemas";
-import "../../fees-management"
-import "../../types/asset"
+import "../constants/common-types";
+import "../constants/errors"
+import "../types/vault-result";
+import "../types/callback-params";
+import "../types/asset"
+import "schemas/common"
+import "schemas/deploy"
+import "schemas/provide-take-quote"
+import "../storage";
+import "../helper/jetton";
+import "../fees-management"
 
 @pure
 fun resolveReceiver(receiver: address, initiator: address) {

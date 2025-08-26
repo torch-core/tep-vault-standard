@@ -1,4 +1,6 @@
-import "schemas";
+import "schemas/deposit"
+import "schemas/withdraw"
+import "schemas/provide-take-quote"
 
 fun emitDeposited(depositedParams: Deposited) {
     val emitMsg = createExternalLogMessage({

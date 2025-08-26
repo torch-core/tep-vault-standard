@@ -23,16 +23,19 @@
  */
 
 import "constants/errors";
+import "types/asset"
 import "storage"
 import "helper/jetton"
-import "messages/internal/schemas"
-import "messages/internal/send"
-import "messages/external/schemas"
-import "messages/external/emit"
+import "messages/schemas/deploy"
+import "messages/schemas/deposit"
+import "messages/schemas/withdraw"
+import "messages/schemas/provide-take-quote"
+import "messages/allowed"
+import "messages/send"
+import "messages/emit"
 import "core";
 import "fees-management";
 import "get-methods";
-import "types/asset"
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
