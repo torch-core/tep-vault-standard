@@ -21,7 +21,7 @@ Readers are encouraged to review the [ERC-4626 standard](https://eips.ethereum.o
 While TON has a powerful asynchronous and message-driven architecture, its ecosystem is hindered by a lack of standardization for tokenized vaults. This has resulted in fragmented implementations, making protocol integration more complex. Key issues include:
 
 - **Inconsistent Callbacks**: Success/failure payload formats vary across implementations, which complicates subsequent operations or rollbacks in interacting protocols—especially in TON's asynchronous message-passing environment—increasing error risks.
-- **Non-Uniform Query Interfaces**: Get methods use inconsistent names and structures, forcing frontends and wallets to implement custom logic for each protocol. For example, some expose only the Jetton balance, while others require applying a conversion rate to show real asset value.
+- **Non-Uniform Query Interfaces**: Get methods use inconsistent names and structures, forcing dApps like frontends and wallets to implement custom logic for each protocol. For example, some expose only the Jetton balance, while others require applying a conversion rate to show real asset value.
 - **Divergent Event Formats**: Emitted events use varied formats, making it difficult for off-chain systems to monitor and parse events uniformly.
 - **Inconsistent On-Chain Rate Queries**: Vaults provide rate information through varying message-based query formats, including inconsistent opcodes and structures for both requests and responses. This forces aggregators to implement multiple custom logics, increasing development complexity and integration costs.
 - **Lack of Unified Gas Estimation Methods**: No unified method to query gas consumption, making it difficult for developers to estimate interaction costs.
@@ -459,7 +459,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - MUST return the maximum deposit amount that won’t revert, underestimating if necessary.
     - Assumes the user has unlimited assets.
     - MUST consider global or asset-specific constraints (e.g., return `0` if deposits are disabled).
-    - MAY return `531691198313966349161522824112137833` (maximum `Coins` value) if no deposit limits exist.
+    - MAY return the maximum value of the `Coins` type if no deposit limits exist..
     - For multi-asset vaults, SHOULD handle limits via config if needed.
   - **Input**:
     | Field           | Type              | Description |
@@ -502,7 +502,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
   - **Requirements**:
     - MUST return the maximum shares that can be withdrawn without reverting, underestimating if necessary.
     - MUST consider global constraints (e.g., return `0` if withdrawals are disabled).
-    - MAY return `531691198313966349161522824112137833` (maximum `Coins` value) if no withdraw limits exist.
+    - MAY return the maximum value of the `Coins` type if no withdraw limits exist..
     - For multi-asset vaults, SHOULD handle limits via config if needed.
   - **Input**:
     | Field            | Type               | Description |
