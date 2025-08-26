@@ -80,14 +80,11 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 
   **Encoding Examples (Tolk)**
   ```tolk
-  // Native TON
-  beginCell().storeUint(0, 4).endCell()
+  struct (0x0) TonAsset {}
 
-  // Jetton
-  beginCell().storeUint(1, 4).storeAddress(jettonMasterAddress).endCell()
-
-  // Extra Currency
-  beginCell().storeUint(2, 4).storeUint(token_id, 32).endCell()
+  struct (0x1) JettonAsset {
+      jettonMaster: address;
+  }
   ```
 - **`Nested<Cell<T>>`** <a id="nestedcellt"></a>: Because TON's Cell can have at most 4 references, if you need to store more than 4 references of the same type data structure, we will enable `Nested<Cell<T>>`, where access is such that 1 cell holds at most 3 references, and the remaining one reference is used to connect to the next layer cell, and then the next layer cell can continue to store at most 3 references and so on, as shown in the diagram below.
 ![nested-cell](./assets/nested-cell.png)
