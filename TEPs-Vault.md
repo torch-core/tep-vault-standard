@@ -537,7 +537,19 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | Field    | Type    | Description |
     |----------|---------|-------------|
     | `assets` | `Coins` | Estimated assets withdrawn.
-
+- **`getAssets`**
+  - **Description**: 
+    - Returns the underlying asset(s) managed by the vault as a nested structure of Asset cells.
+    - For single-asset vaults, returns a nested cell containing either the TON asset or the Jetton asset based on the vault's configuration.
+    - For multi-asset vaults, returns the `assetsCell` from storage, which is a Nested<Cell<[Asset](#asset)>> containing all supported underlying assets.
+  - **Requirements**:
+    - MUST return the configured underlying asset(s).
+    - MUST NOT revert.
+  - **Input**: None
+  - **Output**:
+    | Field          | Type                   | Description |
+    |----------------|------------------------|-------------|
+    | `assets`       | Nested<Cell<[Asset](#asset)>>  | Nested cell containing the underlying asset(s).
 - **`previewTonDepositFee`**
   - **Description**: Returns the gas fee required for depositing TON to the vault. This fee is charged by the vault contract to the `initiator`.
   - **Requirements**:

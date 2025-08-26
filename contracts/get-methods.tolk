@@ -8,7 +8,7 @@ import "messages/schemas/withdraw"
 import "core"
 import "fees-management"
 
-get fun getAsset() {
+get fun getAssets() {
     var assetsTuple: tuple = createEmptyTuple();
     val storage = lazy VaultStorage.load();
     if(storage.assetJettonInfo != null) {
