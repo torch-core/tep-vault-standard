@@ -13,12 +13,14 @@ struct DepositOptions {
     vaultOptions: Cell<VaultOptions>? = null
     // Add your optional params for vault here
 }
+
 struct DepositParams {
     receiver: address
     minShares: coins = 0
     depositOptions: Cell<DepositOptions>? = null
     callbacks: Callbacks
 }
+
 struct (0x5a66a4a5) Deposit {
     queryId: QueryId
     depositAmount: coins
@@ -28,6 +30,7 @@ struct (0x5a66a4a5) Deposit {
 struct (0xb534fe7b) DepositFp {
     depositParams: DepositParams
 }
+
 struct DepositConfig {
     vaultConfig: Cell<VaultConfig>? = null
     // Internal configuration struct for deposit operations, resolved from DepositOptions.

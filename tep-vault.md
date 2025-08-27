@@ -91,7 +91,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 
 #### Storage
 
-Vault contracts MUST implement the following persistent storage variables in the contract’s data cell, extending `TEP-74` Jetton storage requirements, as shares are represented as Jetton.
+Vault contracts MUST implement storage fields sufficient to fulfill the TEP-74 Jetton standard, as shares are represented as Jetton.
 
 ##### TEP-74 Required Storage
 
@@ -121,7 +121,7 @@ Vault contracts MUST implement the following persistent storage variables in the
 
 ###### Single-Asset Storage
 
-For vaults managing a single underlying asset, the following persistent storage variables MUST be implemented in the contract’s data cell, extending TEP-74 Jetton storage requirements.
+For vaults managing a single underlying asset, the following persistent storage variables SHOULD be implemented in the contract’s data cell.
 
 - **`totalAssets`**
   - **Description**: Total amount of the underlying asset managed by the vault.
@@ -146,7 +146,7 @@ For vaults managing a single underlying asset, the following persistent storage 
 
 ###### Multi-Asset Storage
 
-For vaults managing multiple underlying assets, the following persistent storage variables MUST be implemented in the contract’s data cell. These use dictionaries for mapping and a nested cell for efficient handling of numerous assets.
+For vaults managing multiple underlying assets, the following persistent storage variables SHOULD be implemented in the contract’s data cell. These use dictionaries for mapping and a nested cell for efficient handling of numerous assets.
 
 - **`totalAssetsDict`**
   - **Description**: Dictionary mapping underlying asset identifiers to the total amounts managed by the vault.

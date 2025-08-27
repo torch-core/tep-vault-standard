@@ -14,6 +14,7 @@ struct WithdrawOptions {
     vaultOptions: Cell<VaultOptions>? = null
     // Add your optional params for vault here
 }
+
 struct (0xecb4d6bf) WithdrawFp {
     receiver: address
     minWithdraw: coins = 0
