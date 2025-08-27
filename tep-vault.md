@@ -93,7 +93,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 
 Vault contracts MUST implement storage fields sufficient to fulfill the TEP-74 Jetton standard, as shares are represented as Jetton.
 
-##### TEP-74 Required Storage
+##### Suggested Storage Fields for TEP-74
 
 - **`totalSupply`**
   - **Description**: Total supply of vault shares, represented as Jetton.
