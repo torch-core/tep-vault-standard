@@ -416,7 +416,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
   - **Input**:
     | Field           | Type              | Description |
     |-----------------|-------------------|-------------|
-    | `depositAmount` | `Coins`           | Asset amount to convert. |
+    | `assetAmount` | `Coins`           | Asset amount to convert. |
     | `vaultConfig` | [VaultConfig](#vaultconfig)? | Resolved internal config (e.g., for exchange rates in multi-asset scenarios). |
     | `rounding`      | [RoundingType](#roundingtype)    | Rounding mode (default: `ROUND_DOWN`). |
 
