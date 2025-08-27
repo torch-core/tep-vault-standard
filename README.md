@@ -2,7 +2,7 @@
 
 This is a **single-asset** vault reference implementation of the TEP-4626 Tokenized Vaults Standard for TON blockchain.
 
-For detailed specifications, technical documentation, and implementation details, please refer to [TEPs-Vault.md](./TEPs-Vault.md).
+For detailed specifications, technical documentation, and implementation details, please refer to [tep-vault.md](./tep-vault.md).
 
 ## How to Run
 
