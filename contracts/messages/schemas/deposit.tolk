@@ -37,7 +37,7 @@ struct DepositConfig {
 }
 
 // Logs
-struct OptionalDepositLogs {
+struct DepositLogOptions {
     // Add fields base on your needs
     // Leave it empty if you don't need any extra logs
 }
@@ -48,7 +48,7 @@ struct(0x11475d67) Deposited {
     depositAsset: Cell<Asset>? = null
     depositAmount: coins
     shares: coins
-    optionalDepositLogs: OptionalDepositLogs? = null
+    depositLogOptions: Cell<DepositLogOptions>? = null
 }
 
 

@@ -25,6 +25,10 @@ struct (0x68ec31ea) TakeQuote {
 }
 
 // Logs
+struct QuoteLogOptions {
+    // Add fields base on your needs
+    // Leave it empty if you don't need any extra logs
+}
 struct (0xb7bfa697) Quoted {
     quoteAsset: Cell<Asset>
     initiator: address
@@ -32,6 +36,7 @@ struct (0xb7bfa697) Quoted {
     totalSupply: coins
     totalAssets: coins
     timestamp: Timestamp
+    quoteLogOptions: Cell<QuoteLogOptions>? = null
 }
 
 const TOPIC_QUOTED = Quoted.getDeclaredPackPrefix();

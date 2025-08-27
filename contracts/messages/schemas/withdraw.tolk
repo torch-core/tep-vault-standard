@@ -28,7 +28,7 @@ struct WithdrawConfig {
 }   
 
 // Logs
-struct OptionalWithdrawLogs {
+struct WithdrawLogOptions {
     // Add fields base on your needs
     // Leave it empty if you don't need any extra logs
 }
@@ -39,7 +39,7 @@ struct (0xedfb416d) Withdrawn {
     withdrawAsset: Cell<Asset>? = null
     withdrawAmount: coins
     burnedShares: coins
-    optionalWithdrawLogs: OptionalWithdrawLogs? = null
+    withdrawLogOptions: Cell<WithdrawLogOptions>? = null
 }
 
 const TOPIC_WITHDRAWN = Withdrawn.getDeclaredPackPrefix();

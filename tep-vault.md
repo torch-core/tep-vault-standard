@@ -620,7 +620,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `receiver`            | `Address`                     | Address receiving shares. |
     | `depositAmount`       | `Coins`                       | Deposited asset amount. |
     | `shares`              | `Coins`                       | Minted shares. |
-    | `optionalDepositLogs` | `Cell<OptionalDepositLogs>?`  | Custom deposit logs. |
+    | `depositLogOption` | `Cell<dDpositLogOption>?`  | Custom deposit logs. |
 
 - **`Withdrawn`**
   - **Description**: Emitted when initiator exchanges shares for assets, transferring them to receiver.
@@ -634,7 +634,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `receiver`             | `Address`                      | Address receiving assets. |
     | `withdrawAmount`       | `Coins`                        | Withdrawn asset amount. |
     | `burnedShares`         | `Coins`                        | Burned shares. |
-    | `optionalWithdrawLogs` | `Cell<OptionalWithdrawLogs>?`  | Custom withdrawal logs. |
+    | `withdrawLogOption` | `Cell<WithdrawLogOptions>?`  | Custom withdrawal logs. |
 
 - **`Quoted`**
   - **Description**: Emitted when the vault provides a quote for asset-to-share conversion, including total supply and assets at the time of calculation.
@@ -650,6 +650,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `totalSupply`   | `Coins`        | Total vault shares at the time of quote. |
     | `totalAssets`   | `Coins`        | Total underlying assets at the time of quote. |
     | `timestamp`     | [Timestamp](#timestamp)       | Event timestamp for off-chain indexing. |
+    | `quoteLogOption` | `Cell<QuoteLogOption>?`  | Custom quote logs. |
 
 ## Drawbacks
 
