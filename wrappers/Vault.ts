@@ -365,6 +365,10 @@ export class Vault implements Contract {
             {
                 type: 'null',
             },
+            {
+                type: 'int',
+                value: 0n,  // Rounding type: ROUND_DOWN
+            },
         ]);
         return res.stack.readBigNumber();
     }
@@ -377,6 +381,10 @@ export class Vault implements Contract {
             },
             {
                 type: 'null',
+            },
+            {
+                type: 'int',
+                value: 0n,  // Rounding type: ROUND_DOWN
             },
         ]);
         return res.stack.readBigNumber();

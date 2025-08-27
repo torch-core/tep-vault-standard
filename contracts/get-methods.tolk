@@ -1,4 +1,5 @@
 import "types/asset"
+import "types/rounding"
 import "storage"
 import "helper/packAssets"
 import "helper/jetton"
@@ -7,7 +8,6 @@ import "messages/schemas/deposit"
 import "messages/schemas/withdraw"
 import "core"
 import "fees-management"
-
 get fun getAssets() {
     var assetsTuple: tuple = createEmptyTuple();
     val storage = lazy VaultStorage.load();
@@ -26,11 +26,11 @@ get fun getTotalAssets(vaultOptionsCell: Cell<VaultOptions>? = null) {
     return totalAssets();
 }
 
-get fun getConvertToShares(assetAmount: coins, vaultOptionsCell: Cell<VaultOptions>? = null) {
+get fun getConvertToShares(assetAmount: coins, vaultOptionsCell: Cell<VaultOptions>? = null, rounding: RoundingType = ROUND_DOWN) {
     return convertToShares(assetAmount);
 }
 
-get fun getConvertToAssets(shares: coins, vaultOptionsCell: Cell<VaultOptions>? = null) {
+get fun getConvertToAssets(shares: coins, vaultOptionsCell: Cell<VaultOptions>? = null, rounding: RoundingType = ROUND_DOWN) {
     return convertToAssets(shares);
 }
 
