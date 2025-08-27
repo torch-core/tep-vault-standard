@@ -378,7 +378,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 
 #### Functions and Get-Methods
 TEP-4626 vaults MUST implement the following functions for querying vault state and conversion rates. Each function has two forms:
-- **Internal Function**: Core logic for calculations, used within vault operations (e.g., deposit/withdraw). Parameters MUST include resolved configs (e.g., `DepositConfig` or [VaultConfig](#vaultconfig)), which are parsed and validated structures derived from user options.
+- **Internal Function**: Core logic for calculations, used within vault operations (e.g., deposit/withdraw). Parameters SHOULD use resolved configurations derived from user options, which MAY be implemented as parsed or validated data (e.g., structs in Tolk).
 - **Get-Method**: Exposed query method (e.g., `getConvertToShares`) that wraps the internal function. It accepts user-provided options (e.g., [DepositOptions](#depositoptions) or [VaultOptions](#vaultoptions) as Cell), resolves them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
 ![options-params](./assets/option.png)
 
