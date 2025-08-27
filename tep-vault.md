@@ -201,7 +201,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 
     | Field                  | Type   | Description |
     |------------------------|--------|-------------|
-    | *(user-defined)* | `any` | Internal configuration struct resolved from [VaultOptions](#vaultoptions). Represents processed and validated parameters, such as a **verified price** used in vault operations. |
+    | *(user-defined)* | `any` | Internal configuration data resolved from [VaultOptions](#vaultoptions). Represents processed and validated parameters, such as a **verified price** used in vault operations. |
 
 
   - **`CallbackParams`** <a id="callbackparams"></a>
