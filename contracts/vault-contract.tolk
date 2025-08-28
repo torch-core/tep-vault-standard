@@ -22,6 +22,7 @@
  *      Core logic is separated into dedicated modules (core.tolk, storage.tolk, etc.)
  */
 
+import "@stdlib/tvm-dicts"
 import "constants/common-types"
 import "constants/errors";
 import "types/asset"
@@ -37,6 +38,7 @@ import "messages/emit"
 import "core";
 import "fees-management";
 import "get-methods";
+import "constants/values"
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
@@ -62,6 +64,34 @@ fun onInternalMessage(in: InMessage) {
 
             storage.totalSupply = storage.totalSupply + shares;
             storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
+            storage.save();
+        }
+
+        // Processes extra currency deposits and mints shares to receiver
+        DepositEc => {
+            val externalAssetInfo = storage.externalAssetInfo!.load();
+            assert (externalAssetInfo is ExtraCurrencyInfo) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
+            var extraCurrencyDict = in.valueExtra;
+            var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, externalAssetInfo.extraCurrencyId!);
+
+            // Verifies only one extra currency is deposited to prevent multiple extra currency deposits in a single asset vault
+            assert(flag && extraCurrencyDict == null) throw ERR_INVALID_EXTRA_CURRENCY_ID;
+            val depositAmount = value!.loadVarUInt32();
+
+            val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
+            val shares = handleDeposit(
+                EXTRA_CURRENCY_ASSET_TYPE, 
+                in.senderAddress, 
+                inMsg.queryId, 
+                remainingValue, 
+                in.senderAddress, 
+                depositAmount, 
+                inMsg.depositParams, 
+                in.body,
+            );
+
+            storage.totalSupply = storage.totalSupply + shares;
+            storage.totalAssets = storage.totalAssets + depositAmount;
             storage.save();
         }
 

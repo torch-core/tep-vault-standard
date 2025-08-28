@@ -31,6 +31,11 @@ struct (0xb534fe7b) DepositFp {
     depositParams: DepositParams
 }
 
+struct (0x90c2258a) DepositEc {
+    queryId: QueryId
+    depositParams: DepositParams
+}
+
 struct DepositConfig {
     vaultConfig: Cell<VaultConfig>? = null
     // Internal configuration struct for deposit operations, resolved from DepositOptions.
