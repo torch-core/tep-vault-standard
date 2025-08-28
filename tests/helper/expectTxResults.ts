@@ -316,3 +316,22 @@ export async function expectWithdrawJettonTxs(
         body: callbackPayload,
     });
 }
+
+export async function expectWithdrawEcTxs(
+    withdrawResult: SendMessageResult,
+    initiator: Address,
+    receiver: Address,
+    vault: SandboxContract<Vault>,
+    callbackPayload: Cell,
+) {
+    await expectBurnTxs(withdrawResult, initiator, vault);
+
+    // Expect vault send OP_VAULT_NOTIFICATION_EC to burner
+    expect(withdrawResult.transactions).toHaveTransaction({
+        from: vault.address,
+        to: receiver,
+        op: Opcodes.Vault.VaultNotificationEc,
+        success: true,
+        body: callbackPayload,
+    });
+}

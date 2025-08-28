@@ -1,4 +1,4 @@
-import { Blockchain, printTransactionFees, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
@@ -7,19 +7,15 @@ import { buildCallbackFp, DEFAULT_FAIL_CALLBACK_PAYLOAD, SUCCESS_RESULT } from '
 import {
     expectEcDepositTxs,
     expectFailDepositEcTxs,
-    expectFailDepositTONTxs,
-    expectTONDepositTxs,
 } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emitLog';
-import { expectEcVaultBalances, expectTonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
-import { expectEcDepositorBalances, expectTonDepositorBalances } from './helper/expectBalances';
+import { expectEcVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
+import { expectEcDepositorBalances } from './helper/expectBalances';
 import { JettonWallet } from '@ton/ton';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
-import { MAX_COINS_VALUE } from './helper/constants';
-import { Asset } from '@torch-finance/core';
-import { ASSET_TYPE_SIZE, EXTRA_CURRENCY_ID_SIZE, OPCODE_SIZE } from '../wrappers/constants/size';
+import { ASSET_TYPE_SIZE, EXTRA_CURRENCY_ID_SIZE } from '../wrappers/constants/size';
 
 describe('Deposit to Extra Currency  Vault', () => {
     let blockchain: Blockchain;
