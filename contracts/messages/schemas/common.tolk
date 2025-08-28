@@ -31,6 +31,11 @@ struct (0xb00d7656) VaultNotificationFp {
     vaultNotificationParams: VaultNotificationParams
 }
 
+struct (0x1f9e644b) VaultNotificationEc {
+    queryId: QueryId
+    vaultNotificationParams: VaultNotificationParams
+}
+
 struct (0x178d4519) InternalTransferStep {
     queryId: QueryId
     jettonAmount: coins

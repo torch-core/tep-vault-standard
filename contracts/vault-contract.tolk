@@ -49,7 +49,16 @@ fun onInternalMessage(in: InMessage) {
 
             // in.valueCoins must > deposit amount + deposit gas
             val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
-            val shares = handleDeposit(in.senderAddress, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, inMsg.depositParams, in.body);
+            val shares = handleDeposit(
+                TON_ASSET_TYPE, 
+                in.senderAddress, 
+                inMsg.queryId, 
+                remainingValue, 
+                in.senderAddress, 
+                inMsg.depositAmount, 
+                inMsg.depositParams, 
+                in.body,
+            );
 
             storage.totalSupply = storage.totalSupply + shares;
             storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
@@ -70,7 +79,16 @@ fun onInternalMessage(in: InMessage) {
                 Cell<DepositFp> => {
                     // in.valueCoins must > deposit gas
                     val remainingValue = processJettonDepositGas(in.valueCoins);
-                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, inMsg.forwardPayload!.load().depositParams, in.body);
+                    val shares = handleDeposit(
+                        JETTON_ASSET_TYPE,
+                        inMsg.initiator, 
+                        inMsg.queryId, 
+                        remainingValue, 
+                        in.senderAddress, 
+                        inMsg.depositAmount, 
+                        inMsg.forwardPayload!.load().depositParams, 
+                        in.body
+                    );
 
                     storage.totalSupply = storage.totalSupply + shares;
                     storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
@@ -103,7 +121,17 @@ fun onInternalMessage(in: InMessage) {
                             : (EXTRA_CURRENCY_ASSET_TYPE, null, externalAssetInfo.extraCurrencyId!);
                     }
 
-                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, inMsg.customPayload.load(), in.body, transferAssetType, assetJettonWallet, extraCurrencyId);
+                    val withdrawAmount = handleWithdraw(
+                        inMsg.initiator, 
+                        inMsg.queryId, 
+                        remainingValue, 
+                        inMsg.shares, 
+                        inMsg.customPayload.load(), 
+                        in.body, 
+                        transferAssetType, 
+                        assetJettonWallet, 
+                        extraCurrencyId
+                    );
 
                     storage.totalSupply = storage.totalSupply - inMsg.shares; 
                     storage.totalAssets = storage.totalAssets - withdrawAmount;
