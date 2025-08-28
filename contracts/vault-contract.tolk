@@ -22,6 +22,7 @@
  *      Core logic is separated into dedicated modules (core.tolk, storage.tolk, etc.)
  */
 
+import "constants/common-types"
 import "constants/errors";
 import "types/asset"
 import "storage"
@@ -64,13 +65,12 @@ fun onInternalMessage(in: InMessage) {
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
             assert (inMsg.forwardPayload != null) throw ERR_MISSING_FORWARD_PAYLOAD;
-            val forwardPayload = inMsg.forwardPayload!.load();
 
-            match (forwardPayload) {
-                DepositFp => {
+            match (inMsg.forwardPayload) {
+                Cell<DepositFp> => {
                     // in.valueCoins must > deposit gas
                     val remainingValue = processJettonDepositGas(in.valueCoins);
-                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, forwardPayload.depositParams, in.body);
+                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, inMsg.forwardPayload!.load().depositParams, in.body);
 
                     storage.totalSupply = storage.totalSupply + shares;
                     storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
@@ -86,20 +86,24 @@ fun onInternalMessage(in: InMessage) {
 
             assert (inMsg.shares > 0) throw ERR_INVALID_BURN_AMOUNT;
             assert (inMsg.customPayload != null) throw ERR_MISSING_CUSTOM_PAYLOAD;
-            val burnPayload = inMsg.customPayload!.load();
             
-            match (burnPayload) {
-                WithdrawFp => {
+            match (inMsg.customPayload) {
+                Cell<WithdrawFp> => {
                     // in.valueCoins must > withdraw gas
                     val remainingValue = processWithdrawGas(in.valueCoins);
 
                     // If externalAssetInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton or extra currency
+                    var transferAssetType: AssetType = TON_ASSET_TYPE;
                     var assetJettonWallet: address? = null;
+                    var extraCurrencyId: ExtraCurrencyId? = null;
                     if (storage.externalAssetInfo != null) {
                         var externalAssetInfo = storage.externalAssetInfo!.load();
-                        assetJettonWallet = (externalAssetInfo is JettonInfo) ? externalAssetInfo.walletAddress! : null;
+                        (transferAssetType, assetJettonWallet, extraCurrencyId) = (externalAssetInfo is JettonInfo) 
+                            ? (JETTON_ASSET_TYPE, externalAssetInfo.walletAddress!, null) 
+                            : (EXTRA_CURRENCY_ASSET_TYPE, null, externalAssetInfo.extraCurrencyId!);
                     }
-                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, burnPayload, in.body, assetJettonWallet);
+
+                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, inMsg.customPayload.load(), in.body, transferAssetType, assetJettonWallet, extraCurrencyId);
 
                     storage.totalSupply = storage.totalSupply - inMsg.shares; 
                     storage.totalAssets = storage.totalAssets - withdrawAmount;

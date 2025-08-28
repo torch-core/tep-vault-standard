@@ -1,5 +1,7 @@
 import "../constants/common-types"
 
+type AssetType = uint4;
+
 struct (0x0) TonAsset {}
 
 struct (0x1) JettonAsset {
@@ -30,3 +32,7 @@ fun Asset.extraCurrencyAsset(extraCurrencyId: ExtraCurrencyId) {
         extraCurrencyId: extraCurrencyId,
     };
 }
+
+const TON_ASSET_TYPE: AssetType = TonAsset.getDeclaredPackPrefix();
+const JETTON_ASSET_TYPE: AssetType = JettonAsset.getDeclaredPackPrefix();
+const EXTRA_CURRENCY_ASSET_TYPE: AssetType = ExtraCurrencyAsset.getDeclaredPackPrefix();
