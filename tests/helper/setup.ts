@@ -67,7 +67,8 @@ export const createTestEnvironment = () => {
             totalSupply: 0n,
             totalAssets: 0n,
             jettonMaster: null,
-            jettonWalletAddress: null,
+            jettonWalletAddress: null,  
+            extraCurrencyId: null,
             jettonWalletCode,
             content,
         });
@@ -126,6 +127,7 @@ export const createTestEnvironment = () => {
             totalAssets: 0n,
             jettonMaster: USDT.address,
             jettonWalletAddress: await USDT.getWalletAddress(USDTVault.address),
+            extraCurrencyId: null,
             jettonWalletCode,
             content,
         });

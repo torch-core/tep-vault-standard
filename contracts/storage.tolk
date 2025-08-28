@@ -2,12 +2,12 @@ import "constants/common-types"
 import "types/wallet-status"
 
 // ==== Vault Storage ====
-struct JettonInfo {
+struct (0x1) JettonInfo {
     masterAddress: address
     walletAddress: address
 }
 
-struct ExtraCurrencyInfo {
+struct (0x2) ExtraCurrencyInfo {
     extraCurrencyId: ExtraCurrencyId
 }
 

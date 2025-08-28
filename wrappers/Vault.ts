@@ -10,30 +10,34 @@ import {
     SendMode,
     toNano,
 } from '@ton/core';
-import { OPCODE_SIZE, QUERY_ID_SIZE } from './constants/size';
+import { ASSET_TYPE_SIZE, EXTRA_CURRENCY_ID_SIZE, OPCODE_SIZE, QUERY_ID_SIZE } from './constants/size';
 import { Opcodes } from './constants/op';
 import { Maybe } from '@ton/core/dist/utils/maybe';
 import { JettonMaster } from '@ton/ton';
-import { parseAssetsFromNestedCell } from '@torch-finance/core';
+import { AssetType, parseAssetsFromNestedCell } from '@torch-finance/core';
 
 export type VaultConfig = {
     adminAddress: Address;
     totalSupply: bigint;
     totalAssets: bigint;
     masterAddress?: Address;
+    extraCurrencyId?: number;
     jettonWalletCode: Cell;
     content: Cell;
 };
 
 export function vaultConfigToCell(config: VaultConfig): Cell {
-    const assetJettonInfo = config.masterAddress
-        ? beginCell().storeAddress(config.masterAddress).storeAddress(null).endCell()
-        : null;
+    let externalAssetInfo: Cell | null = null;
+    if (config.masterAddress) {
+        externalAssetInfo = beginCell().storeUint(AssetType.JETTON, ASSET_TYPE_SIZE).storeAddress(config.masterAddress).storeAddress(null).endCell();
+    } else if (config.extraCurrencyId) {
+        externalAssetInfo = beginCell().storeUint(AssetType.EXTRA_CURRENCY, ASSET_TYPE_SIZE).storeUint(config.extraCurrencyId, EXTRA_CURRENCY_ID_SIZE).endCell();
+    }
     return beginCell()
         .storeAddress(config.adminAddress)
         .storeCoins(config.totalSupply)
         .storeCoins(config.totalAssets)
-        .storeMaybeRef(assetJettonInfo)
+        .storeMaybeRef(externalAssetInfo)
         .storeRef(config.jettonWalletCode)
         .storeRef(config.content)
         .endCell();
@@ -45,6 +49,7 @@ export interface VaultStorage {
     totalAssets: bigint;
     jettonMaster: Address | null;
     jettonWalletAddress: Address | null;
+    extraCurrencyId: number | null;
     jettonWalletCode: Cell;
     content: Cell;
 }
@@ -367,7 +372,7 @@ export class Vault implements Contract {
             },
             {
                 type: 'int',
-                value: 0n,  // Rounding type: ROUND_DOWN
+                value: 0n, // Rounding type: ROUND_DOWN
             },
         ]);
         return res.stack.readBigNumber();
@@ -384,7 +389,7 @@ export class Vault implements Contract {
             },
             {
                 type: 'int',
-                value: 0n,  // Rounding type: ROUND_DOWN
+                value: 0n, // Rounding type: ROUND_DOWN
             },
         ]);
         return res.stack.readBigNumber();
@@ -419,16 +424,22 @@ export class Vault implements Contract {
         const adminAddress = storageSlice.loadAddress();
         const totalSupply = storageSlice.loadCoins();
         const totalAssets = storageSlice.loadCoins();
-        const assetJettonInfoCell = storageSlice.loadMaybeRef();
+        const externalAssetInfo = storageSlice.loadMaybeRef();
         let jettonMaster: Address | null = null;
         let jettonWalletAddress: Address | null = null;
-        if (assetJettonInfoCell) {
-            const assetJettonInfoSlice = assetJettonInfoCell.beginParse();
-            jettonMaster = assetJettonInfoSlice.loadAddress();
-            jettonWalletAddress = assetJettonInfoSlice.loadMaybeAddress();
+        let extraCurrencyId: number | null = null;
+        if (externalAssetInfo) {
+            const externalAssetInfoSlice = externalAssetInfo.beginParse();
+            const assetType = externalAssetInfoSlice.loadUint(ASSET_TYPE_SIZE); 
+            if (assetType === AssetType.JETTON) {
+                jettonMaster = externalAssetInfoSlice.loadAddress();
+                jettonWalletAddress = externalAssetInfoSlice.loadMaybeAddress();
+            } else if (assetType === AssetType.EXTRA_CURRENCY) {
+                extraCurrencyId = externalAssetInfoSlice.loadUint(EXTRA_CURRENCY_ID_SIZE);
+            }
         }
         const jettonWalletCode = storageSlice.loadRef();
         const content = storageSlice.loadRef();
-        return { adminAddress, totalSupply, totalAssets, jettonMaster, jettonWalletAddress, jettonWalletCode, content };
+        return { adminAddress, totalSupply, totalAssets, jettonMaster, jettonWalletAddress, extraCurrencyId, jettonWalletCode, content };
     }
 }

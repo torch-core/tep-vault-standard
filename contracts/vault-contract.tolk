@@ -93,9 +93,12 @@ fun onInternalMessage(in: InMessage) {
                     // in.valueCoins must > withdraw gas
                     val remainingValue = processWithdrawGas(in.valueCoins);
 
-                    // If assetJettonInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton
-                    var externalAssetInfo = storage.externalAssetInfo!.load();
-                    val assetJettonWallet = (externalAssetInfo is JettonInfo) ? externalAssetInfo.walletAddress! : null;
+                    // If externalAssetInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton or extra currency
+                    var assetJettonWallet: address? = null;
+                    if (storage.externalAssetInfo != null) {
+                        var externalAssetInfo = storage.externalAssetInfo!.load();
+                        assetJettonWallet = (externalAssetInfo is JettonInfo) ? externalAssetInfo.walletAddress! : null;
+                    }
                     val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, burnPayload, in.body, assetJettonWallet);
 
                     storage.totalSupply = storage.totalSupply - inMsg.shares; 
@@ -144,13 +147,15 @@ fun onInternalMessage(in: InMessage) {
 
         DeployVault => {
             // If assetJettonInfo is not null -> underlying asset is Jetton, otherwise underlying asset is TON
-            var externalAssetInfo = storage.externalAssetInfo!.load();
-            if (externalAssetInfo is JettonInfo) { 
-                // Only admin can deploy Jetton vault
-                assert (in.senderAddress == storage.adminAddress) throw ERR_UNAUTHORIZED_ADMIN;
-                
-                // Send request wallet address to Jetton master
-                sendRequestWalletAddress(externalAssetInfo.masterAddress!, inMsg.queryId);
+            if (storage.externalAssetInfo != null) {
+                var externalAssetInfo = storage.externalAssetInfo.load();
+                if (externalAssetInfo is JettonInfo) { 
+                    // Only admin can deploy Jetton vault
+                    assert (in.senderAddress == storage.adminAddress) throw ERR_UNAUTHORIZED_ADMIN;
+                    
+                    // Send request wallet address to Jetton master
+                    sendRequestWalletAddress(externalAssetInfo.masterAddress!, inMsg.queryId);
+                }
             }
         }
 
