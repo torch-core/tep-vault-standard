@@ -7,6 +7,7 @@ import {
     contractAddress,
     ContractProvider,
     Sender,
+    SenderArguments,
     SendMode,
     toNano,
 } from '@ton/core';
@@ -29,9 +30,16 @@ export type VaultConfig = {
 export function vaultConfigToCell(config: VaultConfig): Cell {
     let externalAssetInfo: Cell | null = null;
     if (config.masterAddress) {
-        externalAssetInfo = beginCell().storeUint(AssetType.JETTON, ASSET_TYPE_SIZE).storeAddress(config.masterAddress).storeAddress(null).endCell();
-    } else if (config.extraCurrencyId) {
-        externalAssetInfo = beginCell().storeUint(AssetType.EXTRA_CURRENCY, ASSET_TYPE_SIZE).storeUint(config.extraCurrencyId, EXTRA_CURRENCY_ID_SIZE).endCell();
+        externalAssetInfo = beginCell()
+            .storeUint(AssetType.JETTON, ASSET_TYPE_SIZE)
+            .storeAddress(config.masterAddress)
+            .storeAddress(null)
+            .endCell();
+    } else if (config.extraCurrencyId !== undefined) {
+        externalAssetInfo = beginCell()
+            .storeUint(AssetType.EXTRA_CURRENCY, ASSET_TYPE_SIZE)
+            .storeUint(config.extraCurrencyId, EXTRA_CURRENCY_ID_SIZE)
+            .endCell();
     }
     return beginCell()
         .storeAddress(config.adminAddress)
@@ -107,17 +115,18 @@ export class Vault implements Contract {
     constructor(
         readonly address: Address,
         readonly jettonMaster?: Address,
+        readonly extraCurrencyId?: number,
         readonly init?: { code: Cell; data: Cell },
     ) {}
 
-    static createFromAddress(address: Address, jettonMaster?: Address) {
-        return new Vault(address, jettonMaster);
+    static createFromAddress(address: Address, jettonMaster?: Address, extraCurrencyId?: number) {
+        return new Vault(address, jettonMaster, extraCurrencyId);
     }
 
     static createFromConfig(config: VaultConfig, code: Cell, workchain = 0) {
         const data = vaultConfigToCell(config);
         const init = { code, data };
-        return new Vault(contractAddress(workchain, init), config.masterAddress, init);
+        return new Vault(contractAddress(workchain, init), config.masterAddress, config.extraCurrencyId, init);
     }
 
     private optionalVaultParamsToCell(params?: OptionalParams): Cell | null {
@@ -253,6 +262,24 @@ export class Vault implements Contract {
                     }),
                 )
                 .endCell(),
+        };
+    }
+
+    async getEcDepositArg(provider: ContractProvider, deposit: Deposit): Promise<SenderArguments> {
+        if (this.extraCurrencyId === undefined) {
+            throw new Error('Extra currency id is not set');
+        }
+        return {
+            to: this.address,
+            value: toNano('0.1'),
+            body: beginCell()
+                .storeUint(Opcodes.Vault.DepositEc, OPCODE_SIZE)
+                .storeUint(deposit.queryId, QUERY_ID_SIZE)
+                .store(this.storeVaultDepositParams(deposit.depositParams))
+                .endCell(),
+            extracurrency: {
+                [this.extraCurrencyId]: deposit.depositAmount,
+            },
         };
     }
 
@@ -430,7 +457,7 @@ export class Vault implements Contract {
         let extraCurrencyId: number | null = null;
         if (externalAssetInfo) {
             const externalAssetInfoSlice = externalAssetInfo.beginParse();
-            const assetType = externalAssetInfoSlice.loadUint(ASSET_TYPE_SIZE); 
+            const assetType = externalAssetInfoSlice.loadUint(ASSET_TYPE_SIZE);
             if (assetType === AssetType.JETTON) {
                 jettonMaster = externalAssetInfoSlice.loadAddress();
                 jettonWalletAddress = externalAssetInfoSlice.loadMaybeAddress();
@@ -440,6 +467,15 @@ export class Vault implements Contract {
         }
         const jettonWalletCode = storageSlice.loadRef();
         const content = storageSlice.loadRef();
-        return { adminAddress, totalSupply, totalAssets, jettonMaster, jettonWalletAddress, extraCurrencyId, jettonWalletCode, content };
+        return {
+            adminAddress,
+            totalSupply,
+            totalAssets,
+            jettonMaster,
+            jettonWalletAddress,
+            extraCurrencyId,
+            jettonWalletCode,
+            content,
+        };
     }
 }

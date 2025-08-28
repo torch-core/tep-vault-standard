@@ -4,6 +4,7 @@ export const Opcodes = {
         DeployVault: 0xe43f93a9,
         Deposit: 0x5a66a4a5,
         DepositFp: 0xb534fe7b,
+        DepositEc: 0x90c2258a,
         WithdrawFp: 0xecb4d6bf,
         VaultNotification: 0x86eba146,
         VaultNotificationFp: 0xb00d7656,
@@ -13,7 +14,7 @@ export const Opcodes = {
     Jetton: {
         Transfer: 0xf8a7ea5,
         TransferNotification: 0x7362d09c,
-        InternalTransfer: 0x178d4519,
+        InternalTransfer: 0x90c2258a,
         Excesses: 0xd53276db,
         Burn: 0x595f07bc,
         BurnNotification: 0x7bdd97de,

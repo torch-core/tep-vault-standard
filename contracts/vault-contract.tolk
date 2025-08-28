@@ -25,6 +25,7 @@
 import "@stdlib/tvm-dicts"
 import "constants/common-types"
 import "constants/errors";
+import "constants/values"
 import "types/asset"
 import "storage"
 import "helper/jetton"
@@ -38,7 +39,6 @@ import "messages/emit"
 import "core";
 import "fees-management";
 import "get-methods";
-import "constants/values"
 
 fun onInternalMessage(in: InMessage) {
     val inMsg = lazy AllowedMessage.fromSlice(in.body);
@@ -71,6 +71,7 @@ fun onInternalMessage(in: InMessage) {
         DepositEc => {
             val externalAssetInfo = storage.externalAssetInfo!.load();
             assert (externalAssetInfo is ExtraCurrencyInfo) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
+            
             var extraCurrencyDict = in.valueExtra;
             var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, externalAssetInfo.extraCurrencyId!);
 
