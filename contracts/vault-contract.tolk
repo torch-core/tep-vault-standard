@@ -59,7 +59,7 @@ fun onInternalMessage(in: InMessage) {
         TransferNotificationForRecipient => {
             // Verifies sender is from vault's Jetton wallet to prevent unauthorized Jetton deposits  
             var externalAssetInfo = storage.externalAssetInfo!.load();
-            assert (externalAssetInfo is JettonInfo) throw ERR_NON_SUPPORTED_ASSET;
+            assert (externalAssetInfo is JettonInfo) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
             assert (in.senderAddress == externalAssetInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
@@ -109,11 +109,17 @@ fun onInternalMessage(in: InMessage) {
         ProvideQuote => {
             // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
-            var quoteAsset: Asset = Asset.tonAsset();
-            var externalAssetInfo = storage.externalAssetInfo!.load();
-            if(externalAssetInfo is JettonInfo) {
-                quoteAsset = Asset.jettonAsset(externalAssetInfo.masterAddress!);
+            var quoteAsset: Asset = Asset.tonAsset();   
+            if(storage.externalAssetInfo != null) {
+                var externalAssetInfo = storage.externalAssetInfo!.load();
+                if(externalAssetInfo is JettonInfo) {
+                    quoteAsset = Asset.jettonAsset(externalAssetInfo.masterAddress!);
+                }
+                else {
+                    quoteAsset = Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
+                }
             }
+
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 
             emitQuoted(Quoted {
