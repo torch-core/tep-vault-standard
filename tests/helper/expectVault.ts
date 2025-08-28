@@ -81,3 +81,21 @@ export async function expectJettonVaultBalances(
     // Expect that vault shares and assets are changed by assetAmountChange and sharesChange
     await expectVaultSharesAndAssets(vault, assetAmountChange, sharesChange, oldTotalAssets, oldTotalSupply);
 }
+
+export async function expectEcVaultBalances(
+    blockchain: Blockchain,
+    vault: SandboxContract<Vault>,
+    ecBalBefore: bigint,
+    assetAmountChange: bigint,
+    sharesChange: bigint,
+    oldTotalAssets: bigint = 0n,
+    oldTotalSupply: bigint = 0n,
+    ecId: number,
+) {
+    // Expect that vault ec balance is changed by assetAmountChange
+    const vaultEcBalanceAfter = (await blockchain.getContract(vault.address)).ec[ecId];
+    expect(vaultEcBalanceAfter).toBe(ecBalBefore + assetAmountChange);
+
+    // Expect that vault shares and assets are changed by assetAmountChange and sharesChange
+    await expectVaultSharesAndAssets(vault, assetAmountChange, sharesChange, oldTotalAssets, oldTotalSupply);
+}

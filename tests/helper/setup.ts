@@ -245,6 +245,7 @@ export const createTestEnvironment = () => {
             tonVault,
             USDTVault,
             ecVault,
+            ecId,
         };
     };
 

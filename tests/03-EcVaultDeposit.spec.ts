@@ -4,11 +4,11 @@ import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, toNano } from '@ton/core';
 import { buildCallbackFp, DEFAULT_FAIL_CALLBACK_PAYLOAD, SUCCESS_RESULT } from './helper/callbackPayload';
-import { expectFailDepositTONTxs, expectTONDepositTxs } from './helper/expectTxResults';
+import { expectEcDepositTxs, expectFailDepositTONTxs, expectTONDepositTxs } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emitLog';
-import { expectTonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
-import { expectTonDepositorBalances } from './helper/expectBalances';
+import { expectEcVaultBalances, expectTonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
+import { expectEcDepositorBalances, expectTonDepositorBalances } from './helper/expectBalances';
 import { JettonWallet } from '@ton/ton';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
@@ -22,12 +22,14 @@ describe('Deposit to TON Vault', () => {
     let bob: SandboxContract<TreasuryContract>;
     let maxeyShareWallet: SandboxContract<JettonWallet>;
     let maxeyShareBalBefore: bigint;
-    let maxeyTonBalBefore: bigint;
+    let maxeyEcBalBefore: bigint;
     let bobShareWallet: SandboxContract<JettonWallet>;
     let bobShareBalBefore: bigint;
     let ecVault: SandboxContract<Vault>;
-    let tonVaultTONBalBefore: bigint;
-    let tonVaultTonBalDelta: bigint;
+    let ecVaultTONBalBefore: bigint;
+    let ecVaultEcBalBefore: bigint;
+    let ecVaultTonBalDelta: bigint;
+    let ecId: number;
     const queryId = 8n;
     const DEPOSIT_FAIL_GAS = toNano('0.015');
 
@@ -35,19 +37,21 @@ describe('Deposit to TON Vault', () => {
 
     beforeEach(async () => {
         await resetToInitSnapshot();
-        ({ blockchain, maxey, bob, ecVault } = getTestContext());
+        ({ blockchain, maxey, bob, ecVault, ecId } = getTestContext());
         maxeyShareWallet = blockchain.openContract(JettonWallet.create(await ecVault.getWalletAddress(maxey.address)));
         bobShareWallet = blockchain.openContract(JettonWallet.create(await ecVault.getWalletAddress(bob.address)));
         maxeyShareBalBefore = await maxeyShareWallet.getBalance();
-        maxeyTonBalBefore = await maxey.getBalance();
+        maxeyEcBalBefore = (await blockchain.getContract(maxey.address)).ec[ecId];
         bobShareBalBefore = await bobShareWallet.getBalance();
-        tonVaultTONBalBefore = (await blockchain.getContract(ecVault.address)).balance;
-        tonVaultTonBalDelta = 0n;
+        const ecVaultSmc = await blockchain.getContract(ecVault.address);
+        ecVaultTONBalBefore = ecVaultSmc.balance;
+        ecVaultEcBalBefore = ecVaultSmc.ec[ecId] ?? 0n;
+        ecVaultTonBalDelta = 0n;
     });
 
     afterEach(async () => {
-        const tonVaultTONBalanceAfter = (await blockchain.getContract(ecVault.address)).balance;
-        expect(tonVaultTONBalanceAfter - tonVaultTonBalDelta + 5n).toBeGreaterThanOrEqual(tonVaultTONBalBefore);
+        const ecVaultBalanceAfter = (await blockchain.getContract(ecVault.address)).balance;
+        expect(ecVaultBalanceAfter - ecVaultTonBalDelta + 5n).toBeGreaterThanOrEqual(ecVaultTONBalBefore);
     });
 
     afterAll(() => {
@@ -59,47 +63,47 @@ describe('Deposit to TON Vault', () => {
         writeFileSync('./coverage/ton-vault-deposit.json', coverageJson);
     });
 
-    async function expectTonDepositFlows(
+    async function expectEcDepositFlows(
         depositResult: SendMessageResult,
         depositor: SandboxContract<TreasuryContract>,
         receiver: SandboxContract<TreasuryContract>,
         receiverShareWallet: SandboxContract<JettonWallet>,
         receiverShareBalBefore: bigint,
-        depositorTonBalBefore: bigint,
+        depositorEcBalBefore: bigint,
         depositAmount: bigint,
         successCallbackPayload: Cell,
         oldTotalAssets: bigint = 0n,
         oldTotalSupply: bigint = 0n,
     ) {
         // Expect the deposit to be successful
-        await expectTONDepositTxs(depositResult, depositor.address, receiver.address, ecVault, successCallbackPayload);
+        await expectEcDepositTxs(depositResult, depositor.address, receiver.address, ecVault, successCallbackPayload);
 
         // Expect that depositor shares and ton balances are updated
-        await expectTonDepositorBalances(
+        await expectEcDepositorBalances(
+            blockchain,
             depositor,
             receiverShareWallet,
             receiverShareBalBefore,
-            depositorTonBalBefore,
+            depositorEcBalBefore,
             depositAmount,
             depositAmount,
+            ecId,
         );
 
         // Expect that tonVault balance is increased by depositAmount and shares/assets are increased by depositAmount
-        await expectTonVaultBalances(
+        await expectEcVaultBalances(
             blockchain,
             ecVault,
-            tonVaultTONBalBefore,
+            ecVaultEcBalBefore,
             depositAmount,
             depositAmount,
             oldTotalAssets,
             oldTotalSupply,
+            ecId,
         );
 
         // Expect that deposited emit log is emitted
         expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount);
-
-        // Update tonVaultTonBalDelta
-        tonVaultTonBalDelta += depositAmount;
     }
 
     describe('Deposit Extra Currency success', () => {
@@ -111,6 +115,17 @@ describe('Deposit to TON Vault', () => {
                 depositAmount,
             });
             const depositResult = await maxey.send(depositArgs);
+
+            await expectEcDepositFlows(
+                depositResult,
+                maxey,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyEcBalBefore,
+                depositAmount,
+                buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey),
+            );
         });
 
         // it('should handle deposit to specified receiver', async () => {

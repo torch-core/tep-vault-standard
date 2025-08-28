@@ -121,6 +121,25 @@ export async function expectJettonDepositTxs(
     await expectMintShares(depositResult, vault, receiver, callbackPayload);
 }
 
+export async function expectEcDepositTxs(
+    depositResult: SendMessageResult,
+    initiator: Address,
+    receiver: Address,
+    vault: SandboxContract<Vault>,
+    callbackPayload: Cell,
+) {
+    // Initiator sends EC deposit to vault
+    expect(depositResult.transactions).toHaveTransaction({
+        from: initiator,
+        to: vault.address,
+        op: Opcodes.Vault.DepositEc,
+        success: true,
+    });
+
+    // Validate share minting process
+    await expectMintShares(depositResult, vault, receiver, callbackPayload);
+}
+
 // =============================================================================
 // Failed Deposit Validation
 // =============================================================================
