@@ -12,18 +12,16 @@ get fun getAssets() {
     var assetsTuple: tuple = createEmptyTuple();
     val storage = lazy VaultStorage.load();
 
-    if(storage.externalAssetInfo == null) {
+    if (storage.externalAssetInfo == null) {
         assetsTuple.push(Asset.tonAsset().toCell());
         return convertAssetsTupleToCell(assetsTuple, 0);
     }
 
     val externalAssetInfo = storage.externalAssetInfo!.load();
-    if(externalAssetInfo is JettonInfo) {
-        assetsTuple.push(Asset.jettonAsset(externalAssetInfo.masterAddress!).toCell());
-    }
-    else {
-        assetsTuple.push(Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!).toCell());
-    }
+    val asset: Asset = (externalAssetInfo is JettonInfo) 
+        ? Asset.jettonAsset(externalAssetInfo.masterAddress!) 
+        : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
+    assetsTuple.push(asset.toCell());
 
     return convertAssetsTupleToCell(assetsTuple, 0);
 }

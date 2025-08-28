@@ -110,14 +110,11 @@ fun onInternalMessage(in: InMessage) {
             // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
             var quoteAsset: Asset = Asset.tonAsset();   
-            if(storage.externalAssetInfo != null) {
+            if (storage.externalAssetInfo != null) {
                 var externalAssetInfo = storage.externalAssetInfo!.load();
-                if(externalAssetInfo is JettonInfo) {
-                    quoteAsset = Asset.jettonAsset(externalAssetInfo.masterAddress!);
-                }
-                else {
-                    quoteAsset = Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
-                }
+                quoteAsset = (externalAssetInfo is JettonInfo) 
+                    ? Asset.jettonAsset(externalAssetInfo.masterAddress!)
+                    : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
             }
 
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
@@ -137,7 +134,7 @@ fun onInternalMessage(in: InMessage) {
             var externalAssetInfo = storage.externalAssetInfo!.load();
 
             // Verifies sender is from Jetton master to prevent unauthorized updates
-            if(externalAssetInfo is JettonInfo) {
+            if (externalAssetInfo is JettonInfo) {
                 assert (in.senderAddress == externalAssetInfo.masterAddress!) throw ERR_INVALID_JETTON_WALLET; 
                 externalAssetInfo.walletAddress = inMsg.jettonWalletAddress;
             }
@@ -148,7 +145,7 @@ fun onInternalMessage(in: InMessage) {
         DeployVault => {
             // If assetJettonInfo is not null -> underlying asset is Jetton, otherwise underlying asset is TON
             var externalAssetInfo = storage.externalAssetInfo!.load();
-            if(externalAssetInfo is JettonInfo) { 
+            if (externalAssetInfo is JettonInfo) { 
                 // Only admin can deploy Jetton vault
                 assert (in.senderAddress == storage.adminAddress) throw ERR_UNAUTHORIZED_ADMIN;
                 

@@ -19,7 +19,7 @@ fun resolveReceiver(receiver: address, initiator: address) {
 @pure
 fun createVaultNotificationParams(result: Result, initiator: address, callbackParams: Cell<CallbackParams>?, inBody: slice): VaultNotificationParams {
     var callback: CallbackParams?;
-    if(callbackParams == null) {
+    if (callbackParams == null) {
         // If callbackParams is null -> use default callbacks
         callback = result == Result.Success() ? CallbackParams.defaultSuccess() : CallbackParams.defaultFailure();
     } else {
