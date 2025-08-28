@@ -265,7 +265,7 @@ export class Vault implements Contract {
         };
     }
 
-    async getEcDepositArg(provider: ContractProvider, deposit: Deposit): Promise<SenderArguments> {
+    async getEcDepositArg(provider: ContractProvider, deposit: Deposit) {
         if (this.extraCurrencyId === undefined) {
             throw new Error('Extra currency id is not set');
         }

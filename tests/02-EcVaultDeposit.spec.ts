@@ -16,7 +16,7 @@ import { MAX_COINS_VALUE } from './helper/constants';
 import { Asset } from '@torch-finance/core';
 import { OPCODE_SIZE } from '../wrappers/constants/size';
 
-describe('Deposit to TON Vault', () => {
+describe('Deposit to Extra Currency  Vault', () => {
     let blockchain: Blockchain;
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;
@@ -108,7 +108,7 @@ describe('Deposit to TON Vault', () => {
 
     describe('Deposit Extra Currency success', () => {
         it('should handle basic deposit to depositor', async () => {
-            // Maxey deposit 5 TON to TON Vault
+            // Maxey deposit 5 ecId: to ecVault
             const depositAmount = toNano('5');
             const depositArgs = await ecVault.getEcDepositArg({
                 queryId,
@@ -128,221 +128,222 @@ describe('Deposit to TON Vault', () => {
             );
         });
 
-        // it('should handle deposit to specified receiver', async () => {
-        //     // Maxey deposit 5 TON to TON Vault with receiver bob
-        //     const depositAmount = toNano('5');
-        //     const depositArgs = await ecVault.getTonDepositArg({
-        //         queryId,
-        //         depositAmount,
-        //         depositParams: {
-        //             receiver: bob.address,
-        //         },
-        //     });
-        //     const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit to specified receiver', async () => {
+            // Maxey deposit 5 ecId: to ecVault with receiver bob
+            const depositAmount = toNano('5');
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    receiver: bob.address,
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-        //     // Expect the deposit to be successful
-        //     await expectTonDepositFlows(
-        //         depositResult,
-        //         maxey,
-        //         bob,
-        //         bobShareWallet,
-        //         bobShareBalBefore,
-        //         maxeyTonBalBefore,
-        //         depositAmount,
-        //         buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey),
-        //     );
-        // });
+            // Expect the deposit to be successful
+            await expectEcDepositFlows(
+                depositResult,
+                maxey,
+                bob,
+                bobShareWallet,
+                bobShareBalBefore,
+                maxeyEcBalBefore,
+                depositAmount,
+                buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey),
+            );
+        });
 
-        // it('should handle deposit with success callback (body not included)', async () => {
-        //     // Maxey deposit 5 TON to TON Vault with success callback and without body
-        //     const depositAmount = toNano('5');
-        //     const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
-        //     const depositArgs = await ecVault.getTonDepositArg({
-        //         queryId,
-        //         depositAmount,
-        //         depositParams: {
-        //             callbacks: {
-        //                 successCallback: {
-        //                     includeBody: false,
-        //                     payload: successCallbackPayload,
-        //                 },
-        //             },
-        //         },
-        //     });
-        //     const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit with success callback (body not included)', async () => {
+            // Maxey deposit 5 ecId:0 to ecVault with success callback and without body
+            const depositAmount = toNano('5');
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    callbacks: {
+                        successCallback: {
+                            includeBody: false,
+                            payload: successCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-        //     // Expect the deposit to be successful
-        //     await expectTonDepositFlows(
-        //         depositResult,
-        //         maxey,
-        //         maxey,
-        //         maxeyShareWallet,
-        //         maxeyShareBalBefore,
-        //         maxeyTonBalBefore,
-        //         depositAmount,
-        //         buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey, successCallbackPayload),
-        //     );
-        // });
+            // Expect the deposit to be successful
+            await expectEcDepositFlows(
+                depositResult,
+                maxey,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyEcBalBefore,
+                depositAmount,
+                buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey, successCallbackPayload),
+            );
+        });
 
-        // it('should handle deposit with success callback (body included)', async () => {
-        //     // Maxey deposit 5 TON to TON Vault with success callback and with body
-        //     const depositAmount = toNano('5');
-        //     const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
-        //     const depositArgs = await ecVault.getTonDepositArg({
-        //         queryId,
-        //         depositAmount,
-        //         depositParams: {
-        //             callbacks: {
-        //                 successCallback: {
-        //                     includeBody: true,
-        //                     payload: successCallbackPayload,
-        //                 },
-        //             },
-        //         },
-        //     });
-        //     const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit with success callback (body included)', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault with success callback and with body
+            const depositAmount = toNano('5');
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    callbacks: {
+                        successCallback: {
+                            includeBody: true,
+                            payload: successCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-        //     // Expect the deposit to be successful with success callback and in body
-        //     await expectTonDepositFlows(
-        //         depositResult,
-        //         maxey,
-        //         maxey,
-        //         maxeyShareWallet,
-        //         maxeyShareBalBefore,
-        //         maxeyTonBalBefore,
-        //         depositAmount,
-        //         buildCallbackFp(
-        //             queryId,
-        //             depositAmount,
-        //             ecVault,
-        //             SUCCESS_RESULT,
-        //             maxey,
-        //             successCallbackPayload,
-        //             depositArgs.body,
-        //         ),
-        //     );
-        // });
+            // Expect the deposit to be successful with success callback and in body
+            await expectEcDepositFlows(
+                depositResult,
+                maxey,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyEcBalBefore,
+                depositAmount,
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    ecVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    successCallbackPayload,
+                    depositArgs.body,
+                ),
+            );
+        });
 
-        // it('should handle deposit to receiver with success callback (body not included)', async () => {
-        //     // Maxey deposit 5 TON to TON Vault with receiver bob, success callback and without body
-        //     const depositAmount = toNano('5');
-        //     const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
-        //     const depositArgs = await ecVault.getTonDepositArg({
-        //         queryId,
-        //         depositAmount,
-        //         depositParams: {
-        //             receiver: bob.address,
-        //             callbacks: {
-        //                 successCallback: {
-        //                     includeBody: false,
-        //                     payload: successCallbackPayload,
-        //                 },
-        //             },
-        //         },
-        //     });
-        //     const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit to receiver with success callback (body not included)', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault with receiver bob, success callback and without body
+            const depositAmount = toNano('5');
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    receiver: bob.address,
+                    callbacks: {
+                        successCallback: {
+                            includeBody: false,
+                            payload: successCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-        //     // Expect the deposit to be successful
-        //     await expectTonDepositFlows(
-        //         depositResult,
-        //         maxey,
-        //         bob,
-        //         bobShareWallet,
-        //         bobShareBalBefore,
-        //         maxeyTonBalBefore,
-        //         depositAmount,
-        //         buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey, successCallbackPayload),
-        //     );
-        // });
+            // Expect the deposit to be successful
+            await expectEcDepositFlows(
+                depositResult,
+                maxey,
+                bob,
+                bobShareWallet,
+                bobShareBalBefore,
+                maxeyEcBalBefore,
+                depositAmount,
+                buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey, successCallbackPayload),
+            );
+        });
 
-        // it('should handle deposit to receiver with success callback (body included)', async () => {
-        //     // Maxey deposit 5 TON to TON Vault with receiver bob, success callback and with body
-        //     const depositAmount = toNano('5');
-        //     const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
-        //     const depositArgs = await ecVault.getTonDepositArg({
-        //         queryId,
-        //         depositAmount,
-        //         depositParams: {
-        //             receiver: bob.address,
-        //             callbacks: {
-        //                 successCallback: {
-        //                     includeBody: true,
-        //                     payload: successCallbackPayload,
-        //                 },
-        //             },
-        //         },
-        //     });
-        //     const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit to receiver with success callback (body included)', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault with receiver bob, success callback and with body
+            const depositAmount = toNano('5');
+            const successCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    receiver: bob.address,
+                    callbacks: {
+                        successCallback: {
+                            includeBody: true,
+                            payload: successCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-        //     // Expect the deposit to be successful with success callback and in body
-        //     await expectTonDepositFlows(
-        //         depositResult,
-        //         maxey,
-        //         bob,
-        //         bobShareWallet,
-        //         bobShareBalBefore,
-        //         maxeyTonBalBefore,
-        //         depositAmount,
-        //         buildCallbackFp(
-        //             queryId,
-        //             depositAmount,
-        //             ecVault,
-        //             SUCCESS_RESULT,
-        //             maxey,
-        //             successCallbackPayload,
-        //             depositArgs.body,
-        //         ),
-        //     );
-        // });
+            // Expect the deposit to be successful with success callback and in body
+            await expectEcDepositFlows(
+                depositResult,
+                maxey,
+                bob,
+                bobShareWallet,
+                bobShareBalBefore,
+                maxeyEcBalBefore,
+                depositAmount,
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    ecVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    successCallbackPayload,
+                    depositArgs.body,
+                ),
+            );
+        });
 
-        // it('should handle consecutive deposits correctly', async () => {
-        //     // First deposit: Maxey deposit 3 TON to TON Vault
-        //     const firstDepositAmount = toNano('3');
-        //     const firstDepositArgs = await ecVault.getTonDepositArg({
-        //         queryId,
-        //         depositAmount: firstDepositAmount,
-        //     });
-        //     const firstDepositResult = await maxey.send(firstDepositArgs);
+        it('should handle consecutive deposits correctly', async () => {
+            // First deposit: Maxey deposit 3 TON to TON Vault
+            const firstDepositAmount = toNano('3');
+            const firstDepositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount: firstDepositAmount,
+            });
+            const firstDepositResult = await maxey.send(firstDepositArgs);
 
-        //     // Expect the first deposit to be successful
-        //     await expectTonDepositFlows(
-        //         firstDepositResult,
-        //         maxey,
-        //         maxey,
-        //         maxeyShareWallet,
-        //         maxeyShareBalBefore,
-        //         maxeyTonBalBefore,
-        //         firstDepositAmount,
-        //         buildCallbackFp(queryId, firstDepositAmount, ecVault, SUCCESS_RESULT, maxey),
-        //     );
+            // Expect the first deposit to be successful
+            await expectEcDepositFlows(
+                firstDepositResult,
+                maxey,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyEcBalBefore,
+                firstDepositAmount,
+                buildCallbackFp(queryId, firstDepositAmount, ecVault, SUCCESS_RESULT, maxey),
+            );
 
-        //     // Update maxey share and ton balances
-        //     maxeyShareBalBefore = await maxeyShareWallet.getBalance();
-        //     maxeyTonBalBefore = await maxey.getBalance();
+            // Update maxey share and ton balances
+            maxeyShareBalBefore = await maxeyShareWallet.getBalance();
+            maxeyEcBalBefore = (await blockchain.getContract(maxey.address)).ec[ecId];
+            ecVaultEcBalBefore = (await blockchain.getContract(ecVault.address)).ec[ecId];
 
-        //     // Second deposit: Maxey deposit another 7 TON to TON Vault
-        //     const secondDepositAmount = toNano('7');
-        //     const secondQueryId = 9n;
-        //     const secondDepositArgs = await ecVault.getTonDepositArg({
-        //         queryId: secondQueryId,
-        //         depositAmount: secondDepositAmount,
-        //     });
-        //     const secondDepositResult = await maxey.send(secondDepositArgs);
+            // Second deposit: Maxey deposit another 7 TON to TON Vault
+            const secondDepositAmount = toNano('7');
+            const secondQueryId = 9n;
+            const secondDepositArgs = await ecVault.getEcDepositArg({
+                queryId: secondQueryId,
+                depositAmount: secondDepositAmount,
+            });
+            const secondDepositResult = await maxey.send(secondDepositArgs);
 
-        //     // Expect the second deposit to be successful
-        //     await expectTonDepositFlows(
-        //         secondDepositResult,
-        //         maxey,
-        //         maxey,
-        //         maxeyShareWallet,
-        //         maxeyShareBalBefore,
-        //         maxeyTonBalBefore,
-        //         secondDepositAmount,
-        //         buildCallbackFp(secondQueryId, secondDepositAmount, ecVault, SUCCESS_RESULT, maxey),
-        //         firstDepositAmount,
-        //         firstDepositAmount,
-        //     );
-        // });
+            // Expect the second deposit to be successful
+            await expectEcDepositFlows(
+                secondDepositResult,
+                maxey,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxeyEcBalBefore,
+                secondDepositAmount,
+                buildCallbackFp(secondQueryId, secondDepositAmount, ecVault, SUCCESS_RESULT, maxey),
+                firstDepositAmount,
+                firstDepositAmount,
+            );
+        });
     });
 
     // describe('Deposit failure due to minimum shares not met and refund', () => {
@@ -360,7 +361,7 @@ describe('Deposit to TON Vault', () => {
     //     });
 
     //     it('should handle basic deposit failure', async () => {
-    //         // Maxey deposit 5 TON to TON Vault
+    //         // Maxey deposit  5 ecId:0 to ecVault
     //         const depositAmount = toNano('5');
     //         const depositArgs = await ecVault.getTonDepositArg({
     //             queryId,
@@ -383,7 +384,7 @@ describe('Deposit to TON Vault', () => {
     //     });
 
     //     it('should handle deposit failure with receiver', async () => {
-    //         // Maxey deposit 5 TON to TON Vault
+    //         // Maxey deposit  5 ecId:0 to ecVault
     //         const depositAmount = toNano('5');
     //         const depositArgs = await ecVault.getTonDepositArg({
     //             queryId,
@@ -407,7 +408,7 @@ describe('Deposit to TON Vault', () => {
     //     });
 
     //     it('should handle deposit failure with failure callback (body not included)', async () => {
-    //         // Maxey deposit 5 TON to TON Vault
+    //         // Maxey deposit  5 ecId:0 to ecVault
     //         const depositAmount = toNano('5');
     //         const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
     //         const depositArgs = await ecVault.getTonDepositArg({
@@ -437,7 +438,7 @@ describe('Deposit to TON Vault', () => {
     //     });
 
     //     it('should handle deposit failure with failure callback (body included)', async () => {
-    //         // Maxey deposit 5 TON to TON Vault
+    //         // Maxey deposit  5 ecId:0 to ecVault
     //         const depositAmount = toNano('5');
     //         const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
     //         const depositArgs = await ecVault.getTonDepositArg({
@@ -468,7 +469,7 @@ describe('Deposit to TON Vault', () => {
     //     });
 
     //     it('should handle deposit failure with receiver and failure callback (body not included)', async () => {
-    //         // Maxey deposit 5 TON to TON Vault
+    //         // Maxey deposit  5 ecId:0 to ecVault
     //         const depositAmount = toNano('5');
     //         const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
     //         const depositArgs = await ecVault.getTonDepositArg({
@@ -499,7 +500,7 @@ describe('Deposit to TON Vault', () => {
     //     });
 
     //     it('should handle deposit failure with receiver and failure callback (body included)', async () => {
-    //         // Maxey deposit 5 TON to TON Vault
+    //         // Maxey deposit  5 ecId:0 to ecVault
     //         const depositAmount = toNano('5');
     //         const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
     //         const depositArgs = await ecVault.getTonDepositArg({
@@ -533,7 +534,7 @@ describe('Deposit to TON Vault', () => {
 
     // describe('Other failure cases', () => {
     //     it('should throw ERR_INSUFFICIENT_TON_DEPOSIT_GAS when valueCoins < depositAmount + deposit gas', async () => {
-    //         // Maxey deposit 5 TON to TON Vault
+    //         // Maxey deposit  5 ecId:0 to ecVault
     //         const depositAmount = toNano('5');
     //         const depositArgs = await ecVault.getTonDepositArg({
     //             queryId,

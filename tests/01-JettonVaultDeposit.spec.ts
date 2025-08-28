@@ -86,6 +86,8 @@ describe('Deposit to Jetton Vault', () => {
         vault: SandboxContract<Vault>,
         vaultJettonWallet: SandboxContract<JettonWallet>,
         vaultJettonWalletBalBefore: bigint,
+        oldTotalAssets: bigint = 0n,
+        oldTotalSupply: bigint = 0n,
     ) {
         // Expect that deposit is successful
         await expectJettonDepositTxs(
@@ -114,6 +116,8 @@ describe('Deposit to Jetton Vault', () => {
             vaultJettonWalletBalBefore,
             depositAmount,
             depositAmount,
+            oldTotalAssets,
+            oldTotalSupply,
         );
 
         // Expect that deposited emit log is emitted
@@ -347,6 +351,66 @@ describe('Deposit to Jetton Vault', () => {
                 USDTVault,
                 vaultUSDTWallet,
                 vaultUSDTWalletBalBefore,
+            );
+        });
+
+        it('should handle consecutive deposits correctly', async () => {
+            // First deposit: Maxey deposit 0.01 USDT to USDTVault
+            const firstDepositAmount = 10000n;
+            const firstDepositArgs = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount: firstDepositAmount,
+            });
+            const firstDepositResult = await maxey.send(firstDepositArgs);
+
+            // Expect the first deposit to be successful
+            await expectJettonDepositFlows(
+                firstDepositResult,
+                maxey.address,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                firstDepositAmount,
+                buildCallbackFp(queryId, firstDepositAmount, USDTVault, SUCCESS_RESULT, maxey),
+                maxey.address,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                USDTVault,
+                vaultUSDTWallet,
+                vaultUSDTWalletBalBefore,
+            );
+
+            // Update maxey share and USDT balances
+            maxeyShareBalBefore = await maxeyShareWallet.getBalance();
+            maxeyUSDTWalletBalBefore = await maxeyUSDTWallet.getBalance();
+
+            // Update vaultUSDTWalletBalBefore
+            vaultUSDTWalletBalBefore = await vaultUSDTWallet.getBalance();
+
+            // Second deposit: Maxey deposit another 0.01 USDT to USDTVault
+            const secondDepositAmount = 10000n;
+            const secondQueryId = 9n;
+            const secondDepositArgs = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId: secondQueryId,
+                depositAmount: secondDepositAmount,
+            });
+            const secondDepositResult = await maxey.send(secondDepositArgs);
+
+            // Expect the second deposit to be successful
+            await expectJettonDepositFlows(
+                secondDepositResult,
+                maxey.address,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                secondDepositAmount,
+                buildCallbackFp(secondQueryId, secondDepositAmount, USDTVault, SUCCESS_RESULT, maxey),
+                maxey.address,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                USDTVault,
+                vaultUSDTWallet,
+                vaultUSDTWalletBalBefore,
+                firstDepositAmount,
+                firstDepositAmount,
             );
         });
     });

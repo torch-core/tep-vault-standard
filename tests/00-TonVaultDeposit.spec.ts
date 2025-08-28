@@ -317,6 +317,10 @@ describe('Deposit to TON Vault', () => {
             maxeyShareBalBefore = await maxeyShareWallet.getBalance();
             maxeyTonBalBefore = await maxey.getBalance();
 
+            // Update tonVaultTonBalDelta
+            tonVaultTONBalBefore = (await blockchain.getContract(tonVault.address)).balance;
+            tonVaultTonBalDelta -= firstDepositAmount;
+
             // Second deposit: Maxey deposit another 7 TON to TON Vault
             const secondDepositAmount = toNano('7');
             const secondQueryId = 9n;
