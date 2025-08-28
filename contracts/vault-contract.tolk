@@ -89,6 +89,7 @@ fun onInternalMessage(in: InMessage) {
                 depositAmount, 
                 inMsg.depositParams, 
                 in.body,
+                externalAssetInfo.extraCurrencyId!
             );
 
             storage.totalSupply = storage.totalSupply + shares;

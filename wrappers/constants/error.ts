@@ -9,6 +9,7 @@ export const VaultErrors = {
     MissingCustomPayload: 3000,
     InsufficientTonDepositGas: 2003,
     InsufficientJettonDepositGas: 2004,
+    InsufficientExtraCurrencyDepositGas: 2009,
     InsufficientWithdrawGas: 3003,
     InsufficientProvideQuoteGas: 5000,
     WrongOpCode: 0xffff,

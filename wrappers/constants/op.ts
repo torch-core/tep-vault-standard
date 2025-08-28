@@ -8,6 +8,7 @@ export const Opcodes = {
         WithdrawFp: 0xecb4d6bf,
         VaultNotification: 0x86eba146,
         VaultNotificationFp: 0xb00d7656,
+        VaultNotificationEc: 0x1f9e644b,
         ProvideQuote: 0xc643cc91,
         TakeQuote: 0x68ec31ea,
     },

@@ -4,7 +4,12 @@ import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, toNano } from '@ton/core';
 import { buildCallbackFp, DEFAULT_FAIL_CALLBACK_PAYLOAD, SUCCESS_RESULT } from './helper/callbackPayload';
-import { expectEcDepositTxs, expectFailDepositTONTxs, expectTONDepositTxs } from './helper/expectTxResults';
+import {
+    expectEcDepositTxs,
+    expectFailDepositEcTxs,
+    expectFailDepositTONTxs,
+    expectTONDepositTxs,
+} from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emitLog';
 import { expectEcVaultBalances, expectTonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
@@ -14,7 +19,7 @@ import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
 import { MAX_COINS_VALUE } from './helper/constants';
 import { Asset } from '@torch-finance/core';
-import { OPCODE_SIZE } from '../wrappers/constants/size';
+import { ASSET_TYPE_SIZE, EXTRA_CURRENCY_ID_SIZE, OPCODE_SIZE } from '../wrappers/constants/size';
 
 describe('Deposit to Extra Currency  Vault', () => {
     let blockchain: Blockchain;
@@ -346,292 +351,233 @@ describe('Deposit to Extra Currency  Vault', () => {
         });
     });
 
-    // describe('Deposit failure due to minimum shares not met and refund', () => {
-    //     afterEach(async () => {
-    //         // Bob share should be same
-    //         const bobShareBalAfter = await bobShareWallet.getBalance();
-    //         expect(bobShareBalAfter).toBe(bobShareBalBefore);
+    describe('Deposit failure due to minimum shares not met and refund', () => {
+        afterEach(async () => {
+            // Bob share should be same
+            const bobShareBalAfter = await bobShareWallet.getBalance();
+            expect(bobShareBalAfter).toBe(bobShareBalBefore);
 
-    //         // Expect that maxey ton balance is only decreased by gas fee
-    //         const maxeyTonBalanceAfter = await maxey.getBalance();
-    //         expect(maxeyTonBalanceAfter).toBeGreaterThan(maxeyTonBalBefore - DEPOSIT_FAIL_GAS);
+            // Expect that maxey extra currency balance is only decreased by gas fee
+            const maxeyEcBalanceAfter = (await blockchain.getContract(maxey.address)).ec[ecId];
+            expect(maxeyEcBalanceAfter).toBeGreaterThan(maxeyEcBalBefore - DEPOSIT_FAIL_GAS);
 
-    //         // Expect that tonVault shares and total assets are not updated
-    //         await expectVaultSharesAndAssets(ecVault, 0n, 0n);
-    //     });
+            // Expect that ecVault shares and total assets are not updated
+            await expectVaultSharesAndAssets(ecVault, 0n, 0n);
+        });
 
-    //     it('should handle basic deposit failure', async () => {
-    //         // Maxey deposit  5 ecId:0 to ecVault
-    //         const depositAmount = toNano('5');
-    //         const depositArgs = await ecVault.getTonDepositArg({
-    //             queryId,
-    //             depositAmount,
-    //             depositParams: {
-    //                 minShares: toNano('10'),
-    //             },
-    //         });
-    //         const depositResult = await maxey.send(depositArgs);
+        it('should handle basic deposit failure', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault
+            const depositAmount = toNano('5');
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    minShares: toNano('10'),
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-    //         // Expect that deposit fail
-    //         expectFailDepositTONTxs(
-    //             depositResult,
-    //             maxey.address,
-    //             ecVault,
-    //             queryId,
-    //             VaultErrors.FailedMinShares,
-    //             DEFAULT_FAIL_CALLBACK_PAYLOAD,
-    //         );
-    //     });
+            // Expect that deposit fail
+            expectFailDepositEcTxs(
+                depositResult,
+                maxey.address,
+                ecVault,
+                queryId,
+                VaultErrors.FailedMinShares,
+                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+            );
+        });
 
-    //     it('should handle deposit failure with receiver', async () => {
-    //         // Maxey deposit  5 ecId:0 to ecVault
-    //         const depositAmount = toNano('5');
-    //         const depositArgs = await ecVault.getTonDepositArg({
-    //             queryId,
-    //             depositAmount,
-    //             depositParams: {
-    //                 minShares: toNano('10'),
-    //                 receiver: bob.address,
-    //             },
-    //         });
-    //         const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit failure with receiver', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault
+            const depositAmount = toNano('5');
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    minShares: toNano('10'),
+                    receiver: bob.address,
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-    //         // Expect that deposit fail
-    //         expectFailDepositTONTxs(
-    //             depositResult,
-    //             maxey.address,
-    //             ecVault,
-    //             queryId,
-    //             VaultErrors.FailedMinShares,
-    //             DEFAULT_FAIL_CALLBACK_PAYLOAD,
-    //         );
-    //     });
+            // Expect that deposit fail
+            expectFailDepositEcTxs(
+                depositResult,
+                maxey.address,
+                ecVault,
+                queryId,
+                VaultErrors.FailedMinShares,
+                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+            );
+        });
 
-    //     it('should handle deposit failure with failure callback (body not included)', async () => {
-    //         // Maxey deposit  5 ecId:0 to ecVault
-    //         const depositAmount = toNano('5');
-    //         const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
-    //         const depositArgs = await ecVault.getTonDepositArg({
-    //             queryId,
-    //             depositAmount,
-    //             depositParams: {
-    //                 minShares: toNano('10'),
-    //                 callbacks: {
-    //                     failureCallback: {
-    //                         includeBody: false,
-    //                         payload: failCallbackPayload,
-    //                     },
-    //                 },
-    //             },
-    //         });
-    //         const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit failure with failure callback (body not included)', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault
+            const depositAmount = toNano('5');
+            const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    minShares: toNano('10'),
+                    callbacks: {
+                        failureCallback: {
+                            includeBody: false,
+                            payload: failCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-    //         // Expect that deposit fail
-    //         expectFailDepositTONTxs(
-    //             depositResult,
-    //             maxey.address,
-    //             ecVault,
-    //             queryId,
-    //             VaultErrors.FailedMinShares,
-    //             failCallbackPayload,
-    //         );
-    //     });
+            // Expect that deposit fail
+            expectFailDepositEcTxs(
+                depositResult,
+                maxey.address,
+                ecVault,
+                queryId,
+                VaultErrors.FailedMinShares,
+                failCallbackPayload,
+            );
+        });
 
-    //     it('should handle deposit failure with failure callback (body included)', async () => {
-    //         // Maxey deposit  5 ecId:0 to ecVault
-    //         const depositAmount = toNano('5');
-    //         const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
-    //         const depositArgs = await ecVault.getTonDepositArg({
-    //             queryId,
-    //             depositAmount,
-    //             depositParams: {
-    //                 minShares: toNano('10'),
-    //                 callbacks: {
-    //                     failureCallback: {
-    //                         includeBody: true,
-    //                         payload: failCallbackPayload,
-    //                     },
-    //                 },
-    //             },
-    //         });
-    //         const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit failure with failure callback (body included)', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault
+            const depositAmount = toNano('5');
+            const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    minShares: toNano('10'),
+                    callbacks: {
+                        failureCallback: {
+                            includeBody: true,
+                            payload: failCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-    //         // Expect that deposit fail
-    //         expectFailDepositTONTxs(
-    //             depositResult,
-    //             maxey.address,
-    //             ecVault,
-    //             queryId,
-    //             VaultErrors.FailedMinShares,
-    //             failCallbackPayload,
-    //             depositArgs.body,
-    //         );
-    //     });
+            // Expect that deposit fail
+            expectFailDepositEcTxs(
+                depositResult,
+                maxey.address,
+                ecVault,
+                queryId,
+                VaultErrors.FailedMinShares,
+                failCallbackPayload,
+                depositArgs.body,
+            );
+        });
 
-    //     it('should handle deposit failure with receiver and failure callback (body not included)', async () => {
-    //         // Maxey deposit  5 ecId:0 to ecVault
-    //         const depositAmount = toNano('5');
-    //         const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
-    //         const depositArgs = await ecVault.getTonDepositArg({
-    //             queryId,
-    //             depositAmount,
-    //             depositParams: {
-    //                 minShares: toNano('10'),
-    //                 receiver: bob.address,
-    //                 callbacks: {
-    //                     failureCallback: {
-    //                         includeBody: false,
-    //                         payload: failCallbackPayload,
-    //                     },
-    //                 },
-    //             },
-    //         });
-    //         const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit failure with receiver and failure callback (body not included)', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault
+            const depositAmount = toNano('5');
+            const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    minShares: toNano('10'),
+                    receiver: bob.address,
+                    callbacks: {
+                        failureCallback: {
+                            includeBody: false,
+                            payload: failCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-    //         // Expect that deposit fail
-    //         expectFailDepositTONTxs(
-    //             depositResult,
-    //             maxey.address,
-    //             ecVault,
-    //             queryId,
-    //             VaultErrors.FailedMinShares,
-    //             failCallbackPayload,
-    //         );
-    //     });
+            // Expect that deposit fail
+            expectFailDepositEcTxs(
+                depositResult,
+                maxey.address,
+                ecVault,
+                queryId,
+                VaultErrors.FailedMinShares,
+                failCallbackPayload,
+            );
+        });
 
-    //     it('should handle deposit failure with receiver and failure callback (body included)', async () => {
-    //         // Maxey deposit  5 ecId:0 to ecVault
-    //         const depositAmount = toNano('5');
-    //         const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
-    //         const depositArgs = await ecVault.getTonDepositArg({
-    //             queryId,
-    //             depositAmount,
-    //             depositParams: {
-    //                 minShares: toNano('10'),
-    //                 receiver: bob.address,
-    //                 callbacks: {
-    //                     failureCallback: {
-    //                         includeBody: true,
-    //                         payload: failCallbackPayload,
-    //                     },
-    //                 },
-    //             },
-    //         });
-    //         const depositResult = await maxey.send(depositArgs);
+        it('should handle deposit failure with receiver and failure callback (body included)', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault
+            const depositAmount = toNano('5');
+            const failCallbackPayload = beginCell().storeUint(1, 32).endCell();
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+                depositParams: {
+                    minShares: toNano('10'),
+                    receiver: bob.address,
+                    callbacks: {
+                        failureCallback: {
+                            includeBody: true,
+                            payload: failCallbackPayload,
+                        },
+                    },
+                },
+            });
+            const depositResult = await maxey.send(depositArgs);
 
-    //         // Expect that deposit fail
-    //         expectFailDepositTONTxs(
-    //             depositResult,
-    //             maxey.address,
-    //             ecVault,
-    //             queryId,
-    //             VaultErrors.FailedMinShares,
-    //             failCallbackPayload,
-    //             depositArgs.body,
-    //         );
-    //     });
-    // });
+            // Expect that deposit fail
+            expectFailDepositEcTxs(
+                depositResult,
+                maxey.address,
+                ecVault,
+                queryId,
+                VaultErrors.FailedMinShares,
+                failCallbackPayload,
+                depositArgs.body,
+            );
+        });
+    });
 
-    // describe('Other failure cases', () => {
-    //     it('should throw ERR_INSUFFICIENT_TON_DEPOSIT_GAS when valueCoins < depositAmount + deposit gas', async () => {
-    //         // Maxey deposit  5 ecId:0 to ecVault
-    //         const depositAmount = toNano('5');
-    //         const depositArgs = await ecVault.getTonDepositArg({
-    //             queryId,
-    //             depositAmount,
-    //         });
-    //         const depositResult = await maxey.send({
-    //             to: depositArgs.to,
-    //             value: depositArgs.value - toNano('2'),
-    //             body: depositArgs.body,
-    //         });
+    describe('Other failure cases', () => {
+        it('should throw ERR_INSUFFICIENT_EXTRA_CURRENCY_DEPOSIT_GAS when valueCoins < depositAmount + deposit gas', async () => {
+            // Maxey deposit  5 ecId:0 to ecVault
+            const depositAmount = toNano('5');
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send({
+                to: depositArgs.to,
+                value: toNano('0.01'),
+                body: depositArgs.body,
+                extracurrency: depositArgs.extracurrency,
+            });
 
-    //         // Expect that deposit fail
-    //         expect(depositResult.transactions).toHaveTransaction({
-    //             from: maxey.address,
-    //             to: ecVault.address,
-    //             op: Opcodes.Vault.Deposit,
-    //             success: false,
-    //             exitCode: VaultErrors.InsufficientTonDepositGas,
-    //         });
-    //     });
-    //     it('should throw INVALID_DEPOSIT_AMOUNT when deposit amount is 0', async () => {
-    //         // Maxey deposit 0 TON to TON Vault
-    //         const depositAmount = toNano('0');
-    //         const depositArgs = await ecVault.getTonDepositArg({
-    //             queryId,
-    //             depositAmount,
-    //         });
-    //         const depositResult = await maxey.send(depositArgs);
+            // Expect that deposit fail
+            expect(depositResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: ecVault.address,
+                op: Opcodes.Vault.DepositEc,
+                success: false,
+                exitCode: VaultErrors.InsufficientExtraCurrencyDepositGas,
+            });
+        });
+    });
 
-    //         // Expect that maxey send OP_DEPOSIT to TON Vault but throw INVALID_DEPOSIT_AMOUNT
-    //         expect(depositResult.transactions).toHaveTransaction({
-    //             from: maxey.address,
-    //             to: ecVault.address,
-    //             op: Opcodes.Vault.Deposit,
-    //             success: false,
-    //             exitCode: VaultErrors.InvalidDepositAmount,
-    //         });
-    //     });
-    // });
+    describe('Get methods', () => {
+        it('should preview extra currency deposit fee', async () => {
+            const fee = await ecVault.getPreviewExtraCurrencyDepositFee();
+            expect(fee).toBe(toNano('0.012'));
+        });
 
-    // describe('Get methods', () => {
-    //     it('should preview ton deposit fee', async () => {
-    //         const fee = await ecVault.getPreviewTonDepositFee();
-    //         expect(fee).toBe(toNano('0.012'));
-    //     });
-
-    //     it('should get max deposit', async () => {
-    //         const maxDepositAmount = await ecVault.getMaxDeposit();
-    //         expect(maxDepositAmount).toBe(MAX_COINS_VALUE);
-    //     });
-
-    //     it('should get assets', async () => {
-    //         const assets = await ecVault.getAssets();
-    //         expect(assets[0].equals(Asset.ton())).toBeTruthy();
-    //     });
-
-    //     it('should get total assets', async () => {
-    //         const totalAssets = await ecVault.getTotalAssets();
-    //         expect(totalAssets).toBe(0n);
-    //     });
-
-    //     it('should get convert to shares', async () => {
-    //         const convertToShares = await ecVault.getConvertToShares(toNano('10'));
-    //         expect(convertToShares).toBe(toNano('10'));
-    //     });
-    // });
-
-    // describe('Other cases', () => {
-    //     it('should throw when wrong op to ton vault', async () => {
-    //         const result = await maxey.send({
-    //             to: ecVault.address,
-    //             value: toNano('0.05'),
-    //             body: beginCell().storeUint(123, OPCODE_SIZE).endCell(),
-    //         });
-
-    //         // Expect maxey sends OP_INCREASE to ton vault and exit with NOT_AUTHORIZED
-    //         expect(result.transactions).toHaveTransaction({
-    //             from: maxey.address,
-    //             to: ecVault.address,
-    //             success: false,
-    //             exitCode: VaultErrors.WrongOpCode,
-    //         });
-    //     });
-
-    //     it('should ton vault receive TON', async () => {
-    //         const sendingAmount = toNano('0.05');
-    //         const result = await maxey.send({
-    //             to: ecVault.address,
-    //             value: sendingAmount,
-    //         });
-
-    //         // Expect maxey sends TON to ton vault and success
-    //         expect(result.transactions).toHaveTransaction({
-    //             from: maxey.address,
-    //             to: ecVault.address,
-    //             success: true,
-    //         });
-    //     });
-    // });
+        it('should get assets', async () => {
+            const assets = await ecVault.getAssets();
+            expect(
+                assets[0]
+                    .toCell()
+                    .equals(
+                        beginCell().storeUint(2, ASSET_TYPE_SIZE).storeUint(ecId, EXTRA_CURRENCY_ID_SIZE).endCell(),
+                    ),
+            ).toBeTruthy();
+        });
+    });
 });

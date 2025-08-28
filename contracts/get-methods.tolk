@@ -63,6 +63,10 @@ get fun getPreviewJettonDepositFee() {
     return previewJettonDepositFee();
 }
 
+get fun getPreviewExtraCurrencyDepositFee() {
+    return previewExtraCurrencyDepositFee();
+}
+
 get fun getPreviewWithdrawFee() {
     return previewWithdrawFee();
 }

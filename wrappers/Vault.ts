@@ -345,6 +345,11 @@ export class Vault implements Contract {
         return res.stack.readBigNumber();
     }
 
+    async getPreviewExtraCurrencyDepositFee(provider: ContractProvider) {
+        const res = await provider.get('getPreviewExtraCurrencyDepositFee', []);
+        return res.stack.readBigNumber();
+    }
+
     async getMaxDeposit(provider: ContractProvider) {
         const res = await provider.get('getMaxDeposit', [
             {
