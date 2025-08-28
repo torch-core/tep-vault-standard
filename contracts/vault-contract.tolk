@@ -58,8 +58,9 @@ fun onInternalMessage(in: InMessage) {
         // Processes Jetton deposits and mints shares to receiver
         TransferNotificationForRecipient => {
             // Verifies sender is from vault's Jetton wallet to prevent unauthorized Jetton deposits  
-            var assetJettonInfo = lazy storage.assetJettonInfo!.load();
-            assert (in.senderAddress == assetJettonInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
+            var externalAssetInfo = storage.externalAssetInfo!.load();
+            assert (externalAssetInfo is JettonInfo) throw ERR_NON_SUPPORTED_ASSET;
+            assert (in.senderAddress == externalAssetInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
             assert (inMsg.forwardPayload != null) throw ERR_MISSING_FORWARD_PAYLOAD;
@@ -93,7 +94,8 @@ fun onInternalMessage(in: InMessage) {
                     val remainingValue = processWithdrawGas(in.valueCoins);
 
                     // If assetJettonInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton
-                    val assetJettonWallet = storage.assetJettonInfo != null ? storage.assetJettonInfo!.load().walletAddress : null;
+                    var externalAssetInfo = storage.externalAssetInfo!.load();
+                    val assetJettonWallet = (externalAssetInfo is JettonInfo) ? externalAssetInfo.walletAddress! : null;
                     val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, burnPayload, in.body, assetJettonWallet);
 
                     storage.totalSupply = storage.totalSupply - inMsg.shares; 
@@ -108,8 +110,9 @@ fun onInternalMessage(in: InMessage) {
             // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
             var quoteAsset: Asset = Asset.tonAsset();
-            if(storage.assetJettonInfo != null) {
-                quoteAsset = Asset.jettonAsset(storage.assetJettonInfo!.load().masterAddress!);
+            var externalAssetInfo = storage.externalAssetInfo!.load();
+            if(externalAssetInfo is JettonInfo) {
+                quoteAsset = Asset.jettonAsset(externalAssetInfo.masterAddress!);
             }
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 
@@ -125,25 +128,26 @@ fun onInternalMessage(in: InMessage) {
 
         // Updates Vault's jetton wallet address from Jetton master response
         ResponseWalletAddress => {
-            var assetJettonInfo = lazy storage.assetJettonInfo!.load();
+            var externalAssetInfo = storage.externalAssetInfo!.load();
 
             // Verifies sender is from Jetton master to prevent unauthorized updates
-            assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_WALLET; 
-            assetJettonInfo.walletAddress = inMsg.jettonWalletAddress;
-            storage.assetJettonInfo = assetJettonInfo.toCell();
+            if(externalAssetInfo is JettonInfo) {
+                assert (in.senderAddress == externalAssetInfo.masterAddress!) throw ERR_INVALID_JETTON_WALLET; 
+                externalAssetInfo.walletAddress = inMsg.jettonWalletAddress;
+            }
+            storage.externalAssetInfo = externalAssetInfo.toCell();
             storage.save();
         }
 
         DeployVault => {
             // If assetJettonInfo is not null -> underlying asset is Jetton, otherwise underlying asset is TON
-            if(storage.assetJettonInfo != null) { 
-                var assetJettonInfo = lazy storage.assetJettonInfo!.load();
-
+            var externalAssetInfo = storage.externalAssetInfo!.load();
+            if(externalAssetInfo is JettonInfo) { 
                 // Only admin can deploy Jetton vault
                 assert (in.senderAddress == storage.adminAddress) throw ERR_UNAUTHORIZED_ADMIN;
                 
                 // Send request wallet address to Jetton master
-                sendRequestWalletAddress(assetJettonInfo.masterAddress!, inMsg.queryId);
+                sendRequestWalletAddress(externalAssetInfo.masterAddress!, inMsg.queryId);
             }
         }
 

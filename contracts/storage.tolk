@@ -1,16 +1,23 @@
+import "constants/common-types"
 import "types/wallet-status"
 
 // ==== Vault Storage ====
-struct AssetJettonInfo {
+struct JettonInfo {
     masterAddress: address
     walletAddress: address
 }
+
+struct ExtraCurrencyInfo {
+    extraCurrencyId: ExtraCurrencyId
+}
+
+type ExternalAssetInfo = JettonInfo | ExtraCurrencyInfo
 
 struct VaultStorage {
     adminAddress: address
     totalSupply: coins
     totalAssets: coins
-    assetJettonInfo: Cell<AssetJettonInfo>?
+    externalAssetInfo: Cell<ExternalAssetInfo>?
     jettonWalletCode: cell
     content: cell
 }

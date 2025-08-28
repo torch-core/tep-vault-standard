@@ -11,10 +11,14 @@ import "fees-management"
 get fun getAssets() {
     var assetsTuple: tuple = createEmptyTuple();
     val storage = lazy VaultStorage.load();
-    if(storage.assetJettonInfo != null) {
-        val assetJettonInfo = storage.assetJettonInfo!.load();
-        assetsTuple.push(Asset.jettonAsset(assetJettonInfo.masterAddress!).toCell());
+    val externalAssetInfo = storage.externalAssetInfo!.load();
+
+    if(externalAssetInfo is JettonInfo) {
+        assetsTuple.push(Asset.jettonAsset(externalAssetInfo.masterAddress!).toCell());
     }
+    // else if(externalAssetInfo is ExtraCurrencyInfo) {
+    //     // assetsTuple.push(Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!).toCell());
+    // }
     else {
         assetsTuple.push(Asset.tonAsset().toCell());
     }
