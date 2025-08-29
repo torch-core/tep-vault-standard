@@ -705,7 +705,7 @@ Many TON DeFi contracts allow upgrades. Combining Point 1 (multisig) and Point 2
 
 ### Provide/Take Quote Mechanism and Timeliness
 
-**Rationale**: Fetching exchange rates faces Jetton balance query issues—rates may change by response time. Adding timestamps to [OP_TAKE_QUOTE](#op_take_quote) lets `receivers` validate freshness. We believe the timestamp generated during rate calculation is sufficient for judging staleness. If stricter control over the entire process is needed, developers can embed a `validUntil` field in `forwardPayload` for custom expiration checks.
+**Rationale**: Fetching exchange rates faces Jetton balance query issues—rates may change by response time. Adding timestamps to [OP_TAKE_QUOTE](#op_take_quote) lets `receiver` validate freshness. We believe the timestamp generated during rate calculation is sufficient for judging staleness. If stricter control over the entire process is needed, developers can embed a `validUntil` field in `forwardPayload` for custom expiration checks.
 
 ### Slippage Protection via minShares/minWithdraw
 
