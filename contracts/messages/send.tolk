@@ -43,6 +43,8 @@ fun createForwardPayload(result: Result, initiator: address, callbackParams: Cel
 }
 
 fun mint(initiator: address, queryId: QueryId, remainingValue: coins, mutate receiver: address, shares: coins, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
+    assert (shares > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
+    
     receiver = resolveReceiver(receiver, initiator);
     val storage = lazy VaultStorage.load();
     val minterAddress = contract.getAddress();
@@ -73,6 +75,8 @@ fun jettonTransfer(
     callbackParams: Cell<CallbackParams>?, 
     inBody: slice
 ) {
+    assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
+
     receiver = resolveReceiver(receiver, initiator);
     val transferMsg = createMessage({
         bounce: false,
@@ -92,6 +96,8 @@ fun jettonTransfer(
 }
 
 fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, receiver: address, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
+    assert (sendingValue > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
+    
     val transferMsg = createMessage({
         bounce: true,
         dest: resolveReceiver(receiver, initiator),
@@ -104,7 +110,19 @@ fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, recei
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun extraCurrencyTransfer(initiator: address, queryId: QueryId, remainingValue: coins, extraCurrencyId: ExtraCurrencyId, receiver: address, transferAmount: coins, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
+fun extraCurrencyTransfer(
+    initiator: address, 
+    queryId: QueryId, 
+    remainingValue: coins, 
+    extraCurrencyId: ExtraCurrencyId, 
+    receiver: address, 
+    transferAmount: coins, 
+    result: Result, 
+    callbackParams: Cell<CallbackParams>?, 
+    inBody: slice
+) {
+    assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
+
     var extraCurrencyDict = createEmptyDict();
     extraCurrencyDict.uDictSetBuilder(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId, beginCell().storeVarUint32(transferAmount));
     val transferMsg = createMessage({
