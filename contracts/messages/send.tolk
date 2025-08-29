@@ -106,7 +106,7 @@ fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, recei
 
 fun extraCurrencyTransfer(initiator: address, queryId: QueryId, remainingValue: coins, extraCurrencyId: ExtraCurrencyId, receiver: address, transferAmount: coins, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
     var extraCurrencyDict = createEmptyDict();
-    extraCurrencyDict.uDictSetBuilder(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId, beginCell().storeVarUInt32(transferAmount));
+    extraCurrencyDict.uDictSetBuilder(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId, beginCell().storeVarUint32(transferAmount));
     val transferMsg = createMessage({
         bounce: false,
         dest: resolveReceiver(receiver, initiator),

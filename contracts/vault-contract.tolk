@@ -29,6 +29,7 @@ import "constants/values"
 import "types/asset"
 import "storage"
 import "helper/jetton"
+import "helper/extra-currency"
 import "messages/schemas/deploy"
 import "messages/schemas/deposit"
 import "messages/schemas/withdraw"
@@ -62,9 +63,7 @@ fun onInternalMessage(in: InMessage) {
                 in.body,
             );
 
-            storage.totalSupply = storage.totalSupply + shares;
-            storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
-            storage.save();
+            storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
         }
 
         // Processes extra currency deposits and mints shares to receiver
@@ -77,7 +76,7 @@ fun onInternalMessage(in: InMessage) {
 
             // Verifies only one extra currency is deposited to prevent multiple extra currency deposits in a single asset vault
             assert(flag && extraCurrencyDict == null) throw ERR_INVALID_EXTRA_CURRENCY_ID;
-            val depositAmount = value!.loadVarUInt32();
+            val depositAmount = value!.loadVarUint32();
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
             val shares = handleDeposit(
@@ -92,9 +91,7 @@ fun onInternalMessage(in: InMessage) {
                 externalAssetInfo.extraCurrencyId!
             );
 
-            storage.totalSupply = storage.totalSupply + shares;
-            storage.totalAssets = storage.totalAssets + depositAmount;
-            storage.save();
+            storage.updateSupplyAndAssets(shares, depositAmount);
         }
 
         // Processes Jetton deposits and mints shares to receiver
@@ -122,9 +119,7 @@ fun onInternalMessage(in: InMessage) {
                         in.body
                     );
 
-                    storage.totalSupply = storage.totalSupply + shares;
-                    storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
-                    storage.save();
+                    storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
                 }
             }
         }
@@ -165,9 +160,7 @@ fun onInternalMessage(in: InMessage) {
                         extraCurrencyId
                     );
 
-                    storage.totalSupply = storage.totalSupply - inMsg.shares; 
-                    storage.totalAssets = storage.totalAssets - withdrawAmount;
-                    storage.save();
+                    storage.updateSupplyAndAssets(-inMsg.shares, -withdrawAmount);
                 }
             }
         }
@@ -202,7 +195,7 @@ fun onInternalMessage(in: InMessage) {
 
             // Verifies sender is from Jetton master to prevent unauthorized updates
             if (externalAssetInfo is JettonInfo) {
-                assert (in.senderAddress == externalAssetInfo.masterAddress!) throw ERR_INVALID_JETTON_WALLET; 
+                assert (in.senderAddress == externalAssetInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
                 externalAssetInfo.walletAddress = inMsg.jettonWalletAddress;
             }
             storage.externalAssetInfo = externalAssetInfo.toCell();

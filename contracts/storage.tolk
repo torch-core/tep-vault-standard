@@ -30,6 +30,12 @@ fun VaultStorage.save(self) {
     contract.setData(self.toCell())
 }
 
+fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: coins, assetsDelta: coins) {
+    self.totalSupply = self.totalSupply + sharesDelta;
+    self.totalAssets = self.totalAssets + assetsDelta;
+    self.save();
+}
+
 // ==== Jetton Wallet Storage ====
 struct WalletStorage {
     status: WalletStatus
