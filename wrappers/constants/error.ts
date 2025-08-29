@@ -1,7 +1,9 @@
 export const VaultErrors = {
     // General Errors (0-999)
     WrongOpCode: 0xffff,
+    UnauthorizedAdmin: 1002,
     InvalidJettonWallet: 1003,
+    InvalidJettonMaster: 1004,
 
     // Deposit Errors (2000-2999)
     MissingForwardPayload: 2000,

@@ -71,8 +71,8 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes extra currency deposits and mints shares to receiver
         DepositEc => {
+            // Verifies vault is supported extra currency deposit to prevent unauthorized extra currency deposits
             assert(storage.externalAssetInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
-
             val externalAssetInfo = storage.externalAssetInfo!.load();
             assert (externalAssetInfo is ExtraCurrencyInfo) throw ERR_NON_EXTRA_CURRENCY_DEPOSIT;
             
@@ -105,9 +105,10 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes Jetton deposits and mints shares to receiver
         TransferNotificationForRecipient => {
+            // Verifies vault is supported Jetton deposit to prevent unauthorized Jetton deposits
             assert(storage.externalAssetInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
             
-            // Verifies sender is from vault's Jetton wallet to prevent unauthorized Jetton deposits  
+            // Verifies sender is from vault's underlying Jetton wallet to prevent unauthorized Jetton asset deposits  
             var externalAssetInfo = storage.externalAssetInfo!.load();
             assert (externalAssetInfo is JettonInfo) throw ERR_NON_JETTON_DEPOSIT;
             assert (in.senderAddress == externalAssetInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
@@ -148,7 +149,7 @@ fun onInternalMessage(in: InMessage) {
                     // in.valueCoins must > withdraw gas
                     val remainingValue = processWithdrawGas(in.valueCoins);
 
-                    // If externalAssetInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton or extra currency
+                    // If externalAssetInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton or extra currency based on externalAssetInfo
                     var transferAssetType: AssetType = TON_ASSET_TYPE;
                     var assetJettonWallet: address? = null;
                     var extraCurrencyId: ExtraCurrencyId? = null;

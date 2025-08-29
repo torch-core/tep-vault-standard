@@ -91,6 +91,13 @@ describe('Query Quote', () => {
         // Generate HTML report for detailed analysis
         const tonVaultCoverageJson = tonVaultCoverage.toJson();
         writeFileSync('./coverage/ton-vault-provide-quote.json', tonVaultCoverageJson);
+
+        const ecVaultCoverage = blockchain.coverage(ecVault);
+        if (!ecVaultCoverage) return;
+
+        // Generate HTML report for detailed analysis
+        const ecVaultCoverageJson = ecVaultCoverage.toJson();
+        writeFileSync('./coverage/ec-vault-provide-quote.json', ecVaultCoverageJson);
     });
 
     function buildProvideQuotePayload(

@@ -75,7 +75,7 @@ describe('Withdraw from Extra Currency Vault', () => {
 
         // Generate HTML report for detailed analysis
         const coverageJson = coverage.toJson();
-        writeFileSync('./coverage/ton-vault-withdraw.json', coverageJson);
+        writeFileSync('./coverage/ec-vault-withdraw.json', coverageJson);
     });
 
     async function expectWithdrawEcFlows(

@@ -60,7 +60,7 @@ describe('Deposit to Extra Currency  Vault', () => {
 
         // Generate HTML report for detailed analysis
         const coverageJson = coverage.toJson();
-        writeFileSync('./coverage/ton-vault-deposit.json', coverageJson);
+        writeFileSync('./coverage/ec-vault-deposit.json', coverageJson);
     });
 
     async function expectEcDepositFlows(

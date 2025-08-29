@@ -19,5 +19,6 @@ export const Opcodes = {
         Excesses: 0xd53276db,
         Burn: 0x595f07bc,
         BurnNotification: 0x7bdd97de,
+        ResponseWalletAddress: 0xd1735400,
     },
 };
