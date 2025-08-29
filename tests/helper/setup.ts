@@ -58,8 +58,8 @@ export const createTestEnvironment = () => {
         vaultCode = await compile('Vault');
         jettonWalletCode = await compile('JettonWallet');
         blockchain = await Blockchain.create();
-        blockchain.verbosity = { ...blockchain.verbosity, print: true };
-        // blockchain.enableCoverage();
+        blockchain.verbosity = { ...blockchain.verbosity, print: false };
+        blockchain.enableCoverage();
         [admin, maxey, bob] = await Promise.all([
             blockchain.treasury('admin'),
             blockchain.treasury('maxey'),
