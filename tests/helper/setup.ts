@@ -1,11 +1,29 @@
 import { Address, beginCell, Cell, toNano } from '@ton/core';
-import { Blockchain, BlockchainSnapshot, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, BlockchainSnapshot, internal, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { compile } from '@ton/blueprint';
 import { Vault } from '../../wrappers/Vault';
 import { JettonMinter } from '../../wrappers/mock-jetton/JettonMinter';
 import { Opcodes } from '../../wrappers/constants/op';
 import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 import { expectVaultStorage } from './expectVault';
+
+export const expectVaultJettonData = async (
+    vault: SandboxContract<Vault>,
+    expected: {
+        totalSupply: bigint;
+        mintable: boolean;
+        adminAddress: Address;
+        content: Cell;
+        jettonWalletCode: Cell;
+    },
+) => {
+    const jettonData = await vault.getJettonData();
+    expect(jettonData.totalSupply).toBe(expected.totalSupply);
+    expect(jettonData.mintable).toBe(expected.mintable);
+    expect(jettonData.adminAddress.equals(expected.adminAddress)).toBeTruthy();
+    expect(jettonData.content.equals(expected.content)).toBeTruthy();
+    expect(jettonData.walletCode.equals(expected.jettonWalletCode)).toBeTruthy();
+};
 
 export const createTestEnvironment = () => {
     // Blockchain
@@ -19,12 +37,16 @@ export const createTestEnvironment = () => {
     // Vaults
     let tonVault: SandboxContract<Vault>;
     let USDTVault: SandboxContract<Vault>;
+    let ecVault: SandboxContract<Vault>;
 
     // Roles
     let admin: SandboxContract<TreasuryContract>;
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;
     let USDT: SandboxContract<JettonMinter>;
+
+    const ecId = 0;
+    const otherEcId = 1;
 
     beforeAll(async () => {
         vaultCode = await compile('Vault');
@@ -68,16 +90,18 @@ export const createTestEnvironment = () => {
             totalAssets: 0n,
             jettonMaster: null,
             jettonWalletAddress: null,
+            extraCurrencyId: null,
             jettonWalletCode,
             content,
         });
 
-        const tonVaultJettonData = await tonVault.getJettonData();
-        expect(tonVaultJettonData.totalSupply).toBe(0n);
-        expect(tonVaultJettonData.mintable).toBe(true);
-        expect(tonVaultJettonData.adminAddress.equals(admin.address)).toBeTruthy();
-        expect(tonVaultJettonData.content.equals(content)).toBeTruthy();
-        expect(tonVaultJettonData.walletCode.equals(jettonWalletCode)).toBeTruthy();
+        await expectVaultJettonData(tonVault, {
+            totalSupply: 0n,
+            mintable: true,
+            adminAddress: admin.address,
+            content,
+            jettonWalletCode,
+        });
 
         // Deploy USDT Vault
         USDT = await deployJettonMinter(blockchain, admin, 'USDT');
@@ -126,16 +150,85 @@ export const createTestEnvironment = () => {
             totalAssets: 0n,
             jettonMaster: USDT.address,
             jettonWalletAddress: await USDT.getWalletAddress(USDTVault.address),
+            extraCurrencyId: null,
             jettonWalletCode,
             content,
         });
 
-        const usdtVaultJettonData = await USDTVault.getJettonData();
-        expect(usdtVaultJettonData.totalSupply).toBe(0n);
-        expect(usdtVaultJettonData.mintable).toBe(true);
-        expect(usdtVaultJettonData.adminAddress.equals(admin.address)).toBeTruthy();
-        expect(usdtVaultJettonData.content.equals(content)).toBeTruthy();
-        expect(usdtVaultJettonData.walletCode.equals(jettonWalletCode)).toBeTruthy();
+        await expectVaultJettonData(USDTVault, {
+            totalSupply: 0n,
+            mintable: true,
+            adminAddress: admin.address,
+            content,
+            jettonWalletCode,
+        });
+
+        // Deploy EC Vault
+        ecVault = blockchain.openContract(
+            Vault.createFromConfig(
+                {
+                    adminAddress: admin.address,
+                    totalSupply: 0n,
+                    totalAssets: 0n,
+                    extraCurrencyId: ecId,
+                    jettonWalletCode,
+                    content,
+                },
+                vaultCode,
+            ),
+        );
+        const deployECVaultResult = await ecVault.sendDeploy(admin.getSender());
+        expect(deployECVaultResult.transactions).toHaveTransaction({
+            from: admin.address,
+            to: ecVault.address,
+            deploy: true,
+            success: true,
+            op: Opcodes.Vault.DeployVault,
+        });
+
+        // Check EC Vault storage
+        const ecVaultStorage = await ecVault.getStorage();
+        expectVaultStorage(ecVaultStorage, {
+            adminAddress: admin.address,
+            totalSupply: 0n,
+            totalAssets: 0n,
+            jettonMaster: null,
+            jettonWalletAddress: null,
+            extraCurrencyId: ecId,
+            jettonWalletCode,
+            content,
+        });
+
+        await expectVaultJettonData(ecVault, {
+            totalSupply: 0n,
+            mintable: true,
+            adminAddress: admin.address,
+            content,
+            jettonWalletCode,
+        });
+
+        // Make sure every wallets have extra currency id 0
+        for (const wallet of [maxey, bob, admin]) {
+            await blockchain.sendMessage(
+                internal({
+                    to: wallet.address,
+                    from: new Address(0, Buffer.alloc(32)),
+                    value: toNano('1'),
+                    ec: [[ecId, toNano('100000')]],
+                }),
+            );
+        }
+        // Make sure every wallets have other extra currency id
+        for (const wallet of [maxey, bob, admin]) {
+            await blockchain.sendMessage(
+                internal({
+                    to: wallet.address,
+                    from: new Address(0, Buffer.alloc(32)),
+                    value: toNano('1'),
+                    ec: [[otherEcId, toNano('100000')]],
+                }),
+            );
+        }
 
         initSnapshot = blockchain.snapshot();
     });
@@ -156,6 +249,9 @@ export const createTestEnvironment = () => {
             USDT,
             tonVault,
             USDTVault,
+            ecVault,
+            ecId,
+            otherEcId,
         };
     };
 

@@ -67,6 +67,23 @@ export function buildVaultNotification(
         .endCell();
 }
 
+export function buildVaultNotificationEc(
+    queryId: bigint,
+    result: number,
+    initiator: Address,
+    callbackPayload?: Cell,
+    inBody?: Cell,
+) {
+    return beginCell()
+        .storeUint(Opcodes.Vault.VaultNotificationEc, OPCODE_SIZE)
+        .storeUint(queryId, QUERY_ID_SIZE)
+        .storeUint(result, RESULT_SIZE)
+        .storeAddress(initiator)
+        .storeMaybeRef(callbackPayload)
+        .storeMaybeRef(inBody)
+        .endCell();
+}
+
 export function buildCallbackFp(
     queryId: bigint,
     transferAmount: bigint,

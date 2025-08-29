@@ -4,30 +4,40 @@ import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { Address, beginCell, Cell, toNano } from '@ton/core';
 import { Opcodes } from '../wrappers/constants/op';
-import { OPCODE_SIZE, QUERY_ID_SIZE, TIMESTAMP_SIZE } from '../wrappers/constants/size';
+import {
+    ASSET_TYPE_SIZE,
+    EXTRA_CURRENCY_ID_SIZE,
+    OPCODE_SIZE,
+    QUERY_ID_SIZE,
+    TIMESTAMP_SIZE,
+} from '../wrappers/constants/size';
 import { writeFileSync } from 'fs';
 import { VaultErrors } from '../wrappers/constants/error';
-import { Asset } from '@torch-finance/core';
+import { Asset, AssetType } from '@torch-finance/core';
 import { JettonMaster } from '@ton/ton';
 
-describe('Deposit to TON Vault', () => {
+describe('Query Quote', () => {
     let blockchain: Blockchain;
     let contractToQuery: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;
     let tonVault: SandboxContract<Vault>;
     let USDTVault: SandboxContract<Vault>;
+    let ecVault: SandboxContract<Vault>;
     let USDT: SandboxContract<JettonMaster>;
     let tonVaultTotalSupply: bigint;
     let tonVaultTotalAssets: bigint;
     let USDTVaultTotalSupply: bigint;
     let USDTVaultTotalAssets: bigint;
+    let ecVaultTotalSupply: bigint;
+    let ecVaultTotalAssets: bigint;
+    let ecId: number;
     const queryId = 8n;
     const forwardPayload = beginCell().storeUint(1, 32).endCell();
     const { getTestContext, resetToInitSnapshot } = createTestEnvironment();
 
     beforeEach(async () => {
         await resetToInitSnapshot();
-        ({ blockchain, maxey: contractToQuery, USDTVault, tonVault, bob, USDT } = getTestContext());
+        ({ blockchain, maxey: contractToQuery, USDTVault, tonVault, bob, USDT, ecVault, ecId } = getTestContext());
         blockchain.now = Math.floor(Date.now() / 1000);
 
         // Deposit 1 TON to tonVault
@@ -54,6 +64,17 @@ describe('Deposit to TON Vault', () => {
         const USDTVaultStorage = await USDTVault.getStorage();
         USDTVaultTotalSupply = USDTVaultStorage.totalSupply;
         USDTVaultTotalAssets = USDTVaultStorage.totalAssets;
+
+        // Deposit 1000 ecId:0 to ecVault
+        const ecDepositArgs = await ecVault.getEcDepositArg({
+            queryId,
+            depositAmount: toNano('1000'),
+        });
+        await bob.send(ecDepositArgs);
+
+        const ecVaultStorage = await ecVault.getStorage();
+        ecVaultTotalSupply = ecVaultStorage.totalSupply;
+        ecVaultTotalAssets = ecVaultStorage.totalAssets;
     });
 
     afterAll(() => {
@@ -91,17 +112,23 @@ describe('Deposit to TON Vault', () => {
     function buildTakeQuotePayload(
         queryId: bigint,
         initiator: Address,
-        quoteAsset: Asset,
+        quoteAsset: Asset | null,
         totalSupply: bigint,
         totalAssets: bigint,
         timestamp: number,
         forwardPayload?: Cell,
     ) {
+        const quoteAssetCell =
+            quoteAsset?.toCell() ??
+            beginCell()
+                .storeUint(AssetType.EXTRA_CURRENCY, ASSET_TYPE_SIZE)
+                .storeUint(ecId, EXTRA_CURRENCY_ID_SIZE)
+                .endCell();
         return beginCell()
             .storeUint(Opcodes.Vault.TakeQuote, OPCODE_SIZE)
             .storeUint(queryId, QUERY_ID_SIZE)
             .storeAddress(initiator)
-            .storeRef(quoteAsset.toCell())
+            .storeRef(quoteAssetCell)
             .storeCoins(totalSupply)
             .storeCoins(totalAssets)
             .storeUint(timestamp, TIMESTAMP_SIZE)
@@ -130,7 +157,7 @@ describe('Deposit to TON Vault', () => {
                 to: receiver ?? contractToQuery.address,
                 op: Opcodes.Vault.TakeQuote,
                 success: true,
-                body, 
+                body,
             });
         } else {
             // Expect tonVault sent TakeQuote message to contractToQuery
@@ -314,6 +341,95 @@ describe('Deposit to TON Vault', () => {
             expect(provideQuoteResult.transactions).toHaveTransaction({
                 from: contractToQuery.address,
                 to: USDTVault.address,
+                op: Opcodes.Vault.ProvideQuote,
+                success: false,
+                exitCode: VaultErrors.InsufficientProvideQuoteGas,
+            });
+        });
+    });
+
+    describe('Provide Quote from Extra Currency Vault', () => {
+        it('should provide quote from Extra Currency Vault', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, contractToQuery.address);
+            const provideQuoteResult = await contractToQuery.send({
+                to: ecVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(provideQuoteResult, ecVault.address, contractToQuery.address);
+        });
+
+        it('should provide quote from Extra Currency Vault with receiver', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, bob.address);
+            const provideQuoteResult = await contractToQuery.send({
+                to: ecVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(provideQuoteResult, ecVault.address, bob.address);
+        });
+
+        it('should provide quote from Extra Currency Vault with forward payload', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, contractToQuery.address, forwardPayload);
+            const provideQuoteResult = await contractToQuery.send({
+                to: ecVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                ecVault.address,
+                contractToQuery.address,
+                buildTakeQuotePayload(
+                    queryId,
+                    contractToQuery.address,
+                    null,
+                    ecVaultTotalSupply,
+                    ecVaultTotalAssets,
+                    blockchain.now!,
+                    forwardPayload,
+                ),
+            );
+        });
+
+        it('should provide quote from Extra Currency Vault with forward payload and receiver', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, bob.address, forwardPayload);
+            const provideQuoteResult = await contractToQuery.send({
+                to: ecVault.address,
+                value: toNano('0.5'),
+                body: provideQuotePayload,
+            });
+
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                ecVault.address,
+                bob.address,
+                buildTakeQuotePayload(
+                    queryId,
+                    contractToQuery.address,
+                    null,
+                    ecVaultTotalSupply,
+                    ecVaultTotalAssets,
+                    blockchain.now!,
+                    forwardPayload,
+                ),
+            );
+        });
+
+        it('should throw ERR_INSUFFICIENT_PROVIDE_QUOTE_GAS when valueCoins < provide quote gas for Extra Currency Vault', async () => {
+            const provideQuotePayload = buildProvideQuotePayload(queryId, contractToQuery.address);
+            const provideQuoteResult = await contractToQuery.send({
+                to: ecVault.address,
+                value: toNano('0.008'),
+                body: provideQuotePayload,
+            });
+
+            expect(provideQuoteResult.transactions).toHaveTransaction({
+                from: contractToQuery.address,
+                to: ecVault.address,
                 op: Opcodes.Vault.ProvideQuote,
                 success: false,
                 exitCode: VaultErrors.InsufficientProvideQuoteGas,

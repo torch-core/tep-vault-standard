@@ -22,10 +22,14 @@
  *      Core logic is separated into dedicated modules (core.tolk, storage.tolk, etc.)
  */
 
+import "@stdlib/tvm-dicts"
+import "constants/common-types"
 import "constants/errors";
+import "constants/values"
 import "types/asset"
 import "storage"
 import "helper/jetton"
+import "helper/extra-currency"
 import "messages/schemas/deploy"
 import "messages/schemas/deposit"
 import "messages/schemas/withdraw"
@@ -44,36 +48,89 @@ fun onInternalMessage(in: InMessage) {
     match (inMsg) {
         // Processes TON deposits and mints shares to receiver
         Deposit => {
+            // Verifies vault is supported TON deposit to prevent unauthorized TON deposits
+            assert (storage.externalAssetInfo == null) throw ERR_NON_SUPPORTED_TON_DEPOSIT;
+
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
 
             // in.valueCoins must > deposit amount + deposit gas
             val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
-            val shares = handleDeposit(in.senderAddress, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, inMsg.depositParams, in.body);
+            val shares = handleDeposit(
+                TON_ASSET_TYPE, 
+                in.senderAddress, 
+                inMsg.queryId, 
+                remainingValue, 
+                in.senderAddress, 
+                inMsg.depositAmount, 
+                inMsg.depositParams, 
+                in.body,
+            );
 
-            storage.totalSupply = storage.totalSupply + shares;
-            storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
-            storage.save();
+            storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
+        }
+
+        // Processes extra currency deposits and mints shares to receiver
+        DepositEc => {
+            assert(storage.externalAssetInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
+
+            val externalAssetInfo = storage.externalAssetInfo!.load();
+            assert (externalAssetInfo is ExtraCurrencyInfo) throw ERR_NON_EXTRA_CURRENCY_DEPOSIT;
+            
+            var extraCurrencyDict = in.valueExtra;
+            var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, externalAssetInfo.extraCurrencyId!);
+
+            // Verifies extra currency id is valid
+            assert(flag) throw ERR_INVALID_EXTRA_CURRENCY_ID;
+
+            // Verifies only one extra currency is deposited to prevent multiple extra currency deposits in a single asset vault
+            assert(extraCurrencyDict == null) throw ERR_MULTI_EXTRA_CURRENCY_DEPOSIT;
+
+            val depositAmount = value!.loadVarUint32();
+
+            val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
+            val shares = handleDeposit(
+                EXTRA_CURRENCY_ASSET_TYPE, 
+                in.senderAddress, 
+                inMsg.queryId, 
+                remainingValue, 
+                in.senderAddress, 
+                depositAmount, 
+                inMsg.depositParams, 
+                in.body,
+                externalAssetInfo.extraCurrencyId!
+            );
+
+            storage.updateSupplyAndAssets(shares, depositAmount);
         }
 
         // Processes Jetton deposits and mints shares to receiver
         TransferNotificationForRecipient => {
+            assert(storage.externalAssetInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
+            
             // Verifies sender is from vault's Jetton wallet to prevent unauthorized Jetton deposits  
-            var assetJettonInfo = lazy storage.assetJettonInfo!.load();
-            assert (in.senderAddress == assetJettonInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
+            var externalAssetInfo = storage.externalAssetInfo!.load();
+            assert (externalAssetInfo is JettonInfo) throw ERR_NON_JETTON_DEPOSIT;
+            assert (in.senderAddress == externalAssetInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
             assert (inMsg.forwardPayload != null) throw ERR_MISSING_FORWARD_PAYLOAD;
-            val forwardPayload = inMsg.forwardPayload!.load();
 
-            match (forwardPayload) {
-                DepositFp => {
+            match (inMsg.forwardPayload) {
+                Cell<DepositFp> => {
                     // in.valueCoins must > deposit gas
                     val remainingValue = processJettonDepositGas(in.valueCoins);
-                    val shares = handleDeposit(inMsg.initiator, inMsg.queryId, remainingValue, in.senderAddress, inMsg.depositAmount, forwardPayload.depositParams, in.body);
+                    val shares = handleDeposit(
+                        JETTON_ASSET_TYPE,
+                        inMsg.initiator, 
+                        inMsg.queryId, 
+                        remainingValue, 
+                        in.senderAddress, 
+                        inMsg.depositAmount, 
+                        inMsg.forwardPayload!.load().depositParams, 
+                        in.body
+                    );
 
-                    storage.totalSupply = storage.totalSupply + shares;
-                    storage.totalAssets = storage.totalAssets + inMsg.depositAmount;
-                    storage.save();
+                    storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
                 }
             }
         }
@@ -85,20 +142,36 @@ fun onInternalMessage(in: InMessage) {
 
             assert (inMsg.shares > 0) throw ERR_INVALID_BURN_AMOUNT;
             assert (inMsg.customPayload != null) throw ERR_MISSING_CUSTOM_PAYLOAD;
-            val burnPayload = inMsg.customPayload!.load();
             
-            match (burnPayload) {
-                WithdrawFp => {
+            match (inMsg.customPayload) {
+                Cell<WithdrawFp> => {
                     // in.valueCoins must > withdraw gas
                     val remainingValue = processWithdrawGas(in.valueCoins);
 
-                    // If assetJettonInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton
-                    val assetJettonWallet = storage.assetJettonInfo != null ? storage.assetJettonInfo!.load().walletAddress : null;
-                    val withdrawAmount = handleWithdraw(inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, burnPayload, in.body, assetJettonWallet);
+                    // If externalAssetInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton or extra currency
+                    var transferAssetType: AssetType = TON_ASSET_TYPE;
+                    var assetJettonWallet: address? = null;
+                    var extraCurrencyId: ExtraCurrencyId? = null;
+                    if (storage.externalAssetInfo != null) {
+                        var externalAssetInfo = storage.externalAssetInfo!.load();
+                        (transferAssetType, assetJettonWallet, extraCurrencyId) = (externalAssetInfo is JettonInfo) 
+                            ? (JETTON_ASSET_TYPE, externalAssetInfo.walletAddress!, null) 
+                            : (EXTRA_CURRENCY_ASSET_TYPE, null, externalAssetInfo.extraCurrencyId!);
+                    }
 
-                    storage.totalSupply = storage.totalSupply - inMsg.shares; 
-                    storage.totalAssets = storage.totalAssets - withdrawAmount;
-                    storage.save();
+                    val withdrawAmount = handleWithdraw(
+                        inMsg.initiator, 
+                        inMsg.queryId, 
+                        remainingValue, 
+                        inMsg.shares, 
+                        inMsg.customPayload.load(), 
+                        in.body, 
+                        transferAssetType, 
+                        assetJettonWallet, 
+                        extraCurrencyId
+                    );
+
+                    storage.updateSupplyAndAssets(-inMsg.shares, -withdrawAmount);
                 }
             }
         }
@@ -107,10 +180,14 @@ fun onInternalMessage(in: InMessage) {
         ProvideQuote => {
             // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
-            var quoteAsset: Asset = Asset.tonAsset();
-            if(storage.assetJettonInfo != null) {
-                quoteAsset = Asset.jettonAsset(storage.assetJettonInfo!.load().masterAddress!);
+            var quoteAsset: Asset = Asset.tonAsset();   
+            if (storage.externalAssetInfo != null) {
+                var externalAssetInfo = storage.externalAssetInfo!.load();
+                quoteAsset = (externalAssetInfo is JettonInfo) 
+                    ? Asset.jettonAsset(externalAssetInfo.masterAddress!)
+                    : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
             }
+
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 
             emitQuoted(Quoted {
@@ -125,25 +202,28 @@ fun onInternalMessage(in: InMessage) {
 
         // Updates Vault's jetton wallet address from Jetton master response
         ResponseWalletAddress => {
-            var assetJettonInfo = lazy storage.assetJettonInfo!.load();
+            var externalAssetInfo = storage.externalAssetInfo!.load();
 
             // Verifies sender is from Jetton master to prevent unauthorized updates
-            assert (in.senderAddress == assetJettonInfo.masterAddress!) throw ERR_INVALID_JETTON_WALLET; 
-            assetJettonInfo.walletAddress = inMsg.jettonWalletAddress;
-            storage.assetJettonInfo = assetJettonInfo.toCell();
+            if (externalAssetInfo is JettonInfo) {
+                assert (in.senderAddress == externalAssetInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
+                externalAssetInfo.walletAddress = inMsg.jettonWalletAddress;
+            }
+            storage.externalAssetInfo = externalAssetInfo.toCell();
             storage.save();
         }
 
         DeployVault => {
             // If assetJettonInfo is not null -> underlying asset is Jetton, otherwise underlying asset is TON
-            if(storage.assetJettonInfo != null) { 
-                var assetJettonInfo = lazy storage.assetJettonInfo!.load();
-
-                // Only admin can deploy Jetton vault
-                assert (in.senderAddress == storage.adminAddress) throw ERR_UNAUTHORIZED_ADMIN;
-                
-                // Send request wallet address to Jetton master
-                sendRequestWalletAddress(assetJettonInfo.masterAddress!, inMsg.queryId);
+            if (storage.externalAssetInfo != null) {
+                var externalAssetInfo = storage.externalAssetInfo.load();
+                if (externalAssetInfo is JettonInfo) { 
+                    // Only admin can deploy Jetton vault
+                    assert (in.senderAddress == storage.adminAddress) throw ERR_UNAUTHORIZED_ADMIN;
+                    
+                    // Send request wallet address to Jetton master
+                    sendRequestWalletAddress(externalAssetInfo.masterAddress!, inMsg.queryId);
+                }
             }
         }
 

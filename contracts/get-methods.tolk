@@ -8,16 +8,21 @@ import "messages/schemas/deposit"
 import "messages/schemas/withdraw"
 import "core"
 import "fees-management"
+
 get fun getAssets() {
     var assetsTuple: tuple = createEmptyTuple();
     val storage = lazy VaultStorage.load();
-    if(storage.assetJettonInfo != null) {
-        val assetJettonInfo = storage.assetJettonInfo!.load();
-        assetsTuple.push(Asset.jettonAsset(assetJettonInfo.masterAddress!).toCell());
-    }
-    else {
+
+    if (storage.externalAssetInfo == null) {
         assetsTuple.push(Asset.tonAsset().toCell());
+        return convertAssetsTupleToCell(assetsTuple, 0);
     }
+
+    val externalAssetInfo = storage.externalAssetInfo!.load();
+    val asset: Asset = (externalAssetInfo is JettonInfo) 
+        ? Asset.jettonAsset(externalAssetInfo.masterAddress!) 
+        : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
+    assetsTuple.push(asset.toCell());
 
     return convertAssetsTupleToCell(assetsTuple, 0);
 }
@@ -57,6 +62,10 @@ get fun getPreviewTonDepositFee() {
 
 get fun getPreviewJettonDepositFee() {
     return previewJettonDepositFee();
+}
+
+get fun getPreviewExtraCurrencyDepositFee() {
+    return previewExtraCurrencyDepositFee();
 }
 
 get fun getPreviewWithdrawFee() {

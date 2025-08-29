@@ -1,16 +1,23 @@
+import "constants/common-types"
 import "types/wallet-status"
 
 // ==== Vault Storage ====
-struct AssetJettonInfo {
+struct (0x1) JettonInfo {
     masterAddress: address
     walletAddress: address
 }
+
+struct (0x2) ExtraCurrencyInfo {
+    extraCurrencyId: ExtraCurrencyId
+}
+
+type ExternalAssetInfo = JettonInfo | ExtraCurrencyInfo
 
 struct VaultStorage {
     adminAddress: address
     totalSupply: coins
     totalAssets: coins
-    assetJettonInfo: Cell<AssetJettonInfo>?
+    externalAssetInfo: Cell<ExternalAssetInfo>?
     jettonWalletCode: cell
     content: cell
 }
@@ -21,6 +28,12 @@ fun VaultStorage.load() {
 
 fun VaultStorage.save(self) {
     contract.setData(self.toCell())
+}
+
+fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: coins, assetsDelta: coins) {
+    self.totalSupply = self.totalSupply + sharesDelta;
+    self.totalAssets = self.totalAssets + assetsDelta;
+    self.save();
 }
 
 // ==== Jetton Wallet Storage ====

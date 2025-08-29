@@ -2,7 +2,7 @@ import { SandboxContract, SendMessageResult } from '@ton/sandbox';
 import { Vault } from '../../wrappers/Vault';
 import { Address, Cell } from '@ton/core';
 import { Opcodes } from '../../wrappers/constants/op';
-import { buildVaultNotification } from './callbackPayload';
+import { buildVaultNotification, buildVaultNotificationEc } from './callbackPayload';
 import { VaultErrors } from '../../wrappers/constants/error';
 
 // =============================================================================
@@ -121,6 +121,25 @@ export async function expectJettonDepositTxs(
     await expectMintShares(depositResult, vault, receiver, callbackPayload);
 }
 
+export async function expectEcDepositTxs(
+    depositResult: SendMessageResult,
+    initiator: Address,
+    receiver: Address,
+    vault: SandboxContract<Vault>,
+    callbackPayload: Cell,
+) {
+    // Initiator sends EC deposit to vault
+    expect(depositResult.transactions).toHaveTransaction({
+        from: initiator,
+        to: vault.address,
+        op: Opcodes.Vault.DepositEc,
+        success: true,
+    });
+
+    // Validate share minting process
+    await expectMintShares(depositResult, vault, receiver, callbackPayload);
+}
+
 // =============================================================================
 // Failed Deposit Validation
 // =============================================================================
@@ -181,6 +200,34 @@ export async function expectFailDepositJettonTxs(
         to: initiator,
         op: Opcodes.Jetton.TransferNotification,
         body: callbackPayload,
+    });
+}
+
+export function expectFailDepositEcTxs(
+    depositResult: SendMessageResult,
+    initiator: Address,
+    vault: SandboxContract<Vault>,
+    queryId: bigint,
+    exitCode: number,
+    callbackPayload?: Cell,
+    inBody?: Cell,
+) {
+    // Deposit transaction fails with specified exit code
+    expect(depositResult.transactions).toHaveTransaction({
+        from: initiator,
+        to: vault.address,
+        op: Opcodes.Vault.DepositEc,
+        success: true,
+        exitCode: exitCode,
+    });
+
+    // Vault sends failure notification back to initiator
+    expect(depositResult.transactions).toHaveTransaction({
+        from: vault.address,
+        to: initiator,
+        op: Opcodes.Vault.VaultNotificationEc,
+        success: true,
+        body: buildVaultNotificationEc(queryId, exitCode, initiator, callbackPayload, inBody),
     });
 }
 
@@ -266,6 +313,25 @@ export async function expectWithdrawJettonTxs(
         from: receiverJettonWallet,
         to: receiver,
         op: Opcodes.Jetton.TransferNotification,
+        body: callbackPayload,
+    });
+}
+
+export async function expectWithdrawEcTxs(
+    withdrawResult: SendMessageResult,
+    initiator: Address,
+    receiver: Address,
+    vault: SandboxContract<Vault>,
+    callbackPayload: Cell,
+) {
+    await expectBurnTxs(withdrawResult, initiator, vault);
+
+    // Expect vault send OP_VAULT_NOTIFICATION_EC to burner
+    expect(withdrawResult.transactions).toHaveTransaction({
+        from: vault.address,
+        to: receiver,
+        op: Opcodes.Vault.VaultNotificationEc,
+        success: true,
         body: callbackPayload,
     });
 }

@@ -7,33 +7,45 @@ import {
     contractAddress,
     ContractProvider,
     Sender,
+    SenderArguments,
     SendMode,
     toNano,
 } from '@ton/core';
-import { OPCODE_SIZE, QUERY_ID_SIZE } from './constants/size';
+import { ASSET_TYPE_SIZE, EXTRA_CURRENCY_ID_SIZE, OPCODE_SIZE, QUERY_ID_SIZE } from './constants/size';
 import { Opcodes } from './constants/op';
 import { Maybe } from '@ton/core/dist/utils/maybe';
 import { JettonMaster } from '@ton/ton';
-import { parseAssetsFromNestedCell } from '@torch-finance/core';
+import { AssetType, parseAssetsFromNestedCell } from '@torch-finance/core';
 
 export type VaultConfig = {
     adminAddress: Address;
     totalSupply: bigint;
     totalAssets: bigint;
     masterAddress?: Address;
+    extraCurrencyId?: number;
     jettonWalletCode: Cell;
     content: Cell;
 };
 
 export function vaultConfigToCell(config: VaultConfig): Cell {
-    const assetJettonInfo = config.masterAddress
-        ? beginCell().storeAddress(config.masterAddress).storeAddress(null).endCell()
-        : null;
+    let externalAssetInfo: Cell | null = null;
+    if (config.masterAddress) {
+        externalAssetInfo = beginCell()
+            .storeUint(AssetType.JETTON, ASSET_TYPE_SIZE)
+            .storeAddress(config.masterAddress)
+            .storeAddress(null)
+            .endCell();
+    } else if (config.extraCurrencyId !== undefined) {
+        externalAssetInfo = beginCell()
+            .storeUint(AssetType.EXTRA_CURRENCY, ASSET_TYPE_SIZE)
+            .storeUint(config.extraCurrencyId, EXTRA_CURRENCY_ID_SIZE)
+            .endCell();
+    }
     return beginCell()
         .storeAddress(config.adminAddress)
         .storeCoins(config.totalSupply)
         .storeCoins(config.totalAssets)
-        .storeMaybeRef(assetJettonInfo)
+        .storeMaybeRef(externalAssetInfo)
         .storeRef(config.jettonWalletCode)
         .storeRef(config.content)
         .endCell();
@@ -45,6 +57,7 @@ export interface VaultStorage {
     totalAssets: bigint;
     jettonMaster: Address | null;
     jettonWalletAddress: Address | null;
+    extraCurrencyId: number | null;
     jettonWalletCode: Cell;
     content: Cell;
 }
@@ -102,17 +115,18 @@ export class Vault implements Contract {
     constructor(
         readonly address: Address,
         readonly jettonMaster?: Address,
+        readonly extraCurrencyId?: number,
         readonly init?: { code: Cell; data: Cell },
     ) {}
 
-    static createFromAddress(address: Address, jettonMaster?: Address) {
-        return new Vault(address, jettonMaster);
+    static createFromAddress(address: Address, jettonMaster?: Address, extraCurrencyId?: number) {
+        return new Vault(address, jettonMaster, extraCurrencyId);
     }
 
     static createFromConfig(config: VaultConfig, code: Cell, workchain = 0) {
         const data = vaultConfigToCell(config);
         const init = { code, data };
-        return new Vault(contractAddress(workchain, init), config.masterAddress, init);
+        return new Vault(contractAddress(workchain, init), config.masterAddress, config.extraCurrencyId, init);
     }
 
     private optionalVaultParamsToCell(params?: OptionalParams): Cell | null {
@@ -223,12 +237,13 @@ export class Vault implements Contract {
         provider: ContractProvider,
         depositor: Address,
         deposit: Deposit,
+        jettonMasterAddress?: Address,
         forwardAmount: bigint = toNano('0.1'),
     ) {
-        if (!this.jettonMaster) {
+        if (this.jettonMaster === undefined && jettonMasterAddress === undefined) {
             throw new Error('Jetton Master is not set');
         }
-        const jettonMaster = provider.open(JettonMaster.create(this.jettonMaster));
+        const jettonMaster = provider.open(JettonMaster.create(this.jettonMaster ?? jettonMasterAddress!));
         const jettonWalletAddress = await jettonMaster.getWalletAddress(depositor);
         return {
             to: jettonWalletAddress,
@@ -248,6 +263,25 @@ export class Vault implements Contract {
                     }),
                 )
                 .endCell(),
+        };
+    }
+
+    async getEcDepositArg(provider: ContractProvider, deposit: Deposit, extraCurrencyId?: number) {
+        if (this.extraCurrencyId === undefined && extraCurrencyId === undefined) {
+            throw new Error('Extra currency id is not set');
+        }
+        const id = this.extraCurrencyId ?? extraCurrencyId!;
+        return {
+            to: this.address,
+            value: toNano('0.1'),
+            body: beginCell()
+                .storeUint(Opcodes.Vault.DepositEc, OPCODE_SIZE)
+                .storeUint(deposit.queryId, QUERY_ID_SIZE)
+                .store(this.storeVaultDepositParams(deposit.depositParams))
+                .endCell(),
+            extracurrency: {
+                [id]: deposit.depositAmount,
+            },
         };
     }
 
@@ -313,6 +347,11 @@ export class Vault implements Contract {
         return res.stack.readBigNumber();
     }
 
+    async getPreviewExtraCurrencyDepositFee(provider: ContractProvider) {
+        const res = await provider.get('getPreviewExtraCurrencyDepositFee', []);
+        return res.stack.readBigNumber();
+    }
+
     async getMaxDeposit(provider: ContractProvider) {
         const res = await provider.get('getMaxDeposit', [
             {
@@ -367,7 +406,7 @@ export class Vault implements Contract {
             },
             {
                 type: 'int',
-                value: 0n,  // Rounding type: ROUND_DOWN
+                value: 0n, // Rounding type: ROUND_DOWN
             },
         ]);
         return res.stack.readBigNumber();
@@ -384,7 +423,7 @@ export class Vault implements Contract {
             },
             {
                 type: 'int',
-                value: 0n,  // Rounding type: ROUND_DOWN
+                value: 0n, // Rounding type: ROUND_DOWN
             },
         ]);
         return res.stack.readBigNumber();
@@ -419,16 +458,31 @@ export class Vault implements Contract {
         const adminAddress = storageSlice.loadAddress();
         const totalSupply = storageSlice.loadCoins();
         const totalAssets = storageSlice.loadCoins();
-        const assetJettonInfoCell = storageSlice.loadMaybeRef();
+        const externalAssetInfo = storageSlice.loadMaybeRef();
         let jettonMaster: Address | null = null;
         let jettonWalletAddress: Address | null = null;
-        if (assetJettonInfoCell) {
-            const assetJettonInfoSlice = assetJettonInfoCell.beginParse();
-            jettonMaster = assetJettonInfoSlice.loadAddress();
-            jettonWalletAddress = assetJettonInfoSlice.loadMaybeAddress();
+        let extraCurrencyId: number | null = null;
+        if (externalAssetInfo) {
+            const externalAssetInfoSlice = externalAssetInfo.beginParse();
+            const assetType = externalAssetInfoSlice.loadUint(ASSET_TYPE_SIZE);
+            if (assetType === AssetType.JETTON) {
+                jettonMaster = externalAssetInfoSlice.loadAddress();
+                jettonWalletAddress = externalAssetInfoSlice.loadMaybeAddress();
+            } else if (assetType === AssetType.EXTRA_CURRENCY) {
+                extraCurrencyId = externalAssetInfoSlice.loadUint(EXTRA_CURRENCY_ID_SIZE);
+            }
         }
         const jettonWalletCode = storageSlice.loadRef();
         const content = storageSlice.loadRef();
-        return { adminAddress, totalSupply, totalAssets, jettonMaster, jettonWalletAddress, jettonWalletCode, content };
+        return {
+            adminAddress,
+            totalSupply,
+            totalAssets,
+            jettonMaster,
+            jettonWalletAddress,
+            extraCurrencyId,
+            jettonWalletCode,
+            content,
+        };
     }
 }

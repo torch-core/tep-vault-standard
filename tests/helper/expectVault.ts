@@ -28,6 +28,13 @@ export const expectVaultStorage = (storage: VaultStorage, expectedStorage: Vault
     } else {
         expect(storage.jettonWalletAddress).toBeNull();
     }
+
+    // Optional extra currency id validation
+    if (expectedStorage.extraCurrencyId !== undefined) {
+        expect(storage.extraCurrencyId).toBe(expectedStorage.extraCurrencyId);
+    } else {
+        expect(storage.extraCurrencyId).toBeNull();
+    }
 };
 
 export async function expectVaultSharesAndAssets(
@@ -70,6 +77,24 @@ export async function expectJettonVaultBalances(
 ) {
     // Expect that vault jetton wallet balance is increased by assetAmountChange
     expect(await vaultJettonWallet.getBalance()).toBe(vaultJettonWalletBalBefore + assetAmountChange);
+
+    // Expect that vault shares and assets are changed by assetAmountChange and sharesChange
+    await expectVaultSharesAndAssets(vault, assetAmountChange, sharesChange, oldTotalAssets, oldTotalSupply);
+}
+
+export async function expectEcVaultBalances(
+    blockchain: Blockchain,
+    vault: SandboxContract<Vault>,
+    ecBalBefore: bigint,
+    assetAmountChange: bigint,
+    sharesChange: bigint,
+    oldTotalAssets: bigint = 0n,
+    oldTotalSupply: bigint = 0n,
+    ecId: number,
+) {
+    // Expect that vault ec balance is changed by assetAmountChange
+    const vaultEcBalanceAfter = (await blockchain.getContract(vault.address)).ec[ecId];
+    expect(vaultEcBalanceAfter).toBe(ecBalBefore + assetAmountChange);
 
     // Expect that vault shares and assets are changed by assetAmountChange and sharesChange
     await expectVaultSharesAndAssets(vault, assetAmountChange, sharesChange, oldTotalAssets, oldTotalSupply);

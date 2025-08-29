@@ -1,4 +1,4 @@
-import { SandboxContract } from '@ton/sandbox';
+import { Blockchain, SandboxContract } from '@ton/sandbox';
 import { TreasuryContract } from '@ton/sandbox';
 import { JettonWallet, toNano } from '@ton/ton';
 
@@ -33,4 +33,23 @@ export async function expectJettonDepositorBalances(
 
     // Expect that receiver shares wallet balance is increased by depositAmount
     expect(await receiverShareWallet.getBalance()).toBe(receiverShareWalletBalBefore + depositAmount);
+}
+
+export async function expectEcDepositorBalances(
+    blockchain: Blockchain,
+    depositor: SandboxContract<TreasuryContract>,
+    receiverShareWallet: SandboxContract<JettonWallet>,
+    receiverShareBalBefore: bigint,
+    ecBalBefore: bigint,
+    depositAmount: bigint,
+    increaseShares: bigint,
+    ecId: number,
+) {
+    // Expect that depositor ec balance is decreased by depositAmount
+    const depositorEcBalanceAfter = (await blockchain.getContract(depositor.address)).ec[ecId];
+    expect(depositorEcBalanceAfter).toBe(ecBalBefore - depositAmount);
+
+    // Expect that receiver share wallet balance is increased by depositAmount
+    const receiverShareBalanceAfter = await receiverShareWallet.getBalance();
+    expect(receiverShareBalanceAfter).toBe(receiverShareBalBefore + increaseShares);
 }

@@ -1,4 +1,6 @@
+import "@stdlib/tvm-dicts"
 import "../constants/common-types";
+import "../constants/values"
 import "../constants/errors"
 import "../types/vault-result";
 import "../types/callback-params";
@@ -8,6 +10,7 @@ import "schemas/deploy"
 import "schemas/provide-take-quote"
 import "../storage";
 import "../helper/jetton";
+import "../helper/extra-currency"
 import "../fees-management"
 
 @pure
@@ -19,7 +22,7 @@ fun resolveReceiver(receiver: address, initiator: address) {
 @pure
 fun createVaultNotificationParams(result: Result, initiator: address, callbackParams: Cell<CallbackParams>?, inBody: slice): VaultNotificationParams {
     var callback: CallbackParams?;
-    if(callbackParams == null) {
+    if (callbackParams == null) {
         // If callbackParams is null -> use default callbacks
         callback = result == Result.Success() ? CallbackParams.defaultSuccess() : CallbackParams.defaultFailure();
     } else {
@@ -40,6 +43,8 @@ fun createForwardPayload(result: Result, initiator: address, callbackParams: Cel
 }
 
 fun mint(initiator: address, queryId: QueryId, remainingValue: coins, mutate receiver: address, shares: coins, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
+    assert (shares > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
+    
     receiver = resolveReceiver(receiver, initiator);
     val storage = lazy VaultStorage.load();
     val minterAddress = contract.getAddress();
@@ -70,6 +75,8 @@ fun jettonTransfer(
     callbackParams: Cell<CallbackParams>?, 
     inBody: slice
 ) {
+    assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
+
     receiver = resolveReceiver(receiver, initiator);
     val transferMsg = createMessage({
         bounce: false,
@@ -89,6 +96,8 @@ fun jettonTransfer(
 }
 
 fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, receiver: address, result: Result, callbackParams: Cell<CallbackParams>?, inBody: slice) {
+    assert (sendingValue > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
+    
     val transferMsg = createMessage({
         bounce: true,
         dest: resolveReceiver(receiver, initiator),
@@ -101,8 +110,35 @@ fun tonTransfer(initiator: address, queryId: QueryId, sendingValue: coins, recei
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
+fun extraCurrencyTransfer(
+    initiator: address, 
+    queryId: QueryId, 
+    remainingValue: coins, 
+    extraCurrencyId: ExtraCurrencyId, 
+    receiver: address, 
+    transferAmount: coins, 
+    result: Result, 
+    callbackParams: Cell<CallbackParams>?, 
+    inBody: slice
+) {
+    assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
+
+    var extraCurrencyDict = createEmptyDict();
+    extraCurrencyDict.uDictSetBuilder(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId, beginCell().storeVarUint32(transferAmount));
+    val transferMsg = createMessage({
+        bounce: false,
+        dest: resolveReceiver(receiver, initiator),
+        value: (remainingValue, extraCurrencyDict),
+        body: VaultNotificationEc {
+            queryId: queryId,
+            vaultNotificationParams: createVaultNotificationParams(result, initiator, callbackParams, inBody)
+        }
+    });
+    transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
+}
+
 fun transferAsset(
-    isNativeTransfer: bool,
+    transferAssetType: AssetType,
     initiator: address, 
     queryId: QueryId, 
     remainingValue: coins, 
@@ -111,15 +147,22 @@ fun transferAsset(
     result: Result, 
     callbackParams: Cell<CallbackParams>?, 
     inBody: slice,
-    assetJettonWallet: address? = null
+    assetJettonWallet: address? = null,
+    extraCurrencyId: ExtraCurrencyId? = null
 ) {
-    if (isNativeTransfer) {
-        tonTransfer(initiator, queryId, remainingValue + transferAmount, receiver, result, callbackParams, inBody);
-        return;
-    } 
-
-    assert (assetJettonWallet != null) throw ERR_MISSING_ASSET_JETTON_WALLET;
-    jettonTransfer(initiator, queryId, remainingValue, assetJettonWallet!, receiver, transferAmount, result, callbackParams, inBody);   
+    match (transferAssetType) {
+        TON_ASSET_TYPE => {
+            tonTransfer(initiator, queryId, remainingValue + transferAmount, receiver, result, callbackParams, inBody);
+        }
+        JETTON_ASSET_TYPE => {
+            assert (assetJettonWallet != null) throw ERR_MISSING_ASSET_JETTON_WALLET;
+            jettonTransfer(initiator, queryId, remainingValue, assetJettonWallet!, receiver, transferAmount, result, callbackParams, inBody);
+        }
+        EXTRA_CURRENCY_ASSET_TYPE => {
+            assert (extraCurrencyId != null) throw ERR_MISSING_EXTRA_CURRENCY_ID;
+            extraCurrencyTransfer(initiator, queryId, remainingValue, extraCurrencyId!, receiver, transferAmount, result, callbackParams, inBody);
+        }
+    }
 }
 
 fun sendRequestWalletAddress(jettonMaster: address, queryId: QueryId) {

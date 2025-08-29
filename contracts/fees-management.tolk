@@ -21,6 +21,11 @@ fun previewJettonDepositFee() {
 }
 
 @pure
+fun previewExtraCurrencyDepositFee() {
+    return DEPOSIT_GAS;
+}
+
+@pure
 fun previewWithdrawFee() {
     return WITHDRAW_GAS;
 }
@@ -39,6 +44,12 @@ fun processTonDepositGas(valueCoins: coins, depositAmount: coins) {
 fun processJettonDepositGas(valueCoins: coins) {
     val requiredGas = previewJettonDepositFee();
     assert (valueCoins >= requiredGas) throw ERR_INSUFFICIENT_JETTON_DEPOSIT_GAS;
+    return valueCoins - requiredGas;
+}
+
+fun processExtraCurrencyDepositGas(valueCoins: coins) {
+    val requiredGas = previewExtraCurrencyDepositFee();
+    assert (valueCoins >= requiredGas) throw ERR_INSUFFICIENT_EXTRA_CURRENCY_DEPOSIT_GAS;
     return valueCoins - requiredGas;
 }
 
