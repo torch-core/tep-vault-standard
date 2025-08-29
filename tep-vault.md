@@ -125,7 +125,7 @@ Vault contracts MUST implement storage fields sufficient to fulfill the TEP-74 J
     - **Requirements**: MUST comply with `TEP-74`.
     - **Type**: `Cell`
 
-##### Vault-Specific Storage
+##### Suggested Vault-Specific Storage
 
 ###### Single-Asset Storage
 
@@ -152,7 +152,7 @@ For vaults managing a single underlying asset, the following persistent storage 
         - MUST NOT be present if the asset is TON.
     - **Type**: `Address`
 - **`extraCurrencyId`**
-    - **Description**: The Extra Currency ID supported by this vault, if any.
+    - **Description**: The Extra Currency ID of the underlying asset, if a Extra Currency.
     - **Requirements**:
         - MUST be present if the underlying asset is an Extra Currency to facilitate validation of incoming deposits.
         - MUST NOT be present if the asset is TON or Jetton.
@@ -756,11 +756,6 @@ Many TON DeFi contracts allow upgrades. Combining Point 1 (multisig) and Point 2
 
 **Rationale**: TON lacks on-chain price fetching like Ethereum, so off-chain data (e.g., prices) is carried via messages. [VaultOptions](#vaultoptions) allows passing such data, validated into [VaultConfig](#vaultconfig) for use.
 
-### Omission of Extra Currency Support
-
-**Rationale**: TON supports Extra Currency, but its usage is not widespread, with no DeFi protocols adopting it yet. Thus, the current design excludes it.  
-**Alternatives**: Immediate inclusion was considered, but deferred due to ecosystem immaturity; future versions could add it as adoption grows.
-
 ### Asset-Based Limits Instead of Per-Address
 
 **Rationale**: ERC-4626 limits `maxDeposit`/`maxWithdraw` per address, but TEP-4626 uses asset-based checks. On TON, querying initiator's shares on-chain is difficult without dicts (inefficient) or sub-contracts/Jetton wallets (complex).  
@@ -807,7 +802,6 @@ These questions do not affect the core standard but provide opportunities for re
 
 TEP-4626 establishes a solid foundation for TON vaults, with potential for evolution as the ecosystem advances. The following extensions build on the current design:
 
-- **Extra Currency Integration**: Once Extra Currency adoption matures in TON DeFi, it could be added to the [Asset](#asset) encoding, enabling more diverse multi-asset vaults and broader token support.
 - **Mint and Redeem Functions via Wallet Plugging**: If wallet plugging becomes more widespread on TON, future versions could incorporate ERC-4626-style mint/redeem operations, enhancing flexibility for direct asset pulls while aligning with evolving user habits.
 - **Gasless Vault Operations**: To improve UX, extensions could support gasless interactions, reducing barriers for deposits/withdrawals without compromising security.
 
