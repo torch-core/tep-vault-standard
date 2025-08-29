@@ -322,7 +322,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 
 **Deposit (For Extra Currency)**
 
-![deposit-ton](./assets/deposit-ton.png)
+![deposit-ec](./assets/deposit-ec.png)
 
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Extra Currency.
 - **Requirements**:
