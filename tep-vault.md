@@ -253,7 +253,8 @@ The specific storage structure for managing underlying assets, jetton wallets, a
     - MUST verify `in.valueCoins` covers required gas.
     - MUST verify that Extra Currency deposits are supported by the vault's asset configuration.
         - MUST verify that the specific Extra Currency ID is supported by the vault.
-        - If Extra Currency deposits are not supported or the specific ID is not supported, SHOULD throw an error and reject the transaction.
+        - MUST verify that exactly one Extra Currency is deposited (multiple Extra Currencies in a single transaction are not allowed).
+        - If Extra Currency deposits are not supported, the specific ID is not supported, or multiple Extra Currencies are deposited, SHOULD throw an error and reject the transaction.
     - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
     - MUST calculate expected shares using current vault share price and rounding rules.
     - If deposit fails for the following reasons, MUST refund Extra Currency and send [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) with `failureCallback.payload` to `initiator`:
