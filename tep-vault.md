@@ -185,7 +185,10 @@ The specific storage structure for managing underlying assets, jetton wallets, a
         - If TON deposits are not supported, SHOULD throw an error and reject the transaction.
     - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
     - MUST calculate expected shares using current vault share price and rounding rules.
-    - If deposit fails (e.g., `depositAmount` exceeds vault limit, minted shares < `minShares`, or insufficient gas), MUST refund TON and send [OP_VAULT_NOTIFICATION](#op_vault_notification) with `failureCallback.payload` to `initiator`.
+    - If deposit fails due to asset validation errors, MUST refund TON and send [OP_VAULT_NOTIFICATION](#op_vault_notification) with `failureCallback.payload` to `initiator`:
+        - `depositAmount` exceeds vault limit
+        - Minted shares are less than `minShares`
+    - If deposit fails due to gas insufficiency or other operational errors, SHOULD NOT refund TON.
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
@@ -227,7 +230,10 @@ The specific storage structure for managing underlying assets, jetton wallets, a
         - If Jetton deposits are not supported or the specific Jetton is not supported, SHOULD throw an error and reject the transaction.
     - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
     - MUST calculate expected shares using current vault share price and rounding rules.
-    - If deposit fails (e.g., `depositAmount` exceeds vault limit, minted shares < `minShares`, or invalid sender), MUST refund Jetton and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`.
+    - If deposit fails due to asset validation errors, MUST refund Jetton and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`:
+        - `depositAmount` exceeds vault limit
+        - Minted shares are less than `minShares`
+    - If deposit fails due to invalid sender or other operational errors, SHOULD NOT refund Jetton.
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
@@ -253,7 +259,10 @@ The specific storage structure for managing underlying assets, jetton wallets, a
     - MUST validate that exactly one Extra Currency is deposited with the correct ID and amount.
     - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
     - MUST calculate expected shares using current vault share price and rounding rules.
-    - If deposit fails (e.g., `depositAmount` exceeds vault limit, minted shares < `minShares`, or invalid Extra Currency), MUST refund Extra Currency and send [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) with `failureCallback.payload` to `initiator`.
+    - If deposit fails due to asset validation errors, MUST refund Extra Currency and send [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) with `failureCallback.payload` to `initiator`:
+        - `depositAmount` exceeds vault limit
+        - Minted shares are less than `minShares`
+    - If deposit fails due to invalid Extra Currency or other operational errors, SHOULD NOT refund Extra Currency.
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
@@ -276,7 +285,10 @@ The specific storage structure for managing underlying assets, jetton wallets, a
     - MUST verify `in.valueCoins` covers required gas.
     - MUST verify `in.senderAddress` is the Jetton Wallet of the shares, not another Jetton wallet.
     - For multi-asset vaults, MUST verify that the withdrawal asset is supported by the vault.
-    - If withdrawal fails (e.g., burned shares exceed vault limit or withdrawn amount < `minWithdraw`), MUST refund shares and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`.
+    - If withdrawal fails due to asset validation errors, MUST refund shares and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`:
+        - Burned shares exceed vault limit
+        - Withdrawn amount is less than `minWithdraw`
+    - If withdrawal fails due to invalid sender or other operational errors, SHOULD NOT refund shares.
     - On successful withdrawal, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) (for Jetton), [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) (for Extra Currency), or [OP_VAULT_NOTIFICATION](#op_vault_notification) (for TON) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
     - MUST emit `TOPIC_WITHDRAWN` event.
