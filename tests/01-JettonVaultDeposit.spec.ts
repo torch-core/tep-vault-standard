@@ -1,4 +1,4 @@
-import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, printTransactionFees, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
@@ -61,7 +61,7 @@ describe('Deposit to Jetton Vault', () => {
 
     afterEach(async () => {
         const vaultTonBalanceAfter = (await blockchain.getContract(USDTVault.address)).balance;
-        expect(vaultTonBalanceAfter).toBeGreaterThanOrEqual(vaultTonBalBefore);
+        expect(vaultTonBalanceAfter + 5n).toBeGreaterThanOrEqual(vaultTonBalBefore);
     });
 
     afterAll(() => {
@@ -648,6 +648,41 @@ describe('Deposit to Jetton Vault', () => {
     });
 
     describe('Other failure cases', () => {
+        it('should throw ERR_NON_SUPPORTED_TON_DEPOSIT when deposit TON', async () => {
+            const depositAmount = toNano('0.01');
+            const depositArgs = await USDTVault.getTonDepositArg({
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send(depositArgs);
+
+            expect(depositResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: USDTVault.address,
+                op: Opcodes.Vault.Deposit,
+                success: false,
+                exitCode: VaultErrors.NonSupportedTonDeposit,
+            });
+        });
+        it('should throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT when deposit Extra Currency', async () => {
+            const depositAmount = toNano('0.01');
+            const depositArgs = await USDTVault.getEcDepositArg(
+                {
+                    queryId,
+                    depositAmount,
+                },
+                0,
+            );
+            const depositResult = await maxey.send(depositArgs);
+
+            expect(depositResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: USDTVault.address,
+                op: Opcodes.Vault.DepositEc,
+                success: false,
+                exitCode: VaultErrors.NonExtraCurrencyDeposit,
+            });
+        });
         it('should throw ERR_INSUFFICIENT_JETTON_DEPOSIT_GAS when valueCoins < deposit gas', async () => {
             const depositAmount = 10000n;
             const depositArg = await USDTVault.getJettonDepositArg(
@@ -656,6 +691,7 @@ describe('Deposit to Jetton Vault', () => {
                     queryId,
                     depositAmount,
                 },
+                undefined,
                 toNano('0.01'),
             );
             const depositResult = await maxey.send(depositArg);

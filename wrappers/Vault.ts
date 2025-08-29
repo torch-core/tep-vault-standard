@@ -237,12 +237,13 @@ export class Vault implements Contract {
         provider: ContractProvider,
         depositor: Address,
         deposit: Deposit,
+        jettonMasterAddress?: Address,
         forwardAmount: bigint = toNano('0.1'),
     ) {
-        if (!this.jettonMaster) {
+        if (this.jettonMaster === undefined && jettonMasterAddress === undefined) {
             throw new Error('Jetton Master is not set');
         }
-        const jettonMaster = provider.open(JettonMaster.create(this.jettonMaster));
+        const jettonMaster = provider.open(JettonMaster.create(this.jettonMaster ?? jettonMasterAddress!));
         const jettonWalletAddress = await jettonMaster.getWalletAddress(depositor);
         return {
             to: jettonWalletAddress,
@@ -265,10 +266,11 @@ export class Vault implements Contract {
         };
     }
 
-    async getEcDepositArg(provider: ContractProvider, deposit: Deposit) {
-        if (this.extraCurrencyId === undefined) {
+    async getEcDepositArg(provider: ContractProvider, deposit: Deposit, extraCurrencyId?: number) {
+        if (this.extraCurrencyId === undefined && extraCurrencyId === undefined) {
             throw new Error('Extra currency id is not set');
         }
+        const id = this.extraCurrencyId ?? extraCurrencyId!;
         return {
             to: this.address,
             value: toNano('0.1'),
@@ -278,7 +280,7 @@ export class Vault implements Contract {
                 .store(this.storeVaultDepositParams(deposit.depositParams))
                 .endCell(),
             extracurrency: {
-                [this.extraCurrencyId]: deposit.depositAmount,
+                [id]: deposit.depositAmount,
             },
         };
     }

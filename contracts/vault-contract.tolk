@@ -48,6 +48,9 @@ fun onInternalMessage(in: InMessage) {
     match (inMsg) {
         // Processes TON deposits and mints shares to receiver
         Deposit => {
+            // Verifies vault is supported TON deposit to prevent unauthorized TON deposits
+            assert (storage.externalAssetInfo == null) throw ERR_NON_SUPPORTED_TON_DEPOSIT;
+
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
 
             // in.valueCoins must > deposit amount + deposit gas
@@ -68,8 +71,10 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes extra currency deposits and mints shares to receiver
         DepositEc => {
+            assert(storage.externalAssetInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
+
             val externalAssetInfo = storage.externalAssetInfo!.load();
-            assert (externalAssetInfo is ExtraCurrencyInfo) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
+            assert (externalAssetInfo is ExtraCurrencyInfo) throw ERR_NON_EXTRA_CURRENCY_DEPOSIT;
             
             var extraCurrencyDict = in.valueExtra;
             var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, externalAssetInfo.extraCurrencyId!);
@@ -96,9 +101,11 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes Jetton deposits and mints shares to receiver
         TransferNotificationForRecipient => {
+            assert(storage.externalAssetInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
+            
             // Verifies sender is from vault's Jetton wallet to prevent unauthorized Jetton deposits  
             var externalAssetInfo = storage.externalAssetInfo!.load();
-            assert (externalAssetInfo is JettonInfo) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
+            assert (externalAssetInfo is JettonInfo) throw ERR_NON_JETTON_DEPOSIT;
             assert (in.senderAddress == externalAssetInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
