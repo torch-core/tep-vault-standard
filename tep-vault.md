@@ -222,8 +222,9 @@ The specific storage structure for managing underlying assets, jetton wallets, a
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Jetton.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers required gas.
-    - MUST verify that the specific Jetton is an accepted deposit asset for the vault.
-        - If the Jetton is not supported, SHOULD throw an error and reject the transaction.
+    - MUST verify that Jetton deposits are supported by the vault's asset configuration.
+        - MUST verify the deposit comes from the correct Jetton wallet address.
+        - If Jetton deposits are not supported or the specific Jetton is not supported, SHOULD throw an error and reject the transaction.
         - MUST verify the deposit comes from the correct Jetton wallet address.
     - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
     - MUST calculate expected shares using current vault share price and rounding rules.
@@ -247,8 +248,9 @@ The specific storage structure for managing underlying assets, jetton wallets, a
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Extra Currency.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers required gas.
-    - MUST verify that the specific Extra Currency is an accepted deposit asset for the vault.
-        - If the Extra Currency is not supported, SHOULD throw an error and reject the transaction.
+    - MUST verify that Extra Currency deposits are supported by the vault's asset configuration.
+        - MUST verify that the specific Extra Currency ID is supported by the vault.
+        - If Extra Currency deposits are not supported or the specific ID is not supported, SHOULD throw an error and reject the transaction.
     - MUST validate that exactly one Extra Currency is deposited with the correct ID and amount.
     - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
     - MUST calculate expected shares using current vault share price and rounding rules.
