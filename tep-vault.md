@@ -156,7 +156,7 @@ For vaults managing a single underlying asset, the following persistent storage 
     - **Requirements**:
         - MUST be present if the underlying asset is an Extra Currency to facilitate validation of incoming deposits.
         - MUST NOT be present if the asset is TON or Jetton.
-    - **Type**: [ExtraCurrencyId](#extracurrencyid)  
+    - **Type**: [ExtraCurrencyId](#extracurrencyid)
 
 ###### Multi-Asset Storage
 
@@ -269,6 +269,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of TON.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers `depositAmount` plus required gas.
+    - MUST verify that the deposited asset is supported by the vault.
     - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund TON and send [OP_VAULT_NOTIFICATION](#op_vault_notification) with `failureCallback.payload` to `initiator`.
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
@@ -306,6 +307,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Jetton.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers required gas.
+    - MUST verify that the deposited asset is supported by the vault.
     - MUST verify `in.senderAddress` matches the vault’s underlying Jetton Wallet address.
     - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund Jetton and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`.
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
@@ -327,6 +329,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Extra Currency.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers required gas.
+    - MUST verify that the deposited asset is supported by the vault.
     - MUST verify `in.valueExtra` contains the specified Extra Currency ID and amount.
     - MUST verify only one Extra Currency is deposited (to prevent multiple currency deposits in single-asset vaults).
     - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund Extra Currency and send [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) with `failureCallback.payload` to `initiator`.
