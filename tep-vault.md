@@ -354,6 +354,7 @@ For vaults managing multiple underlying assets, the following persistent storage
 - **Requirements**:
     - MUST verify `in.valueCoins` covers required gas.
     - MUST verify `in.senderAddress` is the Jetton Wallet of the shares, not another Jetton wallet.
+    - For multi-asset vaults, MUST verify that the withdrawal asset is supported by the vault.
     - If withdrawal fails (e.g., burned shares exceed vault limit or withdrawn amount < `minWithdraw`), MUST refund shares and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`.
     - On successful withdrawal, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) (for Jetton), [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) (for Extra Currency), or [OP_VAULT_NOTIFICATION](#op_vault_notification) (for TON) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.

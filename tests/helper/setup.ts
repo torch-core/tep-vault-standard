@@ -1,12 +1,5 @@
 import { Address, beginCell, Cell, toNano } from '@ton/core';
-import {
-    Blockchain,
-    BlockchainSnapshot,
-    internal,
-    printTransactionFees,
-    SandboxContract,
-    TreasuryContract,
-} from '@ton/sandbox';
+import { Blockchain, BlockchainSnapshot, internal, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { compile } from '@ton/blueprint';
 import { Vault } from '../../wrappers/Vault';
 import { JettonMinter } from '../../wrappers/mock-jetton/JettonMinter';
@@ -53,13 +46,14 @@ export const createTestEnvironment = () => {
     let USDT: SandboxContract<JettonMinter>;
 
     const ecId = 0;
+    const otherEcId = 1;
 
     beforeAll(async () => {
         vaultCode = await compile('Vault');
         jettonWalletCode = await compile('JettonWallet');
         blockchain = await Blockchain.create();
         blockchain.verbosity = { ...blockchain.verbosity, print: false };
-        // blockchain.enableCoverage();
+        blockchain.enableCoverage();
         [admin, maxey, bob] = await Promise.all([
             blockchain.treasury('admin'),
             blockchain.treasury('maxey'),
@@ -224,6 +218,17 @@ export const createTestEnvironment = () => {
                 }),
             );
         }
+        // Make sure every wallets have other extra currency id
+        for (const wallet of [maxey, bob, admin]) {
+            await blockchain.sendMessage(
+                internal({
+                    to: wallet.address,
+                    from: new Address(0, Buffer.alloc(32)),
+                    value: toNano('1'),
+                    ec: [[otherEcId, toNano('100000')]],
+                }),
+            );
+        }
 
         initSnapshot = blockchain.snapshot();
     });
@@ -246,6 +251,7 @@ export const createTestEnvironment = () => {
             USDTVault,
             ecVault,
             ecId,
+            otherEcId,
         };
     };
 

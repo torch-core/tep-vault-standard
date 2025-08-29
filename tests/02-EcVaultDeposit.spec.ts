@@ -29,6 +29,7 @@ describe('Deposit to Extra Currency  Vault', () => {
     let ecVaultTonBalDelta: bigint;
     let ecId: number;
     let USDT: SandboxContract<JettonMaster>;
+    let otherEcId: number;
     const queryId = 8n;
     const DEPOSIT_FAIL_GAS = toNano('0.015');
 
@@ -36,7 +37,7 @@ describe('Deposit to Extra Currency  Vault', () => {
 
     beforeEach(async () => {
         await resetToInitSnapshot();
-        ({ blockchain, maxey, bob, ecVault, ecId, USDT } = getTestContext());
+        ({ blockchain, maxey, bob, ecVault, ecId, USDT, otherEcId } = getTestContext());
         maxeyShareWallet = blockchain.openContract(JettonWallet.create(await ecVault.getWalletAddress(maxey.address)));
         bobShareWallet = blockchain.openContract(JettonWallet.create(await ecVault.getWalletAddress(bob.address)));
         maxeyShareBalBefore = await maxeyShareWallet.getBalance();
@@ -566,6 +567,51 @@ describe('Deposit to Extra Currency  Vault', () => {
                 op: Opcodes.Jetton.TransferNotification,
                 success: false,
                 exitCode: VaultErrors.NonJettonDeposit,
+            });
+        });
+        it('should throw ERR_MULTI_EXTRA_CURRENCY_DEPOSIT when deposit multiple extra currency', async () => {
+            const depositAmount = toNano('0.01');
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send({
+                to: depositArgs.to,
+                value: depositArgs.value,
+                body: depositArgs.body,
+                extracurrency: {
+                    [ecId]: depositAmount,
+                    [otherEcId]: depositAmount,
+                },
+            });
+            expect(depositResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: ecVault.address,
+                op: Opcodes.Vault.DepositEc,
+                success: false,
+                exitCode: VaultErrors.MultiExtraCurrencyDeposit,
+            });
+        });
+        it('should throw ERR_INVALID_EXTRA_CURRENCY_ID when deposit extra currency with other extra currency id', async () => {
+            const depositAmount = toNano('0.01');
+            const depositArgs = await ecVault.getEcDepositArg({
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send({
+                to: depositArgs.to,
+                value: depositArgs.value,
+                body: depositArgs.body,
+                extracurrency: {
+                    [otherEcId]: depositAmount,
+                },
+            });
+            expect(depositResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: ecVault.address,
+                op: Opcodes.Vault.DepositEc,
+                success: false,
+                exitCode: VaultErrors.InvalidExtraCurrencyId,
             });
         });
         it('should throw ERR_INSUFFICIENT_EXTRA_CURRENCY_DEPOSIT_GAS when valueCoins < depositAmount + deposit gas', async () => {

@@ -79,8 +79,12 @@ fun onInternalMessage(in: InMessage) {
             var extraCurrencyDict = in.valueExtra;
             var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, externalAssetInfo.extraCurrencyId!);
 
+            // Verifies extra currency id is valid
+            assert(flag) throw ERR_INVALID_EXTRA_CURRENCY_ID;
+
             // Verifies only one extra currency is deposited to prevent multiple extra currency deposits in a single asset vault
-            assert(flag && extraCurrencyDict == null) throw ERR_INVALID_EXTRA_CURRENCY_ID;
+            assert(extraCurrencyDict == null) throw ERR_MULTI_EXTRA_CURRENCY_DEPOSIT;
+
             val depositAmount = value!.loadVarUint32();
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
