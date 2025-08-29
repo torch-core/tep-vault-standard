@@ -355,18 +355,18 @@ The specific storage structure for managing underlying assets, jetton wallets, a
 
 TEP-4626 vaults MUST implement the following functions for querying vault state and conversion rates. Each function has two forms:
 
-- **Internal Function**: 
-  - Core logic for calculations, used within vault operations (e.g., deposit/withdraw). 
-  - Parameters SHOULD use resolved configurations derived from user options, which MAY be implemented as parsed or validated data (e.g., structs in Tolk).
-- **Get-Method**: 
-  - Exposed query method (e.g., `getConvertToShares`) that wraps the internal function. 
-  - It accepts user-provided options (e.g., [DepositOptions](#depositoptions) or [VaultOptions](#vaultoptions) as Cell), resolves them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
-  ![options-params](./assets/option.png)
+- **Internal Function**:
+    - Core logic for calculations, used within vault operations (e.g., deposit/withdraw).
+    - Parameters SHOULD use resolved configurations derived from user options, which MAY be implemented as parsed or validated data (e.g., structs in Tolk).
+- **Get-Method**:
+    - Exposed query method (e.g., `getConvertToShares`) that wraps the internal function.
+    - It accepts user-provided options (e.g., [DepositOptions](#depositoptions) or [VaultOptions](#vaultoptions) as Cell), resolves them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
+      ![options-params](./assets/option.png)
 
 - **`totalAssets`**
     - **Description**:
         - Returns the total underlying assets managed by the vault.
-        - For multi-asset vaults, calculations may use a quote asset specified in the config for exchange rate conversions; if not specified, the base asset is used.
+        - For multi-asset vaults, calculations may use a quote asset specified in the `vaultConfig` for exchange rate conversions; if not specified, the base asset is used.
     - **Requirements**:
         - SHOULD include compounding from yield.
         - MUST include fees charged against assets.
@@ -386,7 +386,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`convertToShares`**
     - **Description**:
         - Estimates the number of shares that would be minted for a given asset amount in an ideal scenario.
-        - For multi-asset vaults, calculations may use a quote asset specified in the config for exchange rate conversions; if not specified, the base asset is used.
+        - For multi-asset vaults, calculations may use a quote asset specified in the `vaultConfig` for exchange rate conversions; if not specified, the base asset is used.
     - **Requirements**:
         - MUST NOT include fees charged against assets.
         - MUST NOT vary by sender.
@@ -412,7 +412,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`convertToAssets`**
     - **Description**:
         - Estimates the amount of assets that would be received for a given share amount in an ideal scenario.
-        - For multi-asset vaults, calculations may use a quote asset specified in the config for exchange rate conversions; if not specified, the base asset is used.
+        - For multi-asset vaults, calculations may use a quote asset specified in the `vaultConfig` for exchange rate conversions; if not specified, the base asset is used.
     - **Requirements**:
         - MUST NOT include fees charged against assets.
         - MUST NOT vary by sender.
@@ -437,14 +437,14 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 
 - **`maxDeposit`**
     - **Description**:
-        - Returns the maximum underlying asset amount that can be deposited into the vault.
-        - For multi-asset vaults, the specific asset to query can be specified in the config; if not, the base asset is used.
+        - Returns the maximum amount of a specific underlying asset that can be deposited into the vault for the given asset.
+        - For multi-asset vaults, the specific asset to query can be specified in the `depositConfig`; if not, the base asset is used.
     - **Requirements**:
-        - MUST return the maximum deposit amount that won’t revert, underestimating if necessary.
-        - Assumes the user has unlimited assets.
-        - MUST consider global or asset-specific constraints (e.g., return `0` if deposits are disabled).
-        - MAY return the maximum value of the `Coins` type if no deposit limits exist.
-        - For multi-asset vaults, SHOULD handle limits via `depositConfig` if needed.
+        - MUST return the maximum deposit amount for the specified asset that won't revert, underestimating if necessary.
+        - Assumes the user has unlimited asset amount for the underlying asset.
+        - MUST consider global or asset-specific constraints for the given asset (e.g., return `0` if deposits for that asset are disabled).
+        - MAY return the maximum value of the `Coins` type if no deposit limits exist for the specified asset.
+        - For multi-asset vaults, SHOULD handle asset-specific limits via `depositConfig` if needed.
     - **Input**:
       | Field | Type | Description |
       |-----------------|-------------------|-------------|
@@ -455,12 +455,12 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - **Output**:
       | Field | Type | Description |
       |--------------------|---------|-------------|
-      | `maxDepositAmount` | `Coins` | Maximum deposit amount. |
+      | `maxDepositAmount` | `Coins` | Maximum deposit amount for the specified asset. |
 
 - **`previewDeposit`**
     - **Description**:
         - Simulates the deposit outcome based on the current block state.
-        - For multi-asset vaults, the specific asset to query can be specified in the config; if not, the base asset is used.
+        - For multi-asset vaults, the specific asset to query can be specified in the `depositConfig`; if not, the base asset is used.
     - **Requirements**:
         - MUST return a value as close as possible to (but not exceeding) the shares minted in an actual deposit.
         - MUST NOT consider deposit limits (e.g., `maxDeposit`); assumes deposit succeeds.
@@ -483,13 +483,13 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 
 - **`maxWithdraw`**
     - **Description**:
-        - Returns the maximum share amount that can be withdrawn from the vault.
-        - For multi-asset vaults, the specific asset to query can be specified in the config; if not, the base asset is used.
+        - Returns the maximum share amount that can be withdrawn from the vault for a specific underlying asset.
+        - For multi-asset vaults, the specific asset to query can be specified in the `withdrawConfig`; if not, the base asset is used.
     - **Requirements**:
-        - MUST return the maximum shares that can be withdrawn without reverting, underestimating if necessary.
-        - MUST consider global constraints (e.g., return `0` if withdrawals are disabled).
-        - MAY return the maximum value of the `Coins` type if no withdraw limits exist.
-        - For multi-asset vaults, SHOULD handle limits via `withdrawConfig` if needed.
+        - MUST return the maximum shares that can be withdrawn for the specified asset without reverting, underestimating if necessary.
+        - MUST consider global or asset-specific constraints for the given asset (e.g., return `0` if withdrawals for that asset are disabled).
+        - MAY return the maximum value of the `Coins` type if no withdraw limits exist for the specified asset.
+        - For multi-asset vaults, SHOULD handle asset-specific limits via `withdrawConfig` if needed.
     - **Input**:
       | Field | Type | Description |
       |------------------|--------------------|-------------|
@@ -500,12 +500,12 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - **Output**:
       | Field | Type | Description |
       |-------------|---------|-------------|
-      | `maxShares` | `Coins` | Maximum withdrawable shares. |
+      | `maxShares` | `Coins` | Maximum withdrawable shares for the specified asset. |
 
 - **`previewWithdraw`**
     - **Description**:
         - Simulates the withdrawal outcome based on the current block state.
-        - For multi-asset vaults, the specific asset to query can be specified in the config; if not, the base asset is used.
+        - For multi-asset vaults, the specific asset to query can be specified in the `withdrawConfig`; if not, the base asset is used.
     - **Requirements**:
         - MUST return a value as close as possible to (but not exceeding) the assets withdrawn in an actual withdrawal.
         - MUST NOT consider withdrawal limits (e.g., `maxWithdraw`); assumes withdrawal succeeds.
@@ -529,7 +529,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
 - **`getAssets`**
     - **Description**:
         - Returns the underlying asset(s) managed by the vault as a nested structure of Asset cells.
-        - For single-asset vaults, returns a nested cell containing either the TON asset or the Jetton asset based on the vault's configuration.
+        - For single-asset vaults, returns a nested cell containing either the TON asset, the Jetton asset or Extra Currency asset based on the vault's configuration.
         - For multi-asset vaults, returns the `assetsCell` from storage, which is a Nested<Cell<[Asset](#asset)>> containing all supported underlying assets.
     - **Requirements**:
         - MUST return the configured underlying asset(s).
@@ -687,7 +687,7 @@ Many TON DeFi contracts allow upgrades. Combining Point 1 (multisig) and Point 2
 1. Top Ethereum vaults (e.g., Veda Labs' Boring Vault) feature multi-asset functionality
 2. User experience benefits, e.g., a stablecoin vault accepting USDT/USDe/USDC avoids extra swaps, reducing uncertainty. Vaults can handle conversions post-deposit via oracles, DEX, OTC, or cross-chain liquidity for better UX.
 
-**Alternatives**: A single-asset-only design was considered for simplicity, but it limits innovation. Full dict unification for all vaults (even single-asset) was evaluated for code reuse, but rejected due to gas overhead; the dual approach optimizes common cases.
+**Alternatives**: A single-asset-only design was considered for simplicity, but it limits innovation.
 
 ### Off-Chain Data Integration via VaultOptions
 
