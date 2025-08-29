@@ -149,14 +149,15 @@ fun onInternalMessage(in: InMessage) {
                     // in.valueCoins must > withdraw gas
                     val remainingValue = processWithdrawGas(in.valueCoins);
 
-                    // If externalAssetInfo is null -> withdraw asset is TON, otherwise withdraw asset is Jetton or extra currency based on externalAssetInfo
-                    var transferAssetType: AssetType = TON_ASSET_TYPE;
-                    var assetJettonWallet: address? = null;
-                    var extraCurrencyId: ExtraCurrencyId? = null;
+                    // Determine withdrawal asset type based on vault configuration:
+                    var transferAssetType: AssetType = TON_ASSET_TYPE;  // Default to TON
+                    var assetJettonWallet: address? = null;             // Vault's underlying Jetton wallet address
+                    var extraCurrencyId: ExtraCurrencyId? = null;       // Vault's underlying extra currency ID
+
                     if (storage.externalAssetInfo != null) {
                         var externalAssetInfo = storage.externalAssetInfo!.load();
-                        (transferAssetType, assetJettonWallet, extraCurrencyId) = (externalAssetInfo is JettonInfo) 
-                            ? (JETTON_ASSET_TYPE, externalAssetInfo.walletAddress!, null) 
+                        (transferAssetType, assetJettonWallet, extraCurrencyId) = (externalAssetInfo is JettonInfo)
+                            ? (JETTON_ASSET_TYPE, externalAssetInfo.walletAddress!, null)
                             : (EXTRA_CURRENCY_ASSET_TYPE, null, externalAssetInfo.extraCurrencyId!);
                     }
 

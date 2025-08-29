@@ -18,7 +18,9 @@ Readers are encouraged to review the [ERC-4626 standard](https://eips.ethereum.o
 
 ## Motivation
 
-While TON has a powerful asynchronous and message-driven architecture, its ecosystem is hindered by a lack of standardization for tokenized vaults. This has resulted in fragmented implementations, making protocol integration more complex. Key issues include:
+While TON has a powerful asynchronous and message-driven architecture, its ecosystem is hindered by a lack of standardization for tokenized vaults. This has resulted in fragmented implementations, making protocol integration more complex.
+
+Key issues include:
 
 - **Inconsistent Callbacks**: Success/failure payload formats vary across implementations, which complicates subsequent operations or rollbacks in interacting protocols—especially in TON's asynchronous message-passing environment—increasing error risks.
 - **Non-Uniform Query Interfaces**: Get methods use inconsistent names and structures, forcing dApps like frontends and wallets to implement custom logic for each protocol. For example, some expose only the Jetton balance, while others require applying a conversion rate to show real asset value.
@@ -45,13 +47,13 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 
 ### Definitions
 
-- **`asset`**: The underlying token managed by the vault, with units defined by its Jetton Master contract. This vault design supports managing multiple underlying assets.
+- **`asset`**: The underlying token managed by the vault, which supports managing multiple underlying assets.
 - **`share`**: Jetton issued by the vault, representing a claim on underlying assets with a conversion rate defined by the vault during deposit/withdrawal.
 - **`fee`**: Amounts of assets or shares charged by the vault, applicable to deposits, yields, assets under management (AUM), withdrawals, or other vault-specified items.
 - **`slippage`**: The difference between the advertised share price and the actual economic outcome during deposit/withdrawal, excluding fees.
 - **`baseAsset`**: The primary or default underlying asset for vault calculations, used for standardization in multi-asset scenarios. For single-asset vaults, it is the sole asset. If no other specified asset is provided, the vault will utilize the base asset for exchange rate conversions and output standardization, to ensure operational consistency and simplify integrations.
-- **`XXX_FP`**: If a name ends with `_FP` (e.g., `OP_DEPOSIT_FP`), it refers to fields in `forwardPayload` (Jetton Notification) or `customPayload` (Burn Notification). Names without `_FP` (e.g., `OP_DEPOSIT`) refer to actions involving TON transfers.
-- **`XXX_EC`**: If a name ends with `_EC` (e.g., `OP_DEPOSIT_EC`), it refers to fields in extra currency operations. Names without `_EC` (e.g., `OP_DEPOSIT`) refer to actions involving TON or Jetton transfers, while `_EC` specifically denotes Extra Currency transfers.
+- **`XXX_FP`**: Operations ending with `_FP` (e.g., `OP_DEPOSIT_FP`) use `forwardPayload` (Jetton) or `customPayload` (Burn) fields. Operations without `_FP` (e.g., `OP_DEPOSIT`) involve direct TON transfers.
+- **`XXX_EC`**: Operations ending with `_EC` (e.g., `OP_DEPOSIT_EC`) handle extra currency transfers. Operations without `_EC` handle TON or Jetton transfers.
 
 #### General Types
 
