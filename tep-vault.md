@@ -188,7 +188,7 @@ The specific storage structure for managing underlying assets, jetton wallets, a
     - If deposit fails for the following reasons, MUST refund TON and send [OP_VAULT_NOTIFICATION](#op_vault_notification) with `failureCallback.payload` to `initiator`:
         - `depositAmount` exceeds vault limit
         - Minted shares are less than `minShares`
-    - On successful share minting, MUST send [OP_VAULT_NOTIFICATION](#op_vault_notification) with `successCallback.payload` to `receiver`.
+    - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
 
@@ -260,7 +260,7 @@ The specific storage structure for managing underlying assets, jetton wallets, a
     - If deposit fails for the following reasons, MUST refund Extra Currency and send [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) with `failureCallback.payload` to `initiator`:
         - `depositAmount` exceeds vault limit
         - Minted shares are less than `minShares`
-    - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) with `successCallback.payload` to `receiver`.
+    - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
 
