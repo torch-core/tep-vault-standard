@@ -355,8 +355,12 @@ The specific storage structure for managing underlying assets, jetton wallets, a
 
 TEP-4626 vaults MUST implement the following functions for querying vault state and conversion rates. Each function has two forms:
 
-- **Internal Function**: Core logic for calculations, used within vault operations (e.g., deposit/withdraw). Parameters SHOULD use resolved configurations derived from user options, which MAY be implemented as parsed or validated data (e.g., structs in Tolk).
-- **Get-Method**: Exposed query method (e.g., `getConvertToShares`) that wraps the internal function. It accepts user-provided options (e.g., [DepositOptions](#depositoptions) or [VaultOptions](#vaultoptions) as Cell), resolves them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
+- **Internal Function**: 
+  - Core logic for calculations, used within vault operations (e.g., deposit/withdraw). 
+  - Parameters SHOULD use resolved configurations derived from user options, which MAY be implemented as parsed or validated data (e.g., structs in Tolk).
+- **Get-Method**: 
+  - Exposed query method (e.g., `getConvertToShares`) that wraps the internal function. 
+  - It accepts user-provided options (e.g., [DepositOptions](#depositoptions) or [VaultOptions](#vaultoptions) as Cell), resolves them into the corresponding configs, and then passes the resolved configs to the internal function. This method is callable off-chain without gas costs.
   ![options-params](./assets/option.png)
 
 - **`totalAssets`**
@@ -390,7 +394,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
         - MUST NOT revert unless due to integer overflow from unreasonably large input.
         - MUST round down to `0`.
         - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
-        - For multi-asset vaults, SHOULD handle conversions via config if needed.
+        - For multi-asset vaults, SHOULD handle conversions via `vaultConfig` if needed.
     - **Input**:
       | Field | Type | Description |
       |-----------------|-------------------|-------------|
@@ -416,7 +420,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
         - MUST NOT revert unless due to integer overflow from unreasonably large input.
         - MUST round down to `0`.
         - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
-        - For multi-asset vaults, SHOULD handle conversions via config if needed.
+        - For multi-asset vaults, SHOULD handle conversions via vault`Config if needed.
     - **Input**:
       | Field | Type | Description |
       |------------------|--------------------|-------------|
@@ -439,8 +443,8 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
         - MUST return the maximum deposit amount that won’t revert, underestimating if necessary.
         - Assumes the user has unlimited assets.
         - MUST consider global or asset-specific constraints (e.g., return `0` if deposits are disabled).
-        - MAY return the maximum value of the `Coins` type if no deposit limits exist..
-        - For multi-asset vaults, SHOULD handle limits via config if needed.
+        - MAY return the maximum value of the `Coins` type if no deposit limits exist.
+        - For multi-asset vaults, SHOULD handle limits via `depositConfig` if needed.
     - **Input**:
       | Field | Type | Description |
       |-----------------|-------------------|-------------|
@@ -463,7 +467,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
         - MUST include deposit fees, ensuring integrators are aware of them.
         - MUST NOT revert due to vault-specific global limits but MAY revert for other conditions that would cause deposit to revert.
         - Differences between `convertToShares` and `previewDeposit` indicate slippage or other losses.
-        - For multi-asset vaults, SHOULD handle previews via config if needed.
+        - For multi-asset vaults, SHOULD handle previews via `depositConfig` if needed.
     - **Input**:
       | Field | Type | Description |
       |-----------------|-------------------|-------------|
@@ -484,8 +488,8 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     - **Requirements**:
         - MUST return the maximum shares that can be withdrawn without reverting, underestimating if necessary.
         - MUST consider global constraints (e.g., return `0` if withdrawals are disabled).
-        - MAY return the maximum value of the `Coins` type if no withdraw limits exist..
-        - For multi-asset vaults, SHOULD handle limits via config if needed.
+        - MAY return the maximum value of the `Coins` type if no withdraw limits exist.
+        - For multi-asset vaults, SHOULD handle limits via `withdrawConfig` if needed.
     - **Input**:
       | Field | Type | Description |
       |------------------|--------------------|-------------|
@@ -508,7 +512,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
         - MUST include withdrawal fees, ensuring integrators are aware of them.
         - MUST NOT revert due to vault-specific global limits but MAY revert for other conditions that would cause withdrawal to revert.
         - Differences between `convertToAssets` and `previewWithdraw` indicate slippage or other losses.
-        - For multi-asset vaults, SHOULD handle previews via config if needed.
+        - For multi-asset vaults, SHOULD handle previews via `withdrawConfig` if needed.
     - **Input**:
       | Field | Type | Description |
       |------------------|--------------------|-------------|
