@@ -13,6 +13,7 @@ export const VaultErrors = {
     NonSupportedExtraCurrencyDeposit: 2007,
     InsufficientExtraCurrencyDepositGas: 2009,
     NonExtraCurrencyDeposit: 2011,
+    NonJettonDeposit: 2012, 
     NonSupportedTonDeposit: 2010,
     InsufficientWithdrawGas: 3003,
     InsufficientProvideQuoteGas: 5000,
