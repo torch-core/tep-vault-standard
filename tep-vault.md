@@ -101,102 +101,13 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 
 #### Storage
 
-Vault contracts MUST implement storage fields sufficient to fulfill the TEP-74 Jetton standard, as shares are represented as Jetton.
+- Vault contracts MUST implement storage fields sufficient to fulfill the TEP-74 Jetton standard, as shares are represented as Jetton.
+- Jetton metadata SHOULD include both the vault provider's information and the underlying asset's details in the token metadata, compliant with TEP-64 Token Data Standard.
+- MUST provide adequate storage to support all required message handlers and functions defined below.
 
-##### Suggested Storage Fields for TEP-74
+##### Implementation Guidance
 
-- **`totalSupply`**
-    - **Description**: Total supply of vault shares, represented as Jetton.
-    - **Requirements**: MUST represent the total outstanding shares issued by the vault.
-    - **Type**: `Coins`
-
-- **`adminAddress`**
-    - **Description**: The administrative address for the vault contract.
-    - **Requirements**: SHOULD deploy the contract and set Jetton Master parameters when the underlying asset is a Jetton, ensuring correct provide and take wallet address interactions.
-    - **Type**: `Address`
-
-- **`jettonContent`**
-    - **Description**: Metadata cell for Jetton shares, compliant with `TEP-64` (Token Data Standard).
-    - **Requirements**:
-        - MUST contain token metadata (`name`, `symbol`, `decimals`).
-        - SHOULD include both the vault provider’s information and the underlying asset’s details in the token metadata
-    - **Type**: `Cell`
-
-- **`jettonWalletCode`**
-    - **Description**: Code cell for the Jetton wallet contract associated with vault shares.
-    - **Requirements**: MUST comply with `TEP-74`.
-    - **Type**: `Cell`
-
-##### Suggested Vault-Specific Storage
-
-###### Single-Asset Storage
-
-For vaults managing a single underlying asset, the following persistent storage variables SHOULD be implemented in the contract’s data cell.
-
-- **`totalAssets`**
-    - **Description**: Total amount of the underlying asset managed by the vault.
-    - **Requirements**:
-        - SHOULD include compounding from yield or accrued fees.
-        - MUST include fees charged against managed assets.
-    - **Type**: `Coins`
-
-- **`assetMasterAddress`**
-    - **Description**: Jetton Master address of the underlying asset, if a Jetton.
-    - **Requirements**:
-        - MUST be present if the underlying asset is a Jetton.
-        - MUST NOT be present if the asset is TON.
-    - **Type**: `Address`
-
-- **`assetWalletAddress`**
-    - **Description**: Vault’s Jetton Wallet address for the underlying asset, if a Jetton.
-    - **Requirements**:
-        - MUST be present if the underlying asset is a Jetton to facilitate transfers and operations.
-        - MUST NOT be present if the asset is TON.
-    - **Type**: `Address`
-- **`extraCurrencyId`**
-    - **Description**: The Extra Currency ID of the underlying asset, if a Extra Currency.
-    - **Requirements**:
-        - MUST be present if the underlying asset is an Extra Currency to facilitate validation of incoming deposits.
-        - MUST NOT be present if the asset is TON or Jetton.
-    - **Type**: [ExtraCurrencyId](#extracurrencyid)
-
-###### Multi-Asset Storage
-
-For vaults managing multiple underlying assets, the following persistent storage variables SHOULD be implemented in the contract’s data cell. These use dictionaries for mapping and a nested cell for efficient handling of numerous assets.
-
-- **`totalAssetsDict`**
-    - **Description**: Dictionary mapping underlying asset identifiers to the total amounts managed by the vault.
-    - **Requirements**:
-        - Key MUST be the hash of the [Asset](#asset) cell, computed as `Asset.toCell().hash()`.
-        - Values SHOULD include compounding from yield or accrued fees.
-        - MUST include fees charged against managed assets.
-    - **Type**: Dict<[Hash](#hash), `Coins`>
-
-- **`assetMastersDict`**
-    - **Description**: Dictionary mapping Jetton Master address to the vault's corresponding Jetton Wallet address.
-    - **Requirements**:
-        - Key MUST be the Jetton Master address.
-        - Value MUST be the vault's Jetton Wallet address for that asset.
-        - MUST include entries for all Jetton assets managed.
-        - MUST NOT be present if the asset is TON.
-    - **Type**: `Dict<Address, Address>`
-
-- **`assetWalletsDict`**
-    - **Description**: Dictionary mapping the vault's Jetton Wallet address to their corresponding Jetton Master address.
-    - **Requirements**:
-        - Key MUST be the vault's Jetton Wallet address.
-        - Value MUST be the Jetton Master address for that asset.
-        - MUST mirror `assetMastersDict` (inverted key-value pairs for bidirectional lookup).
-        - MUST include entries for all Jetton assets managed.
-        - MUST NOT be present if the asset is TON.
-    - **Type**: `Dict<Address, Address>`
-
-- **`assetsCell`**
-    - **Description**: Cell of a nested structure ([Nested<Cell<T>>](#nestedcellt)) for storing underlying asset data in multi-asset vaults.
-    - **Requirements**:
-        - MUST contain all underlying assets accepted by the vault.
-        - MAY be sorted based on the asset cell hash to ensure a unique address.
-    - **Type**: `Cell`
+The specific storage structure for managing underlying assets, jetton wallets, and other vault operations is left to the implementation. Developers are encouraged to reference the [reference implementation](./contracts/) for guidance on storage design patterns.
 
 #### Internal Messages
 
