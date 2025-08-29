@@ -225,7 +225,6 @@ The specific storage structure for managing underlying assets, jetton wallets, a
     - MUST verify that Jetton deposits are supported by the vault's asset configuration.
         - MUST verify the deposit comes from the correct Jetton wallet address.
         - If Jetton deposits are not supported or the specific Jetton is not supported, SHOULD throw an error and reject the transaction.
-        - MUST verify the deposit comes from the correct Jetton wallet address.
     - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
     - MUST calculate expected shares using current vault share price and rounding rules.
     - If deposit fails (e.g., `depositAmount` exceeds vault limit, minted shares < `minShares`, or invalid sender), MUST refund Jetton and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`.
