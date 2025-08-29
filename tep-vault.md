@@ -61,7 +61,6 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 - **`QueryId`** <a id="queryid"></a>: `uint64`
 - **`ExtraCurrencyId`** <a id="extracurrencyid"></a>: `uint32`
 - **`Timestamp`** <a id="timestamp"></a>: `uint32`
-- **`Hash`** <a id="hash"></a>: `uint256`
 - **`RoundingType`** <a id="roundingtype"></a>: `uint2`
     - `ROUND_DOWN = 0`
     - `ROUND_UP = 1`
@@ -107,7 +106,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 
 ##### Implementation Guidance
 
-The specific storage structure for managing underlying assets, jetton wallets, and other vault operations is left to the implementation. Developers are encouraged to reference the [reference implementation](./contracts/) for guidance on storage design patterns.
+The specific storage structure for managing underlying assets, jetton wallets, and other vault operations is left to the implementation. Developers are encouraged to reference the [reference implementation](./contracts/storage.tolk) for guidance on storage design patterns.
 
 #### Internal Messages
 
@@ -182,8 +181,11 @@ The specific storage structure for managing underlying assets, jetton wallets, a
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of TON.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers `depositAmount` plus required gas.
-    - MUST verify that the deposited asset is supported by the vault.
-    - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund TON and send [OP_VAULT_NOTIFICATION](#op_vault_notification) with `failureCallback.payload` to `initiator`.
+    - MUST verify that TON is an accepted deposit asset for the vault.
+        - If TON deposits are not supported, SHOULD throw an error and reject the transaction.
+    - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
+    - MUST calculate expected shares using current vault share price and rounding rules.
+    - If deposit fails (e.g., `depositAmount` exceeds vault limit, minted shares < `minShares`, or insufficient gas), MUST refund TON and send [OP_VAULT_NOTIFICATION](#op_vault_notification) with `failureCallback.payload` to `initiator`.
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
@@ -220,9 +222,12 @@ The specific storage structure for managing underlying assets, jetton wallets, a
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Jetton.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers required gas.
-    - MUST verify that the deposited asset is supported by the vault.
-    - MUST verify `in.senderAddress` matches the vault’s underlying Jetton Wallet address.
-    - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund Jetton and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`.
+    - MUST verify that the specific Jetton is an accepted deposit asset for the vault.
+        - If the Jetton is not supported, SHOULD throw an error and reject the transaction.
+        - MUST verify the deposit comes from the correct Jetton wallet address.
+    - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
+    - MUST calculate expected shares using current vault share price and rounding rules.
+    - If deposit fails (e.g., `depositAmount` exceeds vault limit, minted shares < `minShares`, or invalid sender), MUST refund Jetton and send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `failureCallback.payload` to `initiator`.
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
@@ -242,10 +247,12 @@ The specific storage structure for managing underlying assets, jetton wallets, a
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Extra Currency.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers required gas.
-    - MUST verify that the deposited asset is supported by the vault.
-    - MUST verify `in.valueExtra` contains the specified Extra Currency ID and amount.
-    - MUST verify only one Extra Currency is deposited (to prevent multiple currency deposits in single-asset vaults).
-    - If deposit fails (e.g., `depositAmount` exceeds vault limit or minted shares < `minShares`), MUST refund Extra Currency and send [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) with `failureCallback.payload` to `initiator`.
+    - MUST verify that the specific Extra Currency is an accepted deposit asset for the vault.
+        - If the Extra Currency is not supported, SHOULD throw an error and reject the transaction.
+    - MUST validate that exactly one Extra Currency is deposited with the correct ID and amount.
+    - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
+    - MUST calculate expected shares using current vault share price and rounding rules.
+    - If deposit fails (e.g., `depositAmount` exceeds vault limit, minted shares < `minShares`, or invalid Extra Currency), MUST refund Extra Currency and send [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) with `failureCallback.payload` to `initiator`.
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
     - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
