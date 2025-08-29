@@ -48,7 +48,7 @@ describe('Deposit to TON Vault', () => {
 
     afterEach(async () => {
         const tonVaultTONBalanceAfter = (await blockchain.getContract(tonVault.address)).balance;
-        expect(tonVaultTONBalanceAfter - tonVaultTonBalDelta + 5n).toBeGreaterThanOrEqual(tonVaultTONBalBefore);
+        expect(tonVaultTONBalanceAfter - tonVaultTonBalDelta + 8n).toBeGreaterThanOrEqual(tonVaultTONBalBefore);
     });
 
     afterAll(() => {

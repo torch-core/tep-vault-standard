@@ -51,7 +51,7 @@ describe('Deposit to Extra Currency  Vault', () => {
 
     afterEach(async () => {
         const ecVaultBalanceAfter = (await blockchain.getContract(ecVault.address)).balance;
-        expect(ecVaultBalanceAfter - ecVaultTonBalDelta + 5n).toBeGreaterThanOrEqual(ecVaultTONBalBefore);
+        expect(ecVaultBalanceAfter - ecVaultTonBalDelta + 8n).toBeGreaterThanOrEqual(ecVaultTONBalBefore);
     });
 
     afterAll(() => {

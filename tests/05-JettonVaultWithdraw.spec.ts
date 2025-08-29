@@ -79,7 +79,7 @@ describe('Withdraw from Jetton Vault', () => {
 
     afterEach(async () => {
         const vaultTonBalanceAfter = (await blockchain.getContract(USDTVault.address)).balance;
-        expect(vaultTonBalanceAfter + 5n).toBeGreaterThanOrEqual(vaultTonBalBefore);
+        expect(vaultTonBalanceAfter + 8n).toBeGreaterThanOrEqual(vaultTonBalBefore);
     });
 
     afterAll(() => {

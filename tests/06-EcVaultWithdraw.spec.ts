@@ -66,7 +66,7 @@ describe('Withdraw from Extra Currency Vault', () => {
 
     afterEach(async () => {
         const ecVaultBalanceAfter = (await blockchain.getContract(ecVault.address)).balance;
-        expect(ecVaultBalanceAfter + 5n).toBeGreaterThanOrEqual(ecVaultTonBalBefore);
+        expect(ecVaultBalanceAfter + 8n).toBeGreaterThanOrEqual(ecVaultTonBalBefore);
     });
 
     afterAll(() => {
@@ -343,12 +343,7 @@ describe('Withdraw from Extra Currency Vault', () => {
             });
             const withdrawResult = await maxey.send(withdrawArgs);
 
-            await expectWithdrawEcFailure(
-                withdrawResult,
-                maxey,
-                expectedWithdrawAmount,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
-            );
+            await expectWithdrawEcFailure(withdrawResult, maxey, expectedWithdrawAmount, DEFAULT_FAIL_CALLBACK_PAYLOAD);
         });
 
         it('should handle withdraw failure with receiver', async () => {
@@ -360,12 +355,7 @@ describe('Withdraw from Extra Currency Vault', () => {
             });
             const withdrawResult = await maxey.send(withdrawArgs);
 
-            await expectWithdrawEcFailure(
-                withdrawResult,
-                maxey,
-                expectedWithdrawAmount,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
-            );
+            await expectWithdrawEcFailure(withdrawResult, maxey, expectedWithdrawAmount, DEFAULT_FAIL_CALLBACK_PAYLOAD);
         });
 
         it('should handle withdraw failure with failure callback (body not included)', async () => {

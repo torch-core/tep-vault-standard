@@ -1,34 +1,38 @@
 export const VaultErrors = {
     // General Errors (0-999)
     WrongOpCode: 0xffff,
-    UnauthorizedAdmin: 1002,
-    InvalidJettonWallet: 1003,
-    InvalidJettonMaster: 1004,
+    UnauthorizedAdmin: 1000,
+    InvalidJettonWallet: 1001,
+    InvalidJettonMaster: 1002,
+    InvalidRoundingType: 1003,
+    MissingAssetJettonWallet: 1004,
+    MissingExtraCurrencyId: 1005,
+    InvalidTransferAmount: 1006,
 
     // Deposit Errors (2000-2999)
     MissingForwardPayload: 2000,
-    FailedMinShares: 2002,
-    InsufficientTonDepositGas: 2003,
-    InsufficientJettonDepositGas: 2004,
-    InvalidDepositAmount: 2005,
-    NonSupportedJettonDeposit: 2006,
-    NonSupportedExtraCurrencyDeposit: 2007,
-    InvalidExtraCurrencyId: 2008,
-    InsufficientExtraCurrencyDepositGas: 2009,
-    NonSupportedTonDeposit: 2010,
-    NonExtraCurrencyDeposit: 2011,
-    NonJettonDeposit: 2012,
+    InvalidDepositAmount: 2001,
+    ExceededMaxDeposit: 2002,
+    FailedMinShares: 2003,
+    InsufficientTonDepositGas: 2004,
+    InsufficientJettonDepositGas: 2005,
+    InsufficientExtraCurrencyDepositGas: 2006,
+    NonSupportedTonDeposit: 2007,
+    NonSupportedJettonDeposit: 2008,
+    NonSupportedExtraCurrencyDeposit: 2009,
+    NonExtraCurrencyDeposit: 2010,
+    NonJettonDeposit: 2011,
+    InvalidExtraCurrencyId: 2012,
     MultiExtraCurrencyDeposit: 2013,
 
     // Withdraw Errors (3000-3999)
-    MissingCustomPayload: 3000,
-    FailedMinWithdraw: 3002,
-    InsufficientWithdrawGas: 3003,
-    InvalidBurnAmount: 3004,
+    UnauthorizedBurn: 3000,
+    MissingCustomPayload: 3001,
+    ExceededMaxWithdraw: 3002,
+    FailedMinWithdraw: 3003,
+    InsufficientWithdrawGas: 3004,
+    InvalidBurnAmount: 3005,
 
-    // Authorization Errors (4000-4999)
-    UnauthorizedBurn: 4000,
-
-    // Quote Operation Errors
-    InsufficientProvideQuoteGas: 5000,
+    // Quote Operation Errors (4000-4999)
+    InsufficientProvideQuoteGas: 4000,
 };
