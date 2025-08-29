@@ -4,7 +4,7 @@ type RoundingType = uint2;
 
 const ROUND_DOWN = 0;
 const ROUND_UP = 1;
-const ROUND_GENERIC = 2;
+const ROUND_HALF_UP = 2;
 
 @pure
 fun RoundingType.Down() {
@@ -17,8 +17,8 @@ fun RoundingType.Up() {
 }
 
 @pure
-fun RoundingType.Generic() {
-    return ROUND_GENERIC;
+fun RoundingType.HalfUp() {
+    return ROUND_HALF_UP;
 }
 
 fun roundedMulDiv(x: int, y: int, z: int, rounding: RoundingType) {
@@ -29,7 +29,7 @@ fun roundedMulDiv(x: int, y: int, z: int, rounding: RoundingType) {
         ROUND_UP => {
             return mulDivCeil(x, y, z);
         }
-        ROUND_GENERIC => {
+        ROUND_HALF_UP => {
             return mulDivRound(x, y, z);
         }
         else => {

@@ -64,7 +64,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 - **`RoundingType`** <a id="roundingtype"></a>: `uint2`
     - `ROUND_DOWN = 0`
     - `ROUND_UP = 1`
-    - `ROUND_GENERIC = 2` — standard rounding (i.e., round half up)
+    - `ROUND_HALF_UP = 2` — standard rounding (i.e., round half up)
 - **`Result`** <a id="result"></a>: `uint16`
     - Outcome of the vault operation.
     - Values:
@@ -623,7 +623,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `receiver` | `Address` | Address receiving shares. |
     | `depositAmount` | `Coins` | Deposited asset amount. |
     | `shares` | `Coins` | Minted shares. |
-    | `depositLogOption` | `Cell<dDpositLogOption>?` | Custom deposit logs. |
+    | `depositLogOption` | `Cell<depositLogOption>?` | Custom deposit logs. |
 
 - **`Withdrawn`**
     - **Description**: Emitted when initiator exchanges shares for assets, transferring them to receiver.
@@ -653,7 +653,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `totalSupply` | `Coins` | Total vault shares at the time of quote. |
     | `totalAssets` | `Coins` | Total underlying assets at the time of quote. |
     | `timestamp` | [Timestamp](#timestamp) | Event timestamp for off-chain indexing. |
-    | `quoteLogOption` | `Cell<QuoteLogOption>?` | Custom quote logs. |
+    | `quoteLogOptions` | `Cell<QuoteLogOptions>?` | Custom quote logs. |
 
 ## Drawbacks
 
