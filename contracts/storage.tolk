@@ -1,6 +1,7 @@
 import "constants/common-types"
 import "types/wallet-status"
-
+import "constants/errors"
+    
 // ==== Vault Storage ====
 struct (0x1) JettonInfo {
     masterAddress: address
@@ -33,6 +34,16 @@ fun VaultStorage.save(self) {
 fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: coins, assetsDelta: coins) {
     self.totalSupply = self.totalSupply + sharesDelta;
     self.totalAssets = self.totalAssets + assetsDelta;
+    self.save();
+}
+
+fun VaultStorage.SetJettonWalletAddress(mutate self, senderAddress: address, jettonWalletAddress: address) {
+    var externalAssetInfo = self.externalAssetInfo!.load();
+    if (externalAssetInfo is JettonInfo) {
+        assert (senderAddress == externalAssetInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
+        externalAssetInfo.walletAddress = jettonWalletAddress;
+    }
+    self.externalAssetInfo = externalAssetInfo.toCell();
     self.save();
 }
 

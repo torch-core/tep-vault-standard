@@ -204,15 +204,7 @@ fun onInternalMessage(in: InMessage) {
 
         // Updates Vault's jetton wallet address from Jetton master response
         ResponseWalletAddress => {
-            var externalAssetInfo = storage.externalAssetInfo!.load();
-
-            // Verifies sender is from Jetton master to prevent unauthorized updates
-            if (externalAssetInfo is JettonInfo) {
-                assert (in.senderAddress == externalAssetInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
-                externalAssetInfo.walletAddress = inMsg.jettonWalletAddress;
-            }
-            storage.externalAssetInfo = externalAssetInfo.toCell();
-            storage.save();
+            storage.SetJettonWalletAddress(in.senderAddress, inMsg.jettonWalletAddress);
         }
 
         DeployVault => {
