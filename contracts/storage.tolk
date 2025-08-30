@@ -1,7 +1,7 @@
 import "constants/common-types"
-import "types/wallet-status"
 import "constants/errors"
-    
+import "types/wallet-status"
+
 // ==== Vault Storage ====
 struct (0x1) JettonInfo {
     masterAddress: address
