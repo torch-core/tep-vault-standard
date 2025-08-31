@@ -95,8 +95,7 @@ fun onInternalMessage(in: InMessage) {
 
                     val depositEntry = DepositEntry { asset: Asset.jettonAsset(assetJettonInfo.masterAddress!), amount: inMsg.depositAmount };
                     val depositParams = inMsg.forwardPayload.load().depositParams;
-                    val assetJettonWallet = in.senderAddress;
-                    val shares = handleDeposit(depositEntry, inMsg.initiator, inMsg.queryId, remainingValue, depositParams, in.body, assetJettonWallet);
+                    val shares = handleDeposit(depositEntry, inMsg.initiator, inMsg.queryId, remainingValue, depositParams, in.body, assetJettonInfo.walletAddress);
 
                     storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
                 }
