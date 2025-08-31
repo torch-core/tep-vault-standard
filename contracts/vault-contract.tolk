@@ -53,8 +53,8 @@ fun onInternalMessage(in: InMessage) {
             // Verify sufficient TON (depositAmount + gas) to prevent underpayment and ensure complete deposit execution
             val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
 
-            val depositRequest = DepositEntry { asset: Asset.tonAsset(), amount: inMsg.depositAmount };
-            val shares = handleDeposit(depositRequest, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositParams, in.body);
+            val depositEntry = DepositEntry { asset: Asset.tonAsset(), amount: inMsg.depositAmount };
+            val shares = handleDeposit(depositEntry, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositParams, in.body);
 
             storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
         }
