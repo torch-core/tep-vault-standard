@@ -5,11 +5,11 @@ import "types/rounding";
 import "types/vault-result";
 import "types/asset"
 import "storage"
-import "messages/send";
-import "messages/emit";
 import "messages/schemas/common"
 import "messages/schemas/deposit"
 import "messages/schemas/withdraw"
+import "messages/send";
+import "messages/emit";
 
 fun totalAssets(vaultConfig: VaultConfig? = null) {
     var storage = lazy VaultStorage.load();
@@ -49,24 +49,24 @@ fun previewWithdraw(shares: coins, withdrawConfig: WithdrawConfig? = null) {
 
 // Handles deposit logic: validates, mints shares to receiver, and emits event on success
 // On failure, rolls back by transferring asset(TON or Jetton) back to initiator and throws error
-fun handleDeposit(depositAssetWithAmount: AssetWithAmount, initiator: address, queryId: QueryId, remainingValue: coins, depositParams: DepositParams, inBody: slice, assetJettonWallet: address? = null) {
+fun handleDeposit(depositRequest: DepositRequest, initiator: address, queryId: QueryId, remainingValue: coins, depositParams: DepositParams, inBody: slice, assetJettonWallet: address? = null) {
     try {
         val maxDepositAmount = maxDeposit();
-        assert (depositAssetWithAmount.amount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
+        assert (depositRequest.amount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
 
-        val shares = previewDeposit(depositAssetWithAmount.amount);
+        val shares = previewDeposit(depositRequest.amount);
         assert (shares >= depositParams.minShares!) throw ERR_FAILED_MIN_SHARES;
 
         mint(initiator, queryId, remainingValue, mutate depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback, inBody);
-        emitDeposited(Deposited { initiator: initiator, receiver: depositParams.receiver, depositAmount: depositAssetWithAmount.amount, shares: shares });
+        emitDeposited(Deposited { initiator: initiator, receiver: depositParams.receiver, depositAmount: depositRequest.amount, shares: shares });
         return shares;
     } catch (errCode) {
         transferAsset(
-            depositAssetWithAmount.asset,
+            depositRequest.asset,
             initiator, 
             queryId, 
             remainingValue, 
-            depositAssetWithAmount.amount, 
+            depositRequest.amount, 
             initiator, 
             Result.Error(errCode), 
             depositParams.callbacks.failureCallback, 
