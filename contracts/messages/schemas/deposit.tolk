@@ -41,6 +41,11 @@ struct DepositConfig {
     // Internal configuration struct for deposit operations, resolved from DepositOptions.
 }
 
+struct DepositRequest {
+    asset: Asset
+    amount: coins
+}
+
 // Logs
 struct DepositLogOptions {
     // Add fields base on your needs

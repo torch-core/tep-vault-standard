@@ -55,8 +55,3 @@ struct (0x0f8a7ea5) AskToTransfer {
     forwardTonAmount: coins
     forwardPayload: Cell<VaultNotificationFp>?
 }
-
-struct AssetWithAmount {
-    asset: Asset
-    amount: coins
-}
