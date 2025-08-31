@@ -67,7 +67,7 @@ fun onInternalMessage(in: InMessage) {
 
             // Validates the deposited Extra Currency ID is supported and ensures single Extra Currency deposit
             val extraCurrencyId = extraCurrencyInfo.extraCurrencyId!;
-            val depositAmount = getSingleEcAmount(in.valueExtra, extraCurrencyId);
+            val depositAmount = extractSingleEcAmount(in.valueExtra, extraCurrencyId);
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
 

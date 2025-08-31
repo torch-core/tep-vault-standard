@@ -11,7 +11,7 @@ fun builder.storeEcValue(mutate self, x: int): self
 fun slice.loadEcValue(mutate self): int
     asm(-> 1 0) "LDVARUINT32";
 
-fun getSingleEcAmount(extraCurrencyDict: dict, extraCurrencyId: ExtraCurrencyId) {
+fun extractSingleEcAmount(extraCurrencyDict: dict, extraCurrencyId: ExtraCurrencyId) {
     var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId);
 
     // Verifies Extra Currency id is valid
