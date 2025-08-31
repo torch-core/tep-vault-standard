@@ -22,9 +22,7 @@
  *      Core logic is separated into dedicated modules (core.tolk, storage.tolk, etc.)
  */
 
-import "@stdlib/tvm-dicts"
 import "constants/errors";
-import "constants/values"
 import "types/asset"
 import "storage"
 import "helper/jetton"
@@ -67,17 +65,7 @@ fun onInternalMessage(in: InMessage) {
             val extraCurrencyInfo = storage.getExtraCurrencyInfo();
             assert (extraCurrencyInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
             val extraCurrencyId = extraCurrencyInfo!.extraCurrencyId!;
-            
-            var extraCurrencyDict = in.valueExtra;
-            var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId);
-
-            // Verifies extra currency id is valid
-            assert(flag) throw ERR_INVALID_EXTRA_CURRENCY_ID;
-
-            // Verifies only one extra currency is deposited to prevent multiple extra currency deposits in a single asset vault
-            assert(extraCurrencyDict == null) throw ERR_MULTI_EXTRA_CURRENCY_DEPOSIT;
-
-            val depositAmount = value!.loadEcValue();
+            val depositAmount = getSingleEcAmount(in.valueExtra, extraCurrencyId);
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
 
@@ -101,6 +89,7 @@ fun onInternalMessage(in: InMessage) {
                 Cell<DepositFp> => {
                     // in.valueCoins must > deposit gas
                     val remainingValue = processJettonDepositGas(in.valueCoins);
+
                     val depositAsset = Asset.jettonAsset(assetJettonInfo!.masterAddress!);
                     val depositParams = inMsg.forwardPayload!.load().depositParams;
                     val shares = handleDeposit(depositAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.depositAmount, depositParams, in.body);
