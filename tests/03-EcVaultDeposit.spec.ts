@@ -566,7 +566,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 to: ecVault.address,
                 op: Opcodes.Jetton.TransferNotification,
                 success: false,
-                exitCode: VaultErrors.NonJettonDeposit,
+                exitCode: VaultErrors.NonSupportedJettonDeposit,
             });
         });
         it('should throw ERR_MULTI_EXTRA_CURRENCY_DEPOSIT when deposit multiple extra currency', async () => {

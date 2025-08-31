@@ -6,7 +6,7 @@ const ERR_INVALID_JETTON_MASTER = 1002;
 // Down below errors should not happen
 const ERR_INVALID_ROUNDING_TYPE = 1003;
 const ERR_INVALID_TRANSFER_AMOUNT = 1004;
-const ERR_MISSING_ASSET_JETTON_WALLET = 1005;
+const ERR_MISSING_ASSET_JETTON_INFO = 1005;
 
 // Deposit errors
 const ERR_MISSING_FORWARD_PAYLOAD = 2000;  
@@ -19,10 +19,8 @@ const ERR_INSUFFICIENT_EXTRA_CURRENCY_DEPOSIT_GAS = 2006;
 const ERR_NON_SUPPORTED_TON_DEPOSIT = 2007;                 // When vault is jetton/ec vault, and deposit is ton
 const ERR_NON_SUPPORTED_JETTON_DEPSIT = 2008;               // When vault is ton vault, and deposit is jetton
 const ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT = 2009;      // When vault is ton vault, and deposit is extra currency
-const ERR_NON_EXTRA_CURRENCY_DEPOSIT = 2010;                // When vault is jetton vault, and deposit is extra currency
-const ERR_NON_JETTON_DEPOSIT = 2011;                        // When vault is ec vault, and deposit is jetton
-const ERR_INVALID_EXTRA_CURRENCY_ID = 2012;
-const ERR_MULTI_EXTRA_CURRENCY_DEPOSIT = 2013;
+const ERR_INVALID_EXTRA_CURRENCY_ID = 2010;
+const ERR_MULTI_EXTRA_CURRENCY_DEPOSIT = 2011;
 
 // Withdraw errors 
 const ERR_UNAUTHORIZED_BURN = 3000;

@@ -42,12 +42,20 @@ fun VaultStorage.getAsset(self): Asset {
         : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
 }
 
-fun VaultStorage.getAssetJettonWallet(self) {
-    var externalAssetInfo = self.externalAssetInfo!.load();
-    if (externalAssetInfo is JettonInfo) {
-        return externalAssetInfo.walletAddress;
+fun VaultStorage.getAssetJettonInfo(self) {
+    if (self.externalAssetInfo == null) {
+        return null;
     }
-    return null;
+    var externalAssetInfo = self.externalAssetInfo!.load();
+    return (externalAssetInfo is JettonInfo) ? externalAssetInfo : null;
+}
+
+fun VaultStorage.getExtraCurrencyInfo(self) {
+    if (self.externalAssetInfo == null) {
+        return null;
+    }
+    var externalAssetInfo = self.externalAssetInfo!.load();
+    return (externalAssetInfo is ExtraCurrencyInfo) ? externalAssetInfo : null;
 }
 
 fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: coins, assetsDelta: coins) {

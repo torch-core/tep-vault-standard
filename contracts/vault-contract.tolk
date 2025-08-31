@@ -23,7 +23,6 @@
  */
 
 import "@stdlib/tvm-dicts"
-import "constants/common-types"
 import "constants/errors";
 import "constants/values"
 import "types/asset"
@@ -65,12 +64,12 @@ fun onInternalMessage(in: InMessage) {
         // Processes extra currency deposits and mints shares to receiver
         DepositEc => {
             // Verifies vault is supported extra currency deposit to prevent unauthorized extra currency deposits
-            assert(storage.externalAssetInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
-            val externalAssetInfo = storage.externalAssetInfo!.load();
-            assert (externalAssetInfo is ExtraCurrencyInfo) throw ERR_NON_EXTRA_CURRENCY_DEPOSIT;
+            val extraCurrencyInfo = storage.getExtraCurrencyInfo();
+            assert (extraCurrencyInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
+            val extraCurrencyId = extraCurrencyInfo!.extraCurrencyId!;
             
             var extraCurrencyDict = in.valueExtra;
-            var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, externalAssetInfo.extraCurrencyId!);
+            var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId);
 
             // Verifies extra currency id is valid
             assert(flag) throw ERR_INVALID_EXTRA_CURRENCY_ID;
@@ -81,7 +80,7 @@ fun onInternalMessage(in: InMessage) {
             val depositAmount = value!.loadEcValue();
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
-            val depositAsset = Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
+            val depositAsset = Asset.extraCurrencyAsset(extraCurrencyId);
             val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, depositAmount, inMsg.depositParams, in.body);
 
             storage.updateSupplyAndAssets(shares, depositAmount);
@@ -89,13 +88,10 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes Jetton deposits and mints shares to receiver
         VaultTransferNotification => {
-            // Verifies vault is supported Jetton deposit to prevent unauthorized Jetton deposits
-            assert(storage.externalAssetInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
-            
             // Verifies sender is from vault's underlying Jetton wallet to prevent unauthorized Jetton asset deposits  
-            var externalAssetInfo = storage.externalAssetInfo!.load();
-            assert (externalAssetInfo is JettonInfo) throw ERR_NON_JETTON_DEPOSIT;
-            assert (in.senderAddress == externalAssetInfo.walletAddress!) throw ERR_INVALID_JETTON_WALLET;
+            val assetJettonInfo = storage.getAssetJettonInfo();
+            assert (assetJettonInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
+            assert (in.senderAddress == assetJettonInfo!.walletAddress) throw ERR_INVALID_JETTON_WALLET;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
             assert (inMsg.forwardPayload != null) throw ERR_MISSING_FORWARD_PAYLOAD;
@@ -104,7 +100,7 @@ fun onInternalMessage(in: InMessage) {
                 Cell<DepositFp> => {
                     // in.valueCoins must > deposit gas
                     val remainingValue = processJettonDepositGas(in.valueCoins);
-                    val depositAsset = Asset.jettonAsset(externalAssetInfo.masterAddress!);
+                    val depositAsset = Asset.jettonAsset(assetJettonInfo!.masterAddress!);
                     val depositParams = inMsg.forwardPayload!.load().depositParams;
                     val shares = handleDeposit(depositAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.depositAmount, depositParams, in.body);
 

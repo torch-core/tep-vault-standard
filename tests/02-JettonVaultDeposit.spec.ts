@@ -680,7 +680,7 @@ describe('Deposit to Jetton Vault', () => {
                 to: USDTVault.address,
                 op: Opcodes.Vault.DepositEc,
                 success: false,
-                exitCode: VaultErrors.NonExtraCurrencyDeposit,
+                exitCode: VaultErrors.NonSupportedExtraCurrencyDeposit,
             });
         });
         it('should throw ERR_INSUFFICIENT_JETTON_DEPOSIT_GAS when valueCoins < deposit gas', async () => {
