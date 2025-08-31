@@ -156,7 +156,7 @@ fun transferAsset(
             val storage = lazy VaultStorage.load();
             val assetJettonInfo = storage.getAssetJettonInfo();
             assert (assetJettonInfo != null) throw ERR_MISSING_ASSET_JETTON_INFO;
-            jettonTransfer(initiator, queryId, remainingValue, assetJettonInfo!.walletAddress, receiver, transferAmount, result, callbackParams, inBody);
+            jettonTransfer(initiator, queryId, remainingValue, assetJettonInfo.walletAddress, receiver, transferAmount, result, callbackParams, inBody);
         }
         ExtraCurrencyAsset => {
             extraCurrencyTransfer(initiator, queryId, remainingValue, transferAsset.extraCurrencyId, receiver, transferAmount, result, callbackParams, inBody);

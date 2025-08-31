@@ -66,7 +66,7 @@ fun onInternalMessage(in: InMessage) {
             assert (extraCurrencyInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
 
             // Validates Extra Currency deposit to prevent unauthorized deposits and multiple Extra Currency deposits in single-asset vaults
-            val extraCurrencyId = extraCurrencyInfo!.extraCurrencyId!;
+            val extraCurrencyId = extraCurrencyInfo.extraCurrencyId!;
             val depositAmount = getSingleEcAmount(in.valueExtra, extraCurrencyId);
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
@@ -84,7 +84,7 @@ fun onInternalMessage(in: InMessage) {
             assert (assetJettonInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
 
             // Verifies sender is from vault's underlying Jetton wallet to prevent unauthorized Jetton asset deposits  
-            assert (in.senderAddress == assetJettonInfo!.walletAddress) throw ERR_INVALID_JETTON_WALLET;
+            assert (in.senderAddress == assetJettonInfo.walletAddress) throw ERR_INVALID_JETTON_WALLET;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
             assert (inMsg.forwardPayload != null) throw ERR_MISSING_FORWARD_PAYLOAD;
@@ -94,7 +94,7 @@ fun onInternalMessage(in: InMessage) {
                     // in.valueCoins must > deposit gas
                     val remainingValue = processJettonDepositGas(in.valueCoins);
 
-                    val depositAsset = Asset.jettonAsset(assetJettonInfo!.masterAddress!);
+                    val depositAsset = Asset.jettonAsset(assetJettonInfo.masterAddress!);
                     val depositParams = inMsg.forwardPayload.load().depositParams;
                     val shares = handleDeposit(depositAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.depositAmount, depositParams, in.body);
 
