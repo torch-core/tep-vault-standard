@@ -53,7 +53,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 - **`slippage`**: The difference between the advertised share price and the actual economic outcome during deposit/withdrawal, excluding fees.
 - **`baseAsset`**: The primary or default underlying asset for vault calculations, used for standardization in multi-asset scenarios. For single-asset vaults, it is the sole asset. If no other specified asset is provided, the vault will utilize the base asset for exchange rate conversions and output standardization, to ensure operational consistency and simplify integrations.
 - **`XXX_FP`**: Operations ending with `_FP` (e.g., `OP_DEPOSIT_FP`) use `forwardPayload` (Jetton) or `customPayload` (Burn) fields. Operations without `_FP` (e.g., `OP_DEPOSIT`) involve direct TON transfers.
-- **`XXX_EC`**: Operations ending with `_EC` (e.g., `OP_DEPOSIT_EC`) handle extra currency transfers. Operations without `_EC` handle TON or Jetton transfers.
+- **`XXX_EC`**: Operations ending with `_EC` (e.g., `OP_DEPOSIT_EC`) handle Extra currency transfers. Operations without `_EC` handle TON or Jetton transfers.
 
 #### General Types
 
@@ -106,7 +106,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 
 ##### Implementation Guidance
 
-The specific storage structure for managing underlying assets, jetton wallets, and other vault operations is left to the implementation. Developers are encouraged to reference the [reference implementation](./contracts/storage.tolk) for guidance on storage design patterns.
+The specific storage structure for managing underlying assets, Jetton wallets, and other vault operations is left to the implementation. Developers are encouraged to reference the [reference implementation](./contracts/storage.tolk) for guidance on storage design patterns.
 
 #### Internal Messages
 
@@ -204,7 +204,7 @@ The specific storage structure for managing underlying assets, jetton wallets, a
 
         | Field            | Type                                     | Description                                                |
         | ---------------- | ---------------------------------------- | ---------------------------------------------------------- |
-        | `receiver`       | `Address`                                | Address receiving vault share jetton and callback payload. |
+        | `receiver`       | `Address`                                | Address receiving vault share Jetton and callback payload. |
         | `minShares`      | `Coins`                                  | Minimum shares to receive, else refund.                    |
         | `depositOptions` | Cell<[DepositOptions](#depositoptions)>? | Optional parameters (e.g., price data).                    |
         | `callbacks`      | [Callbacks](#callbacks)                  | Success and failure callbacks.                             |

@@ -15,21 +15,21 @@ export const expectVaultStorage = (storage: VaultStorage, expectedStorage: Vault
     expect(storage.jettonWalletCode.equals(expectedStorage.jettonWalletCode)).toBeTruthy();
     expect(storage.content.equals(expectedStorage.content)).toBeTruthy();
 
-    // Optional jetton master validation
+    // Optional Jetton master validation
     if (expectedStorage.jettonMaster) {
         expect(storage.jettonMaster?.equals(expectedStorage.jettonMaster)).toBeTruthy();
     } else {
         expect(storage.jettonMaster).toBeNull();
     }
 
-    // Optional jetton wallet address validation
+    // Optional Jetton wallet address validation
     if (expectedStorage.jettonWalletAddress) {
         expect(storage.jettonWalletAddress?.equals(expectedStorage.jettonWalletAddress)).toBeTruthy();
     } else {
         expect(storage.jettonWalletAddress).toBeNull();
     }
 
-    // Optional extra currency id validation
+    // Optional Extra currency id validation
     if (expectedStorage.extraCurrencyId !== undefined) {
         expect(storage.extraCurrencyId).toBe(expectedStorage.extraCurrencyId);
     } else {
@@ -75,7 +75,7 @@ export async function expectJettonVaultBalances(
     oldTotalAssets: bigint = 0n,
     oldTotalSupply: bigint = 0n,
 ) {
-    // Expect that vault jetton wallet balance is increased by assetAmountChange
+    // Expect that vault Jetton wallet balance is increased by assetAmountChange
     expect(await vaultJettonWallet.getBalance()).toBe(vaultJettonWalletBalBefore + assetAmountChange);
 
     // Expect that vault shares and assets are changed by assetAmountChange and sharesChange

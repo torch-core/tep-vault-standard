@@ -534,7 +534,7 @@ describe('Deposit to TON Vault', () => {
     });
 
     describe('Other failure cases', () => {
-        it('should throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT when deposit extra currency in ton vault', async () => {
+        it('should throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT when deposit Extra currency in ton vault', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await tonVault.getEcDepositArg(
                 {

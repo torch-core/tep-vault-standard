@@ -71,7 +71,7 @@ describe('Deploy Vault', () => {
             });
         });
 
-        it('should throw ERR_INVALID_JETTON_MASTER when invalid jetton master send OP_RESPONSE_WALLET_ADDRESS to vault', async () => {
+        it('should throw ERR_INVALID_JETTON_MASTER when invalid Jetton master send OP_RESPONSE_WALLET_ADDRESS to vault', async () => {
             const deployResult = await maxey.send({
                 to: USDTVault.address,
                 body: beginCell()

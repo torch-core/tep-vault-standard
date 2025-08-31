@@ -664,7 +664,7 @@ describe('Deposit to Jetton Vault', () => {
                 exitCode: VaultErrors.NonSupportedTonDeposit,
             });
         });
-        it('should throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT when deposit extra currency in jetton vault', async () => {
+        it('should throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT when deposit Extra currency in jetton vault', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await USDTVault.getEcDepositArg(
                 {
@@ -713,7 +713,7 @@ describe('Deposit to Jetton Vault', () => {
             });
             const depositResult = await maxey.send(depositArg);
 
-            // Expect that vault jetton wallet send OP_TRANSFER_NOTIFICATION_FOR_MINTER but throw INVALID_DEPOSIT_AMOUNT
+            // Expect that vault Jetton wallet send OP_TRANSFER_NOTIFICATION_FOR_MINTER but throw INVALID_DEPOSIT_AMOUNT
             expect(depositResult.transactions).toHaveTransaction({
                 from: vaultUSDTWallet.address,
                 to: USDTVault.address,
@@ -723,8 +723,8 @@ describe('Deposit to Jetton Vault', () => {
             });
         });
 
-        it('should throw INVALID_JETTON_WALLET when jetton master is not the vault', async () => {
-            // Deploy fake jetton master
+        it('should throw INVALID_JETTON_WALLET when Jetton master is not the vault', async () => {
+            // Deploy fake Jetton master
             const fakeJetton = await deployJettonMinter(blockchain, maxey, 'Fake Jetton');
             const maxeyFakeJettonWalletAddress = await fakeJetton.getWalletAddress(maxey.address);
             const depositAmount = 10000n;
@@ -738,7 +738,7 @@ describe('Deposit to Jetton Vault', () => {
                 body: depositArg.body,
             });
 
-            // Expect that vault fake jetton wallet send OP_TRANSFER_NOTIFICATION_FOR_MINTER but throw INVALID_JETTON_WALLET
+            // Expect that vault fake Jetton wallet send OP_TRANSFER_NOTIFICATION_FOR_MINTER but throw INVALID_JETTON_WALLET
             const vaultFakeJettonWalletAddress = await fakeJetton.getWalletAddress(USDTVault.address);
             expect(depositResult.transactions).toHaveTransaction({
                 from: vaultFakeJettonWalletAddress,
@@ -771,7 +771,7 @@ describe('Deposit to Jetton Vault', () => {
                     .endCell(),
             });
 
-            // Expect that vault jetton wallet send OP_TRANSFER_NOTIFICATION_FOR_MINTER but throw NULL_FORWARD_PAYLOAD
+            // Expect that vault Jetton wallet send OP_TRANSFER_NOTIFICATION_FOR_MINTER but throw NULL_FORWARD_PAYLOAD
             expect(depositResult.transactions).toHaveTransaction({
                 from: vaultUSDTWallet.address,
                 to: USDTVault.address,

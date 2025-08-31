@@ -17,7 +17,7 @@ export async function expectMintShares(
 ) {
     const receiverShareWalletAddress = await vault.getWalletAddress(receiver);
 
-    // Vault sends shares to receiver's jetton wallet
+    // Vault sends shares to receiver's Jetton wallet
     expect(depositResult.transactions).toHaveTransaction({
         from: vault.address,
         to: receiverShareWalletAddress,

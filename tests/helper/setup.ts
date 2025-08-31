@@ -207,7 +207,7 @@ export const createTestEnvironment = () => {
             jettonWalletCode,
         });
 
-        // Make sure every wallets have extra currency id 0
+        // Make sure every wallets have Extra currency id 0
         for (const wallet of [maxey, bob, admin]) {
             await blockchain.sendMessage(
                 internal({
@@ -218,7 +218,7 @@ export const createTestEnvironment = () => {
                 }),
             );
         }
-        // Make sure every wallets have other extra currency id
+        // Make sure every wallets have other Extra currency id
         for (const wallet of [maxey, bob, admin]) {
             await blockchain.sendMessage(
                 internal({

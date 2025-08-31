@@ -59,11 +59,13 @@ fun onInternalMessage(in: InMessage) {
             storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
         }
 
-        // Processes extra currency deposits and mints shares to receiver
+        // Processes Extra currency deposits and mints shares to receiver
         DepositEc => {
-            // Verifies vault is supported extra currency deposit to prevent unauthorized extra currency deposits
+            // Verifies vault is supported Extra currency deposit to prevent unauthorized Extra currency deposits
             val extraCurrencyInfo = storage.getExtraCurrencyInfo();
             assert (extraCurrencyInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
+
+            // Verifies transferred Extra currency id is supported
             val extraCurrencyId = extraCurrencyInfo!.extraCurrencyId!;
             val depositAmount = getSingleEcAmount(in.valueExtra, extraCurrencyId);
 
@@ -77,9 +79,11 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes Jetton deposits and mints shares to receiver
         VaultTransferNotification => {
-            // Verifies sender is from vault's underlying Jetton wallet to prevent unauthorized Jetton asset deposits  
+            // Verifies vault is supported Jetton deposit to prevent unauthorized Jetton deposits
             val assetJettonInfo = storage.getAssetJettonInfo();
             assert (assetJettonInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
+
+            // Verifies sender is from vault's underlying Jetton wallet to prevent unauthorized Jetton asset deposits  
             assert (in.senderAddress == assetJettonInfo!.walletAddress) throw ERR_INVALID_JETTON_WALLET;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
@@ -101,7 +105,7 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes share burns for withdrawals and withdraws asset to receiver
         VaultBurnNotification => {
-            // Verifies sender is from initiator's share jetton wallet to prevent unauthorized burns
+            // Verifies sender is from initiator's share Jetton wallet to prevent unauthorized burns
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
 
             assert (inMsg.shares > 0) throw ERR_INVALID_BURN_AMOUNT;
@@ -139,17 +143,17 @@ fun onInternalMessage(in: InMessage) {
             });
         }
 
-        // Updates Vault's jetton wallet address from Jetton master response
+        // Updates Vault's Jetton wallet address from Jetton master response
         ResponseWalletAddress => {
             storage.SetJettonWalletAddress(in.senderAddress, inMsg.jettonWalletAddress);
         }
 
         DeployVault => {
-            // If assetJettonInfo is not null -> underlying asset is Jetton, otherwise underlying asset is TON
+            // If assetJettonInfo is not null -> underlying asset is Jetton, otherwise underlying asset is TON or Extra currency
             if (storage.externalAssetInfo != null) {
                 var externalAssetInfo = storage.externalAssetInfo.load();
                 if (externalAssetInfo is JettonInfo) { 
-                    // Only admin can deploy Jetton vault
+                    // Only admin can deploy Jetton vault to prevent unauthorized Jetton vault deployment   
                     assert (in.senderAddress == storage.adminAddress) throw ERR_UNAUTHORIZED_ADMIN;
                     
                     // Send request wallet address to Jetton master

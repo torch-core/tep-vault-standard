@@ -14,10 +14,10 @@ fun slice.loadEcValue(mutate self): int
 fun getSingleEcAmount(extraCurrencyDict: dict, extraCurrencyId: ExtraCurrencyId) {
     var (value, flag) = extraCurrencyDict.uDictDeleteAndGet(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId);
 
-    // Verifies extra currency id is valid
+    // Verifies Extra currency id is valid
     assert(flag) throw ERR_INVALID_EXTRA_CURRENCY_ID;
 
-    // Verifies only one extra currency is deposited to prevent multiple extra currency deposits in a single asset vault
+    // Verifies only one Extra currency is deposited to prevent multiple Extra currency deposits in a single asset vault
     assert(extraCurrencyDict == null) throw ERR_MULTI_EXTRA_CURRENCY_DEPOSIT;
 
     return value!.loadEcValue();

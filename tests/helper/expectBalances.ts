@@ -28,7 +28,7 @@ export async function expectJettonDepositorBalances(
     receiverShareWallet: SandboxContract<JettonWallet>,
     receiverShareWalletBalBefore: bigint,
 ) {
-    // Expect that depositor jetton wallet balance is decreased by depositAmount
+    // Expect that depositor Jetton wallet balance is decreased by depositAmount
     expect(await depositorJettonWallet.getBalance()).toBe(depositorJettonWalletBalBefore - depositAmount);
 
     // Expect that receiver shares wallet balance is increased by depositAmount
