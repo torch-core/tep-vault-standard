@@ -138,7 +138,7 @@ fun extraCurrencyTransfer(
 }
 
 fun transferAsset(
-    transferAssetType: AssetType,
+    transferAsset: Asset,
     initiator: address, 
     queryId: QueryId, 
     remainingValue: coins, 
@@ -147,20 +147,19 @@ fun transferAsset(
     result: Result, 
     callbackParams: Cell<CallbackParams>?, 
     inBody: slice,
-    assetJettonWallet: address? = null,
-    extraCurrencyId: ExtraCurrencyId? = null
 ) {
-    match (transferAssetType) {
-        TON_ASSET_TYPE => {
+    match (transferAsset) {
+        TonAsset => {
             tonTransfer(initiator, queryId, remainingValue + transferAmount, receiver, result, callbackParams, inBody);
         }
-        JETTON_ASSET_TYPE => {
+        JettonAsset => {
+            val storage = lazy VaultStorage.load();
+            val assetJettonWallet = storage.getAssetJettonWallet();
             assert (assetJettonWallet != null) throw ERR_MISSING_ASSET_JETTON_WALLET;
             jettonTransfer(initiator, queryId, remainingValue, assetJettonWallet!, receiver, transferAmount, result, callbackParams, inBody);
         }
-        EXTRA_CURRENCY_ASSET_TYPE => {
-            assert (extraCurrencyId != null) throw ERR_MISSING_EXTRA_CURRENCY_ID;
-            extraCurrencyTransfer(initiator, queryId, remainingValue, extraCurrencyId!, receiver, transferAmount, result, callbackParams, inBody);
+        ExtraCurrencyAsset => {
+            extraCurrencyTransfer(initiator, queryId, remainingValue, transferAsset.extraCurrencyId, receiver, transferAmount, result, callbackParams, inBody);
         }
     }
 }

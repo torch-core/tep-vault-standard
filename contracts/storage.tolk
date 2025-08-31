@@ -1,6 +1,7 @@
 import "constants/common-types"
 import "constants/errors"
 import "types/wallet-status"
+import "types/asset"
 
 // ==== Vault Storage ====
 struct (0x1) JettonInfo {
@@ -29,6 +30,24 @@ fun VaultStorage.load() {
 
 fun VaultStorage.save(self) {
     contract.setData(self.toCell())
+}
+
+fun VaultStorage.getAsset(self): Asset {
+    if (self.externalAssetInfo == null) {
+        return Asset.tonAsset();
+    }
+    var externalAssetInfo = self.externalAssetInfo!.load();
+    return (externalAssetInfo is JettonInfo) 
+        ? Asset.jettonAsset(externalAssetInfo.masterAddress!) 
+        : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
+}
+
+fun VaultStorage.getAssetJettonWallet(self) {
+    var externalAssetInfo = self.externalAssetInfo!.load();
+    if (externalAssetInfo is JettonInfo) {
+        return externalAssetInfo.walletAddress;
+    }
+    return null;
 }
 
 fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: coins, assetsDelta: coins) {

@@ -55,16 +55,9 @@ fun onInternalMessage(in: InMessage) {
 
             // in.valueCoins must > deposit amount + deposit gas
             val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
-            val shares = handleDeposit(
-                TON_ASSET_TYPE, 
-                in.senderAddress, 
-                inMsg.queryId, 
-                remainingValue, 
-                in.senderAddress, 
-                inMsg.depositAmount, 
-                inMsg.depositParams, 
-                in.body,
-            );
+
+            val depositAsset = Asset.tonAsset();
+            val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositAmount, inMsg.depositParams, in.body);
 
             storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
         }
@@ -88,17 +81,8 @@ fun onInternalMessage(in: InMessage) {
             val depositAmount = value!.loadEcValue();
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
-            val shares = handleDeposit(
-                EXTRA_CURRENCY_ASSET_TYPE, 
-                in.senderAddress, 
-                inMsg.queryId, 
-                remainingValue, 
-                in.senderAddress, 
-                depositAmount, 
-                inMsg.depositParams, 
-                in.body,
-                externalAssetInfo.extraCurrencyId!
-            );
+            val depositAsset = Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
+            val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, depositAmount, inMsg.depositParams, in.body);
 
             storage.updateSupplyAndAssets(shares, depositAmount);
         }
@@ -115,21 +99,14 @@ fun onInternalMessage(in: InMessage) {
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
             assert (inMsg.forwardPayload != null) throw ERR_MISSING_FORWARD_PAYLOAD;
-
+        
             match (inMsg.forwardPayload) {
                 Cell<DepositFp> => {
                     // in.valueCoins must > deposit gas
                     val remainingValue = processJettonDepositGas(in.valueCoins);
-                    val shares = handleDeposit(
-                        JETTON_ASSET_TYPE,
-                        inMsg.initiator, 
-                        inMsg.queryId, 
-                        remainingValue, 
-                        in.senderAddress, 
-                        inMsg.depositAmount, 
-                        inMsg.forwardPayload!.load().depositParams, 
-                        in.body
-                    );
+                    val depositAsset = Asset.jettonAsset(externalAssetInfo.masterAddress!);
+                    val depositParams = inMsg.forwardPayload!.load().depositParams;
+                    val shares = handleDeposit(depositAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.depositAmount, depositParams, in.body);
 
                     storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
                 }
@@ -149,28 +126,14 @@ fun onInternalMessage(in: InMessage) {
                     // in.valueCoins must > withdraw gas
                     val remainingValue = processWithdrawGas(in.valueCoins);
 
-                    // Determine withdrawal asset type based on vault configuration:
-                    var transferAssetType: AssetType = TON_ASSET_TYPE;  // Default to TON
-                    var assetJettonWallet: address? = null;             // Vault's underlying Jetton wallet address
-                    var extraCurrencyId: ExtraCurrencyId? = null;       // Vault's underlying extra currency ID
-
-                    if (storage.externalAssetInfo != null) {
-                        var externalAssetInfo = storage.externalAssetInfo!.load();
-                        (transferAssetType, assetJettonWallet, extraCurrencyId) = (externalAssetInfo is JettonInfo)
-                            ? (JETTON_ASSET_TYPE, externalAssetInfo.walletAddress!, null)
-                            : (EXTRA_CURRENCY_ASSET_TYPE, null, externalAssetInfo.extraCurrencyId!);
-                    }
-
                     val withdrawAmount = handleWithdraw(
+                        storage.getAsset(),
                         inMsg.initiator, 
                         inMsg.queryId, 
                         remainingValue, 
                         inMsg.shares, 
                         inMsg.customPayload.load(), 
                         in.body, 
-                        transferAssetType, 
-                        assetJettonWallet, 
-                        extraCurrencyId
                     );
 
                     storage.updateSupplyAndAssets(-inMsg.shares, -withdrawAmount);

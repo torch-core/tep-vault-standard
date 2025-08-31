@@ -50,15 +50,13 @@ fun previewWithdraw(shares: coins, withdrawConfig: WithdrawConfig? = null) {
 // Handles deposit logic: validates, mints shares to receiver, and emits event on success
 // On failure, rolls back by transferring asset(TON or Jetton) back to initiator and throws error
 fun handleDeposit(
-    depositAssetType: AssetType,
+    depositAsset: Asset,
     initiator: address, 
     queryId: QueryId, 
     remainingValue: coins, 
-    senderAddress: address, 
     depositAmount: coins, 
     depositParams: DepositParams, 
     inBody: slice,
-    extraCurrencyId: ExtraCurrencyId? = null
 ) {
     try {
         val maxDepositAmount = maxDeposit();
@@ -72,7 +70,7 @@ fun handleDeposit(
         return shares;
     } catch (errCode) {
         transferAsset(
-            depositAssetType,
+            depositAsset,
             initiator, 
             queryId, 
             remainingValue, 
@@ -80,9 +78,7 @@ fun handleDeposit(
             initiator, 
             Result.Error(errCode), 
             depositParams.callbacks.failureCallback, 
-            inBody, 
-            senderAddress,
-            extraCurrencyId
+            inBody,
         );   
         commitContractDataAndActions();
         throw errCode;
@@ -92,15 +88,13 @@ fun handleDeposit(
 // Handles withdrawal logic: validates, transfers assets to receiver, and emits event on success
 // On failure, rolls back by minting shares back to initiator and throws error
 fun handleWithdraw(
+    withdrawAsset: Asset,
     initiator: address, 
     queryId: QueryId, 
     remainingValue: coins, 
     shares: coins, 
     withdrawFp: WithdrawFp, 
-    inBody: slice, 
-    transferAssetType: AssetType,
-    assetJettonWallet: address? = null, 
-    extraCurrencyId: ExtraCurrencyId? = null
+    inBody: slice
 ) {
     try {
         val maxShares = maxWithdraw();
@@ -110,7 +104,7 @@ fun handleWithdraw(
         assert (withdrawAmount >= withdrawFp.minWithdraw!) throw ERR_FAILED_MIN_WITHDRAW;
         
         transferAsset(
-            transferAssetType,
+            withdrawAsset,
             initiator, 
             queryId, 
             remainingValue, 
@@ -119,8 +113,6 @@ fun handleWithdraw(
             Result.Success(), 
             withdrawFp.callbacks.successCallback, 
             inBody, 
-            assetJettonWallet,
-            extraCurrencyId
         );
         emitWithdrawn(Withdrawn { initiator: initiator, receiver: withdrawFp.receiver, withdrawAmount: withdrawAmount, burnedShares: shares });
         return withdrawAmount;
