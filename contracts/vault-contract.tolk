@@ -56,7 +56,7 @@ fun onInternalMessage(in: InMessage) {
             val depositEntry = DepositEntry { asset: Asset.tonAsset(), amount: inMsg.depositAmount };
             val shares = handleDeposit(depositEntry, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositParams, in.body);
 
-            storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
+            storage.updateSupplyAndAssets(shares, depositEntry.amount);
         }
 
         // Processes Extra currency deposits and mints shares to receiver
@@ -74,7 +74,7 @@ fun onInternalMessage(in: InMessage) {
             val depositEntry = DepositEntry { asset: Asset.extraCurrencyAsset(extraCurrencyId), amount: depositAmount };
             val shares = handleDeposit(depositEntry, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositParams, in.body);
 
-            storage.updateSupplyAndAssets(shares, depositAmount);
+            storage.updateSupplyAndAssets(shares, depositEntry.amount);
         }
 
         // Processes Jetton deposits and mints shares to receiver
@@ -97,7 +97,7 @@ fun onInternalMessage(in: InMessage) {
                     val depositParams = inMsg.forwardPayload.load().depositParams;
                     val shares = handleDeposit(depositEntry, inMsg.initiator, inMsg.queryId, remainingValue, depositParams, in.body, assetJettonInfo.walletAddress);
 
-                    storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
+                    storage.updateSupplyAndAssets(shares, depositEntry.amount);
                 }
             }
         }
