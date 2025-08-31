@@ -45,7 +45,7 @@ fun onInternalMessage(in: InMessage) {
     match (inMsg) {
         // Processes TON deposits and mints shares to receiver
         Deposit => {
-            // Verifies vault supports TON deposits to prevent TON deposits in Jetton/Extra Currency-only vaults
+            // Verifies vault supports TON deposits to prevent TON deposits in Jetton/Extra Currency vaults
             assert (storage.externalAssetInfo == null) throw ERR_NON_SUPPORTED_TON_DEPOSIT;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
@@ -61,7 +61,7 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes Extra Currency deposits and mints shares to receiver
         DepositEc => {
-            // Verifies vault supports Extra Currency deposits to prevent Extra Currency deposits in TON/Jetton-only vaults
+            // Verifies vault supports Extra Currency deposits to prevent Extra Currency deposits in TON/Jetton vaults
             val extraCurrencyInfo = storage.getExtraCurrencyInfo();
             assert (extraCurrencyInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
 
@@ -79,7 +79,7 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes Jetton deposits and mints shares to receiver
         VaultTransferNotification => {
-            // Verifies vault supports Jetton deposits to prevent Jetton deposits in TON/Extra Currency-only vaults
+            // Verifies vault supports Jetton deposits to prevent Jetton deposits in TON/Extra Currency vaults
             val assetJettonInfo = storage.getAssetJettonInfo();
             assert (assetJettonInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
 
