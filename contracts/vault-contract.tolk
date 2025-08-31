@@ -51,7 +51,7 @@ fun onInternalMessage(in: InMessage) {
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
 
             // Verify sufficient TON (depositAmount + gas) to prevent underpayment and ensure complete deposit execution
-            val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
+            val remainingValue = chargeTonDepositGas(in.valueCoins, inMsg.depositAmount);
 
             val depositAsset = Asset.tonAsset();
             val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositAmount, inMsg.depositParams, in.body);
@@ -69,7 +69,7 @@ fun onInternalMessage(in: InMessage) {
             val extraCurrencyId = extraCurrencyInfo.extraCurrencyId!;
             val depositAmount = extractSingleEcAmount(in.valueExtra, extraCurrencyId);
 
-            val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
+            val remainingValue = chargeExtraCurrencyDepositGas(in.valueCoins);    
 
             val depositAsset = Asset.extraCurrencyAsset(extraCurrencyId);
             val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, depositAmount, inMsg.depositParams, in.body);
@@ -91,7 +91,7 @@ fun onInternalMessage(in: InMessage) {
         
             match (inMsg.forwardPayload) {
                 Cell<DepositFp> => {
-                    val remainingValue = processJettonDepositGas(in.valueCoins);
+                    val remainingValue = chargeJettonDepositGas(in.valueCoins);
 
                     val depositAsset = Asset.jettonAsset(assetJettonInfo.masterAddress!);
                     val depositParams = inMsg.forwardPayload.load().depositParams;
@@ -112,7 +112,7 @@ fun onInternalMessage(in: InMessage) {
             
             match (inMsg.customPayload) {
                 Cell<WithdrawFp> => {
-                    val remainingValue = processWithdrawGas(in.valueCoins);
+                    val remainingValue = chargeWithdrawGas(in.valueCoins);
 
                     val withdrawAsset = storage.getAsset();
                     val withdrawFp = inMsg.customPayload.load();
@@ -126,7 +126,7 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes provide quote requests and sends take quote response to receiver
         ProvideQuote => {
-            val remainingValue = processProvideQuoteGas(in.valueCoins);
+            val remainingValue = chargeProvideQuoteGas(in.valueCoins);
             
             var quoteAsset: Asset = storage.getAsset();
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
