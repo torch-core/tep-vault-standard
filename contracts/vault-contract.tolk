@@ -7,7 +7,7 @@
  * Based on ERC-4626 design principles with TON blockchain adaptations.
  *
  * Key Features:
- * - Supports both TON and Jetton as underlying assets
+ * - Supports both TON, Jetton and Extra currency as underlying assets
  * - ERC-4626-like share/asset conversion with TON-specific adaptations
  * - Notification system with callbacks for DeFi composability
  * - Slippage protection via minShares/minWithdraw parameters
@@ -65,7 +65,7 @@ fun onInternalMessage(in: InMessage) {
             val extraCurrencyInfo = storage.getExtraCurrencyInfo();
             assert (extraCurrencyInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
 
-            // Verifies transferred Extra currency id is supported
+            // Validates Extra Currency deposit to prevent unauthorized deposits and multiple Extra Currency deposits in single-asset vaults
             val extraCurrencyId = extraCurrencyInfo!.extraCurrencyId!;
             val depositAmount = getSingleEcAmount(in.valueExtra, extraCurrencyId);
 
