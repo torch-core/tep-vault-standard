@@ -621,9 +621,10 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `TOPIC_DEPOSITED` | [Opcode](#opcode) | `0x11475d67` |
     | `initiator` | `Address` | Address initiating the deposit. |
     | `receiver` | `Address` | Address receiving shares. |
+    | `depositAsset` | `Cell<Asset>?` | Deposited asset (required for multi-asset vaults, null for single asset). |
     | `depositAmount` | `Coins` | Deposited asset amount. |
     | `shares` | `Coins` | Minted shares. |
-    | `depositLogOption` | `Cell<depositLogOption>?` | Custom deposit logs. |
+    | `depositLogOptions` | `Cell<DepositLogOptions>?` | Custom deposit logs. |
 
 - **`Withdrawn`**
     - **Description**: Emitted when initiator exchanges shares for assets, transferring them to receiver.
@@ -635,9 +636,10 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
     | `TOPIC_WITHDRAWN` | [Opcode](#opcode) | `0xedfb416d` |
     | `initiator` | `Address` | Address initiating the withdrawal. |
     | `receiver` | `Address` | Address receiving assets. |
+    | `withdrawAsset` | `Cell<Asset>?` | Withdrawn asset (required for multi-asset vaults, null for single asset). |
     | `withdrawAmount` | `Coins` | Withdrawn asset amount. |
     | `burnedShares` | `Coins` | Burned shares. |
-    | `withdrawLogOption` | `Cell<WithdrawLogOptions>?` | Custom withdrawal logs. |
+    | `withdrawLogOptions` | `Cell<WithdrawLogOptions>?` | Custom withdrawal logs. |
 
 - **`Quoted`**
     - **Description**: Emitted when the vault provides a quote for asset-to-share conversion, including total supply and assets at the time of calculation.
