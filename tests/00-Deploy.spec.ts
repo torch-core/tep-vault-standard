@@ -17,12 +17,14 @@ describe('Deploy Vault', () => {
     let USDC: SandboxContract<JettonMaster>;
     let USDCVault: SandboxContract<Vault>;
     let USDTVault: SandboxContract<Vault>;
+    let tonVault: SandboxContract<Vault>;
+    let ecVault: SandboxContract<Vault>;
 
     const { getTestContext, resetToInitSnapshot, deployJettonMinter } = createTestEnvironment();
 
     beforeEach(async () => {
         await resetToInitSnapshot();
-        ({ blockchain, admin, maxey, USDTVault } = getTestContext());
+        ({ blockchain, admin, maxey, USDTVault, tonVault, ecVault } = getTestContext());
     });
 
     afterAll(() => {
@@ -40,6 +42,15 @@ describe('Deploy Vault', () => {
         const coverageJson2 = coverage2.toJson();
         writeFileSync('./coverage/deploy-vault-usdc.json', coverageJson2);
     });
+
+    function getResponseWalletAddressBody() {
+        return beginCell()
+            .storeUint(Opcodes.Jetton.ResponseWalletAddress, OPCODE_SIZE)
+            .storeUint(0, QUERY_ID_SIZE)
+            .storeAddress(maxey.address)
+            .storeMaybeRef(null)
+            .endCell();
+    }
 
     describe('Deploy failure cases', () => {
         it('should throw ERR_UNAUTHORIZED_ADMIN when deploy vault with unauthorized admin', async () => {
@@ -71,15 +82,10 @@ describe('Deploy Vault', () => {
             });
         });
 
-        it('should throw ERR_INVALID_JETTON_MASTER when invalid Jetton master send OP_RESPONSE_WALLET_ADDRESS to vault', async () => {
+        it('should throw ERR_INVALID_JETTON_MASTER when invalid Jetton master send OP_RESPONSE_WALLET_ADDRESS to Jetton vault', async () => {
             const deployResult = await maxey.send({
                 to: USDTVault.address,
-                body: beginCell()
-                    .storeUint(Opcodes.Jetton.ResponseWalletAddress, OPCODE_SIZE)
-                    .storeUint(0, QUERY_ID_SIZE)
-                    .storeAddress(maxey.address)
-                    .storeMaybeRef(null)
-                    .endCell(),
+                body: getResponseWalletAddressBody(),
                 value: toNano('0.01'),
             });
             expect(deployResult.transactions).toHaveTransaction({
@@ -89,6 +95,49 @@ describe('Deploy Vault', () => {
                 success: false,
                 exitCode: VaultErrors.InvalidJettonMaster,
             });
+        });
+
+        it('should throw ERR_MISSING_ASSET_JETTON_INFO when Jetton master send OP_RESPONSE_WALLET_ADDRESS to TON vault', async () => {
+            const deployResult = await maxey.send({
+                to: tonVault.address,
+                body: getResponseWalletAddressBody(),
+                value: toNano('0.01'),
+            });
+            expect(deployResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: tonVault.address,
+                op: Opcodes.Jetton.ResponseWalletAddress,
+                success: false,
+                exitCode: VaultErrors.MissingAssetJettonInfo,
+            });
+        });
+
+        it('should nothing happens when Jetton master send OP_RESPONSE_WALLET_ADDRESS to Extra currency vault', async () => {
+            const storageBefore = await ecVault.getStorage();
+            const deployResult = await maxey.send({
+                to: ecVault.address,
+                body: getResponseWalletAddressBody(),
+                value: toNano('0.01'),
+            });
+
+            expect(deployResult.transactions).toHaveTransaction({
+                from: maxey.address,
+                to: ecVault.address,
+                op: Opcodes.Jetton.ResponseWalletAddress,
+                success: true,
+            });
+
+            const storageAfter = await ecVault.getStorage();
+            expect(storageAfter.adminAddress.equals(storageBefore.adminAddress)).toBeTruthy();
+            expect(storageAfter.totalSupply).toEqual(storageBefore.totalSupply);
+            expect(storageAfter.totalAssets).toEqual(storageBefore.totalAssets);
+            expect(storageAfter.jettonWalletCode.equals(storageBefore.jettonWalletCode)).toBeTruthy();
+            expect(storageAfter.content.equals(storageBefore.content)).toBeTruthy();
+            expect(storageAfter.jettonMaster).toBeNull();
+            expect(storageAfter.jettonWalletAddress).toBeNull();
+            expect(storageAfter.extraCurrencyId).toEqual(storageBefore.extraCurrencyId);
+            expect(storageAfter.jettonWalletCode.equals(storageBefore.jettonWalletCode)).toBeTruthy();
+            expect(storageAfter.content.equals(storageBefore.content)).toBeTruthy();
         });
     });
 });

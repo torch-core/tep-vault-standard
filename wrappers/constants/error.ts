@@ -4,9 +4,9 @@ export const VaultErrors = {
     UnauthorizedAdmin: 1000,
     InvalidJettonWallet: 1001,
     InvalidJettonMaster: 1002,
-    InvalidRoundingType: 1003,
-    InvalidTransferAmount: 1004,
-    MissingAssetJettonInfo: 1005,
+    MissingAssetJettonInfo: 1003,
+    InvalidRoundingType: 1004,
+    InvalidTransferAmount: 1005,
 
     // Deposit Errors (2000-2999)
     MissingForwardPayload: 2000,
