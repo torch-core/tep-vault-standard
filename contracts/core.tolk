@@ -55,7 +55,7 @@ fun handleDeposit(depositAsset: Asset, initiator: address, queryId: QueryId, rem
         assert (depositAmount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
 
         val shares = previewDeposit(depositAmount);
-        assert (shares >= depositParams.minShares!) throw ERR_FAILED_MIN_SHARES;
+        assert (shares >= depositParams.minShares) throw ERR_FAILED_MIN_SHARES;
 
         mint(initiator, queryId, remainingValue, mutate depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback, inBody);
         emitDeposited(Deposited { initiator: initiator, receiver: depositParams.receiver, depositAmount: depositAmount, shares: shares });
@@ -86,7 +86,7 @@ fun handleWithdraw(withdrawAsset: Asset,initiator: address, queryId: QueryId, re
         assert (shares <= maxShares) throw ERR_EXCEEDED_MAX_WITHDRAW;
 
         val withdrawAmount = previewWithdraw(shares);
-        assert (withdrawAmount >= withdrawFp.minWithdraw!) throw ERR_FAILED_MIN_WITHDRAW;
+        assert (withdrawAmount >= withdrawFp.minWithdraw) throw ERR_FAILED_MIN_WITHDRAW;
         
         transferAsset(
             withdrawAsset,

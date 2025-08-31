@@ -66,7 +66,7 @@ fun onInternalMessage(in: InMessage) {
             assert (extraCurrencyInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
 
             // Validates the deposited Extra Currency ID is supported and ensures single Extra Currency deposit
-            val extraCurrencyId = extraCurrencyInfo.extraCurrencyId!;
+            val extraCurrencyId = extraCurrencyInfo.extraCurrencyId;
             val depositAmount = extractSingleEcAmount(in.valueExtra, extraCurrencyId);
 
             val remainingValue = chargeExtraCurrencyDepositGas(in.valueCoins);    
@@ -93,7 +93,7 @@ fun onInternalMessage(in: InMessage) {
                 Cell<DepositFp> => {
                     val remainingValue = chargeJettonDepositGas(in.valueCoins);
 
-                    val depositAsset = Asset.jettonAsset(assetJettonInfo.masterAddress!);
+                    val depositAsset = Asset.jettonAsset(assetJettonInfo.masterAddress);
                     val depositParams = inMsg.forwardPayload.load().depositParams;
                     val shares = handleDeposit(depositAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.depositAmount, depositParams, in.body, assetJettonInfo.walletAddress);
 

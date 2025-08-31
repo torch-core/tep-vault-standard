@@ -38,8 +38,8 @@ fun VaultStorage.getAsset(self): Asset {
     }
     var externalAssetInfo = self.externalAssetInfo.load();
     return (externalAssetInfo is JettonInfo) 
-        ? Asset.jettonAsset(externalAssetInfo.masterAddress!) 
-        : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
+        ? Asset.jettonAsset(externalAssetInfo.masterAddress) 
+        : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId);
 }
 
 fun VaultStorage.getAssetJettonInfo(self) {
@@ -68,7 +68,7 @@ fun VaultStorage.SetJettonWalletAddress(mutate self, senderAddress: address, jet
     assert (self.externalAssetInfo != null) throw ERR_MISSING_ASSET_JETTON_INFO;
     var externalAssetInfo = self.externalAssetInfo.load();
     if (externalAssetInfo is JettonInfo) {
-        assert (senderAddress == externalAssetInfo.masterAddress!) throw ERR_INVALID_JETTON_MASTER; 
+        assert (senderAddress == externalAssetInfo.masterAddress) throw ERR_INVALID_JETTON_MASTER; 
         externalAssetInfo.walletAddress = jettonWalletAddress;
     }
     self.externalAssetInfo = externalAssetInfo.toCell();
