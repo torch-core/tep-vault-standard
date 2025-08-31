@@ -53,10 +53,10 @@ fun onInternalMessage(in: InMessage) {
             // Verify sufficient TON (depositAmount + gas) to prevent underpayment and ensure complete deposit execution
             val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
 
-            val depositEntry = DepositEntry { asset: Asset.tonAsset(), amount: inMsg.depositAmount };
-            val shares = handleDeposit(depositEntry, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositParams, in.body);
+            val depositAsset = Asset.tonAsset();
+            val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositAmount, inMsg.depositParams, in.body);
 
-            storage.updateSupplyAndAssets(shares, depositEntry.amount);
+            storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
         }
 
         // Processes Extra currency deposits and mints shares to receiver
@@ -71,10 +71,10 @@ fun onInternalMessage(in: InMessage) {
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
 
-            val depositEntry = DepositEntry { asset: Asset.extraCurrencyAsset(extraCurrencyId), amount: depositAmount };
-            val shares = handleDeposit(depositEntry, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositParams, in.body);
+            val depositAsset = Asset.extraCurrencyAsset(extraCurrencyId);
+            val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, depositAmount, inMsg.depositParams, in.body);
 
-            storage.updateSupplyAndAssets(shares, depositEntry.amount);
+            storage.updateSupplyAndAssets(shares, depositAmount);
         }
 
         // Processes Jetton deposits and mints shares to receiver
@@ -93,11 +93,11 @@ fun onInternalMessage(in: InMessage) {
                 Cell<DepositFp> => {
                     val remainingValue = processJettonDepositGas(in.valueCoins);
 
-                    val depositEntry = DepositEntry { asset: Asset.jettonAsset(assetJettonInfo.masterAddress!), amount: inMsg.depositAmount };
+                    val depositAsset = Asset.jettonAsset(assetJettonInfo.masterAddress!);
                     val depositParams = inMsg.forwardPayload.load().depositParams;
-                    val shares = handleDeposit(depositEntry, inMsg.initiator, inMsg.queryId, remainingValue, depositParams, in.body, assetJettonInfo.walletAddress);
+                    val shares = handleDeposit(depositAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.depositAmount, depositParams, in.body, assetJettonInfo.walletAddress);
 
-                    storage.updateSupplyAndAssets(shares, depositEntry.amount);
+                    storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
                 }
             }
         }

@@ -49,24 +49,24 @@ fun previewWithdraw(shares: coins, withdrawConfig: WithdrawConfig? = null) {
 
 // Handles deposit logic: validates, mints shares to receiver, and emits event on success
 // On failure, rolls back by transferring asset(TON or Jetton) back to initiator and throws error
-fun handleDeposit(depositEntry: DepositEntry, initiator: address, queryId: QueryId, remainingValue: coins, depositParams: DepositParams, inBody: slice, assetJettonWallet: address? = null) {
+fun handleDeposit(depositAsset: Asset, initiator: address, queryId: QueryId, remainingValue: coins, depositAmount: coins, depositParams: DepositParams, inBody: slice, assetJettonWallet: address? = null) {
     try {
         val maxDepositAmount = maxDeposit();
-        assert (depositEntry.amount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
+        assert (depositAmount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
 
-        val shares = previewDeposit(depositEntry.amount);
+        val shares = previewDeposit(depositAmount);
         assert (shares >= depositParams.minShares!) throw ERR_FAILED_MIN_SHARES;
 
         mint(initiator, queryId, remainingValue, mutate depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback, inBody);
-        emitDeposited(Deposited { initiator: initiator, receiver: depositParams.receiver, depositAmount: depositEntry.amount, shares: shares });
+        emitDeposited(Deposited { initiator: initiator, receiver: depositParams.receiver, depositAmount: depositAmount, shares: shares });
         return shares;
     } catch (errCode) {
         transferAsset(
-            depositEntry.asset,
+            depositAsset,
             initiator, 
             queryId, 
             remainingValue, 
-            depositEntry.amount, 
+            depositAmount, 
             initiator, 
             Result.Error(errCode), 
             depositParams.callbacks.failureCallback, 
