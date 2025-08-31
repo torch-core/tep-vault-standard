@@ -80,6 +80,7 @@ fun onInternalMessage(in: InMessage) {
             val depositAmount = value!.loadEcValue();
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
+
             val depositAsset = Asset.extraCurrencyAsset(extraCurrencyId);
             val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, depositAmount, inMsg.depositParams, in.body);
 
@@ -110,7 +111,7 @@ fun onInternalMessage(in: InMessage) {
         }
 
         // Processes share burns for withdrawals and withdraws asset to receiver
-        BurnNotificationForMinter => {
+        VaultBurnNotification => {
             // Verifies sender is from initiator's share jetton wallet to prevent unauthorized burns
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
 
@@ -122,15 +123,9 @@ fun onInternalMessage(in: InMessage) {
                     // in.valueCoins must > withdraw gas
                     val remainingValue = processWithdrawGas(in.valueCoins);
 
-                    val withdrawAmount = handleWithdraw(
-                        storage.getAsset(),
-                        inMsg.initiator, 
-                        inMsg.queryId, 
-                        remainingValue, 
-                        inMsg.shares, 
-                        inMsg.customPayload.load(), 
-                        in.body, 
-                    );
+                    val withdrawAsset = storage.getAsset();
+                    val withdrawFp = inMsg.customPayload.load();
+                    val withdrawAmount = handleWithdraw(withdrawAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, withdrawFp, in.body);
 
                     storage.updateSupplyAndAssets(-inMsg.shares, -withdrawAmount);
                 }
@@ -141,13 +136,7 @@ fun onInternalMessage(in: InMessage) {
         ProvideQuote => {
             // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
-            var quoteAsset: Asset = Asset.tonAsset();   
-            if (storage.externalAssetInfo != null) {
-                var externalAssetInfo = storage.externalAssetInfo!.load();
-                quoteAsset = (externalAssetInfo is JettonInfo) 
-                    ? Asset.jettonAsset(externalAssetInfo.masterAddress!)
-                    : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId!);
-            }
+            var quoteAsset: Asset = storage.getAsset();
 
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 

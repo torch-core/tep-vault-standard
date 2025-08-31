@@ -7,7 +7,7 @@ type AllowedMessage =
     | Deposit 
     | DepositEc 
     | VaultTransferNotification 
-    | BurnNotificationForMinter 
+    | VaultBurnNotification 
     | DeployVault 
     | ResponseWalletAddress 
     | ProvideQuote;

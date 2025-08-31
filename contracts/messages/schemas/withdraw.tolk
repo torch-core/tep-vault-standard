@@ -2,7 +2,7 @@ import "../../constants/common-types"
 import "../../types/asset"
 import "common"
 
-struct (0x7bdd97de) BurnNotificationForMinter {
+struct (0x7bdd97de) VaultBurnNotification {
     queryId: QueryId
     shares: coins
     initiator: address
