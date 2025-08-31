@@ -124,7 +124,7 @@ fun extraCurrencyTransfer(
     assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
 
     var extraCurrencyDict = createEmptyDict();
-    extraCurrencyDict.uDictSetBuilder(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId, beginCell().storeVarUint32(transferAmount));
+    extraCurrencyDict.uDictSetBuilder(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId, beginCell().storeEcValue(transferAmount));
     val transferMsg = createMessage({
         bounce: false,
         dest: resolveReceiver(receiver, initiator),

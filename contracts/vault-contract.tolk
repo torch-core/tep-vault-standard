@@ -85,7 +85,7 @@ fun onInternalMessage(in: InMessage) {
             // Verifies only one extra currency is deposited to prevent multiple extra currency deposits in a single asset vault
             assert(extraCurrencyDict == null) throw ERR_MULTI_EXTRA_CURRENCY_DEPOSIT;
 
-            val depositAmount = value!.loadVarUint32();
+            val depositAmount = value!.loadEcValue();
 
             val remainingValue = processExtraCurrencyDepositGas(in.valueCoins);    
             val shares = handleDeposit(
@@ -104,7 +104,7 @@ fun onInternalMessage(in: InMessage) {
         }
 
         // Processes Jetton deposits and mints shares to receiver
-        TransferNotificationForRecipient => {
+        VaultTransferNotification => {
             // Verifies vault is supported Jetton deposit to prevent unauthorized Jetton deposits
             assert(storage.externalAssetInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
             

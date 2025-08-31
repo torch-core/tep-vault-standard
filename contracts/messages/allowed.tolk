@@ -6,7 +6,7 @@ import "schemas/provide-take-quote"
 type AllowedMessage = 
     | Deposit 
     | DepositEc 
-    | TransferNotificationForRecipient 
+    | VaultTransferNotification 
     | BurnNotificationForMinter 
     | DeployVault 
     | ResponseWalletAddress 

@@ -2,7 +2,7 @@ import "../../constants/common-types"
 import "../../types/asset"
 import "common"
 
-struct (0x7362d09c) TransferNotificationForRecipient {
+struct (0x7362d09c) VaultTransferNotification {
     queryId: QueryId
     depositAmount: coins
     initiator: address
