@@ -3,11 +3,11 @@
  *
  * Implementation of the TEP-4626 "Tokenized Vault Standard" as defined in the TEP proposal.
  * This vault contract extends TEP-74 Jetton functionality to provide standardized deposit/withdrawal
- * operations for both TON and Jetton assets, issuing proportional shares as TEP-74 tokens.
+ * operations for TON, Jetton and Extra currency assets, issuing proportional shares as TEP-74 tokens.
  * Based on ERC-4626 design principles with TON blockchain adaptations.
  *
  * Key Features:
- * - Supports both TON, Jetton and Extra currency as underlying assets
+ * - Supports TON, Jetton and Extra currency as underlying assets
  * - ERC-4626-like share/asset conversion with TON-specific adaptations
  * - Notification system with callbacks for DeFi composability
  * - Slippage protection via minShares/minWithdraw parameters
