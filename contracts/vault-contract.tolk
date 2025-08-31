@@ -50,7 +50,7 @@ fun onInternalMessage(in: InMessage) {
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
 
-            // in.valueCoins must > deposit amount + deposit gas
+            // Verify sufficient TON (depositAmount + gas) to prevent underpayment and ensure complete deposit execution
             val remainingValue = processTonDepositGas(in.valueCoins, inMsg.depositAmount);
 
             val depositAsset = Asset.tonAsset();
@@ -91,7 +91,6 @@ fun onInternalMessage(in: InMessage) {
         
             match (inMsg.forwardPayload) {
                 Cell<DepositFp> => {
-                    // in.valueCoins must > deposit gas
                     val remainingValue = processJettonDepositGas(in.valueCoins);
 
                     val depositAsset = Asset.jettonAsset(assetJettonInfo.masterAddress!);
@@ -113,7 +112,6 @@ fun onInternalMessage(in: InMessage) {
             
             match (inMsg.customPayload) {
                 Cell<WithdrawFp> => {
-                    // in.valueCoins must > withdraw gas
                     val remainingValue = processWithdrawGas(in.valueCoins);
 
                     val withdrawAsset = storage.getAsset();
@@ -127,7 +125,6 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes provide quote requests and sends take quote response to receiver
         ProvideQuote => {
-            // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
             
             var quoteAsset: Asset = storage.getAsset();

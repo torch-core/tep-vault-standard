@@ -37,25 +37,27 @@ fun previewProvideQuoteFee() {
 
 fun processTonDepositGas(valueCoins: coins, depositAmount: coins) {
     val requiredGas = previewTonDepositFee();
-    assert (valueCoins >= depositAmount + requiredGas) throw ERR_INSUFFICIENT_TON_DEPOSIT_GAS;
+    // JETTON_TRANSFER_FEE is for minting shares to receiver
+    assert (valueCoins >= depositAmount + requiredGas + JETTON_TRANSFER_FEE) throw ERR_INSUFFICIENT_TON_DEPOSIT_GAS;
     return valueCoins - depositAmount - requiredGas;
 }
 
 fun processJettonDepositGas(valueCoins: coins) {
     val requiredGas = previewJettonDepositFee();
-    assert (valueCoins >= requiredGas) throw ERR_INSUFFICIENT_JETTON_DEPOSIT_GAS;
+    assert (valueCoins >= requiredGas + JETTON_TRANSFER_FEE) throw ERR_INSUFFICIENT_JETTON_DEPOSIT_GAS;
     return valueCoins - requiredGas;
 }
 
 fun processExtraCurrencyDepositGas(valueCoins: coins) {
     val requiredGas = previewExtraCurrencyDepositFee();
-    assert (valueCoins >= requiredGas) throw ERR_INSUFFICIENT_EXTRA_CURRENCY_DEPOSIT_GAS;
+    assert (valueCoins >= requiredGas + JETTON_TRANSFER_FEE) throw ERR_INSUFFICIENT_EXTRA_CURRENCY_DEPOSIT_GAS;
     return valueCoins - requiredGas;
 }
 
 fun processWithdrawGas(valueCoins: coins) {
     val requiredGas = previewWithdrawFee();
-    assert (valueCoins >= requiredGas) throw ERR_INSUFFICIENT_WITHDRAW_GAS;
+    // Overestimate withdrawal gas using Jetton transfer fee (most expensive case among TON/Jetton/Extra currency transfers)
+    assert (valueCoins >= requiredGas + JETTON_TRANSFER_FEE) throw ERR_INSUFFICIENT_WITHDRAW_GAS;
     return valueCoins - requiredGas;
 }
 
