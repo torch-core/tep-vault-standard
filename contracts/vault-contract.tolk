@@ -95,7 +95,7 @@ fun onInternalMessage(in: InMessage) {
                     val remainingValue = processJettonDepositGas(in.valueCoins);
 
                     val depositAsset = Asset.jettonAsset(assetJettonInfo!.masterAddress!);
-                    val depositParams = inMsg.forwardPayload!.load().depositParams;
+                    val depositParams = inMsg.forwardPayload.load().depositParams;
                     val shares = handleDeposit(depositAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.depositAmount, depositParams, in.body);
 
                     storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
@@ -129,8 +129,8 @@ fun onInternalMessage(in: InMessage) {
         ProvideQuote => {
             // in.valueCoins must > provide quote gas
             val remainingValue = processProvideQuoteGas(in.valueCoins);
+            
             var quoteAsset: Asset = storage.getAsset();
-
             sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 
             emitQuoted(Quoted {
