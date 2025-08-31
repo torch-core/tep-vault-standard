@@ -49,15 +49,7 @@ fun previewWithdraw(shares: coins, withdrawConfig: WithdrawConfig? = null) {
 
 // Handles deposit logic: validates, mints shares to receiver, and emits event on success
 // On failure, rolls back by transferring asset(TON or Jetton) back to initiator and throws error
-fun handleDeposit(
-    depositAsset: Asset,
-    initiator: address, 
-    queryId: QueryId, 
-    remainingValue: coins, 
-    depositAmount: coins, 
-    depositParams: DepositParams, 
-    inBody: slice,
-) {
+fun handleDeposit(depositAsset: Asset, initiator: address, queryId: QueryId, remainingValue: coins, depositAmount: coins, depositParams: DepositParams, inBody: slice) {
     try {
         val maxDepositAmount = maxDeposit();
         assert (depositAmount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
@@ -87,15 +79,7 @@ fun handleDeposit(
 
 // Handles withdrawal logic: validates, transfers assets to receiver, and emits event on success
 // On failure, rolls back by minting shares back to initiator and throws error
-fun handleWithdraw(
-    withdrawAsset: Asset,
-    initiator: address, 
-    queryId: QueryId, 
-    remainingValue: coins, 
-    shares: coins, 
-    withdrawFp: WithdrawFp, 
-    inBody: slice
-) {
+fun handleWithdraw(withdrawAsset: Asset,initiator: address, queryId: QueryId, remainingValue: coins, shares: coins, withdrawFp: WithdrawFp, inBody: slice) {
     try {
         val maxShares = maxWithdraw();
         assert (shares <= maxShares) throw ERR_EXCEEDED_MAX_WITHDRAW;
