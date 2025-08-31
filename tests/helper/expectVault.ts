@@ -29,7 +29,7 @@ export const expectVaultStorage = (storage: VaultStorage, expectedStorage: Vault
         expect(storage.jettonWalletAddress).toBeNull();
     }
 
-    // Optional Extra currency id validation
+    // Optional Extra Currency id validation
     if (expectedStorage.extraCurrencyId !== undefined) {
         expect(storage.extraCurrencyId).toBe(expectedStorage.extraCurrencyId);
     } else {

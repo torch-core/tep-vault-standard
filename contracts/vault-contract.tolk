@@ -3,11 +3,11 @@
  *
  * Implementation of the TEP-4626 "Tokenized Vault Standard" as defined in the TEP proposal.
  * This vault contract extends TEP-74 Jetton functionality to provide standardized deposit/withdrawal
- * operations for TON, Jetton and Extra currency assets, issuing proportional shares as TEP-74 tokens.
+ * operations for TON, Jetton and Extra Currency assets, issuing proportional shares as TEP-74 tokens.
  * Based on ERC-4626 design principles with TON blockchain adaptations.
  *
  * Key Features:
- * - Supports TON, Jetton and Extra currency as underlying assets
+ * - Supports TON, Jetton and Extra Currency as underlying assets
  * - ERC-4626-like share/asset conversion with TON-specific adaptations
  * - Notification system with callbacks for DeFi composability
  * - Slippage protection via minShares/minWithdraw parameters
@@ -45,7 +45,7 @@ fun onInternalMessage(in: InMessage) {
     match (inMsg) {
         // Processes TON deposits and mints shares to receiver
         Deposit => {
-            // Verifies vault is supported TON deposit to prevent unauthorized TON deposits
+            // Verifies vault supports TON deposits to prevent TON deposits in Jetton/Extra Currency-only vaults
             assert (storage.externalAssetInfo == null) throw ERR_NON_SUPPORTED_TON_DEPOSIT;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
@@ -59,13 +59,13 @@ fun onInternalMessage(in: InMessage) {
             storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
         }
 
-        // Processes Extra currency deposits and mints shares to receiver
+        // Processes Extra Currency deposits and mints shares to receiver
         DepositEc => {
-            // Verifies vault is supported Extra currency deposit to prevent unauthorized Extra currency deposits
+            // Verifies vault supports Extra Currency deposits to prevent Extra Currency deposits in TON/Jetton-only vaults
             val extraCurrencyInfo = storage.getExtraCurrencyInfo();
             assert (extraCurrencyInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
 
-            // Validates Extra Currency deposit to prevent unauthorized deposits and multiple Extra Currency deposits in single-asset vaults
+            // Validates the deposited Extra Currency ID is supported and ensures single Extra Currency deposit
             val extraCurrencyId = extraCurrencyInfo.extraCurrencyId!;
             val depositAmount = getSingleEcAmount(in.valueExtra, extraCurrencyId);
 
@@ -79,7 +79,7 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes Jetton deposits and mints shares to receiver
         VaultTransferNotification => {
-            // Verifies vault is supported Jetton deposit to prevent unauthorized Jetton deposits
+            // Verifies vault supports Jetton deposits to prevent Jetton deposits in TON/Extra Currency-only vaults
             val assetJettonInfo = storage.getAssetJettonInfo();
             assert (assetJettonInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
 
@@ -104,7 +104,7 @@ fun onInternalMessage(in: InMessage) {
 
         // Processes share burns for withdrawals and withdraws asset to receiver
         VaultBurnNotification => {
-            // Verifies sender is from initiator's share Jetton wallet to prevent unauthorized burns
+            // Verifies sender is from initiator's share Jetton wallet to prevent unauthorized Jetton burns
             assert (in.senderAddress.isAddressOfJettonWallet(inMsg.initiator, contract.getAddress(), storage.jettonWalletCode)) throw ERR_UNAUTHORIZED_BURN;
 
             assert (inMsg.shares > 0) throw ERR_INVALID_BURN_AMOUNT;
@@ -147,7 +147,7 @@ fun onInternalMessage(in: InMessage) {
         }
 
         DeployVault => {
-            // If assetJettonInfo is not null -> underlying asset is Jetton, otherwise underlying asset is TON or Extra currency
+            // If assetJettonInfo is not null -> underlying asset is Jetton, otherwise underlying asset is TON or Extra Currency
             if (storage.externalAssetInfo != null) {
                 var externalAssetInfo = storage.externalAssetInfo.load();
                 if (externalAssetInfo is JettonInfo) { 

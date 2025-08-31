@@ -53,7 +53,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
 - **`slippage`**: The difference between the advertised share price and the actual economic outcome during deposit/withdrawal, excluding fees.
 - **`baseAsset`**: The primary or default underlying asset for vault calculations, used for standardization in multi-asset scenarios. For single-asset vaults, it is the sole asset. If no other specified asset is provided, the vault will utilize the base asset for exchange rate conversions and output standardization, to ensure operational consistency and simplify integrations.
 - **`XXX_FP`**: Operations ending with `_FP` (e.g., `OP_DEPOSIT_FP`) use `forwardPayload` (Jetton) or `customPayload` (Burn) fields. Operations without `_FP` (e.g., `OP_DEPOSIT`) involve direct TON transfers.
-- **`XXX_EC`**: Operations ending with `_EC` (e.g., `OP_DEPOSIT_EC`) handle Extra currency transfers. Operations without `_EC` handle TON or Jetton transfers.
+- **`XXX_EC`**: Operations ending with `_EC` (e.g., `OP_DEPOSIT_EC`) handle Extra Currency transfers. Operations without `_EC` handle TON or Jetton transfers.
 
 #### General Types
 

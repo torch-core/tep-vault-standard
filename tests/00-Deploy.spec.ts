@@ -112,7 +112,7 @@ describe('Deploy Vault', () => {
             });
         });
 
-        it('should nothing happens when Jetton master send OP_RESPONSE_WALLET_ADDRESS to Extra currency vault', async () => {
+        it('should nothing happens when Jetton master send OP_RESPONSE_WALLET_ADDRESS to Extra Currency vault', async () => {
             const storageBefore = await ecVault.getStorage();
             const deployResult = await maxey.send({
                 to: ecVault.address,

@@ -352,7 +352,7 @@ describe('Deposit to Extra Currency  Vault', () => {
             const bobShareBalAfter = await bobShareWallet.getBalance();
             expect(bobShareBalAfter).toBe(bobShareBalBefore);
 
-            // Expect that maxey Extra currency balance is only decreased by gas fee
+            // Expect that maxey Extra Currency balance is only decreased by gas fee
             const maxeyEcBalanceAfter = (await blockchain.getContract(maxey.address)).ec[ecId];
             expect(maxeyEcBalanceAfter).toBeGreaterThan(maxeyEcBalBefore - DEPOSIT_FAIL_GAS);
 
@@ -533,7 +533,7 @@ describe('Deposit to Extra Currency  Vault', () => {
     });
 
     describe('Other failure cases', () => {
-        it('should throw ERR_NON_SUPPORTED_TON_DEPOSIT when deposit TON in Extra currency vault', async () => {
+        it('should throw ERR_NON_SUPPORTED_TON_DEPOSIT when deposit TON in Extra Currency vault', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await ecVault.getTonDepositArg({
                 queryId,
@@ -549,7 +549,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 exitCode: VaultErrors.NonSupportedTonDeposit,
             });
         });
-        it('should throw ERR_NON_SUPPORTED_JETTON_DEPSIT when deposit jetton in Extra currency vault', async () => {
+        it('should throw ERR_NON_SUPPORTED_JETTON_DEPSIT when deposit jetton in Extra Currency vault', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await ecVault.getJettonDepositArg(
                 maxey.address,
@@ -569,7 +569,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 exitCode: VaultErrors.NonSupportedJettonDeposit,
             });
         });
-        it('should throw ERR_MULTI_EXTRA_CURRENCY_DEPOSIT when deposit multiple Extra currency', async () => {
+        it('should throw ERR_MULTI_EXTRA_CURRENCY_DEPOSIT when deposit multiple Extra Currency', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await ecVault.getEcDepositArg({
                 queryId,
@@ -592,7 +592,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 exitCode: VaultErrors.MultiExtraCurrencyDeposit,
             });
         });
-        it('should throw ERR_INVALID_EXTRA_CURRENCY_ID when deposit Extra currency with other Extra currency id', async () => {
+        it('should throw ERR_INVALID_EXTRA_CURRENCY_ID when deposit Extra Currency with other Extra Currency id', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await ecVault.getEcDepositArg({
                 queryId,
@@ -640,7 +640,7 @@ describe('Deposit to Extra Currency  Vault', () => {
     });
 
     describe('Get methods', () => {
-        it('should preview Extra currency deposit fee', async () => {
+        it('should preview Extra Currency deposit fee', async () => {
             const fee = await ecVault.getPreviewExtraCurrencyDepositFee();
             expect(fee).toBe(toNano('0.012'));
         });

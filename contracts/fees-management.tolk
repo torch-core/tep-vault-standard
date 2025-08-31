@@ -56,7 +56,7 @@ fun processExtraCurrencyDepositGas(valueCoins: coins) {
 
 fun processWithdrawGas(valueCoins: coins) {
     val requiredGas = previewWithdrawFee();
-    // Overestimate withdrawal gas using Jetton transfer fee (most expensive case among TON/Jetton/Extra currency transfers)
+    // Overestimate withdrawal gas using Jetton transfer fee (most expensive case among TON/Jetton/Extra Currency transfers)
     assert (valueCoins >= requiredGas + JETTON_TRANSFER_FEE) throw ERR_INSUFFICIENT_WITHDRAW_GAS;
     return valueCoins - requiredGas;
 }
