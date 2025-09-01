@@ -27,6 +27,7 @@ import "types/asset"
 import "storage"
 import "helper/jetton"
 import "helper/extra-currency"
+import "messages/schemas/common"
 import "messages/allowed"
 import "messages/schemas/deploy"
 import "messages/schemas/deposit"
@@ -52,9 +53,10 @@ fun onInternalMessage(in: InMessage) {
 
             // Verify sufficient TON (depositAmount + gas) to prevent underpayment and ensure complete deposit execution
             val remainingValue = chargeTonDepositGas(in.valueCoins, inMsg.depositAmount);
+            val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: in.body };
 
             val depositAsset = Asset.tonAsset();
-            val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, inMsg.depositAmount, inMsg.depositParams, in.body);
+            val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, inMsg.depositParams);
 
             storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
         }
@@ -70,9 +72,10 @@ fun onInternalMessage(in: InMessage) {
             val depositAmount = extractSingleEcAmount(in.valueExtra, extraCurrencyId);
 
             val remainingValue = chargeExtraCurrencyDepositGas(in.valueCoins);    
+            val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: in.body };
 
             val depositAsset = Asset.extraCurrencyAsset(extraCurrencyId);
-            val shares = handleDeposit(depositAsset, in.senderAddress, inMsg.queryId, remainingValue, depositAmount, inMsg.depositParams, in.body);
+            val shares = handleDeposit(txContext, depositAsset, depositAmount, inMsg.depositParams);
 
             storage.updateSupplyAndAssets(shares, depositAmount);
         }
@@ -92,10 +95,11 @@ fun onInternalMessage(in: InMessage) {
             match (inMsg.forwardPayload) {
                 Cell<DepositFp> => {
                     val remainingValue = chargeJettonDepositGas(in.valueCoins);
+                    val txContext = TxContext { initiator: inMsg.initiator, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: in.body };
 
                     val depositAsset = Asset.jettonAsset(assetJettonInfo.masterAddress);
                     val depositParams = inMsg.forwardPayload.load().depositParams;
-                    val shares = handleDeposit(depositAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.depositAmount, depositParams, in.body, assetJettonInfo.walletAddress);
+                    val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, depositParams, assetJettonInfo.walletAddress);
 
                     storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
                 }
@@ -113,11 +117,12 @@ fun onInternalMessage(in: InMessage) {
             match (inMsg.customPayload) {
                 Cell<WithdrawFp> => {
                     val remainingValue = chargeWithdrawGas(in.valueCoins);
+                    val txContext = TxContext { initiator: inMsg.initiator, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: in.body };
 
                     val withdrawAsset = storage.getAsset();
                     val withdrawFp = inMsg.customPayload.load();
                     val assetJettonWallet = (withdrawAsset is JettonAsset) ? storage.getAssetJettonInfo()!.walletAddress : null;
-                    val withdrawAmount = handleWithdraw(withdrawAsset, inMsg.initiator, inMsg.queryId, remainingValue, inMsg.shares, withdrawFp, in.body, assetJettonWallet);
+                    val withdrawAmount = handleWithdraw(txContext, withdrawAsset, inMsg.shares, withdrawFp, assetJettonWallet);
 
                     storage.updateSupplyAndAssets(-inMsg.shares, -withdrawAmount);
                 }
@@ -127,13 +132,14 @@ fun onInternalMessage(in: InMessage) {
         // Processes provide quote requests and sends take quote response to receiver
         ProvideQuote => {
             val remainingValue = chargeProvideQuoteGas(in.valueCoins);
+            val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: "" };
             
             var quoteAsset: Asset = storage.getAsset();
-            sendTakeQuote(in.senderAddress, inMsg.queryId, remainingValue, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
+            sendTakeQuote(txContext, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 
             emitQuoted(Quoted {
                 quoteAsset: quoteAsset.toCell(),
-                initiator: in.senderAddress,
+                initiator: txContext.initiator,
                 receiver: inMsg.receiver,
                 totalSupply: storage.totalSupply,
                 totalAssets: storage.totalAssets,

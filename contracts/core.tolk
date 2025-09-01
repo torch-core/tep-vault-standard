@@ -1,6 +1,5 @@
 import "constants/values";
 import "constants/errors";
-import "constants/common-types";
 import "types/rounding";
 import "types/vault-result";
 import "types/asset"
@@ -49,7 +48,7 @@ fun previewWithdraw(shares: coins, withdrawConfig: WithdrawConfig? = null) {
 
 // Handles deposit logic: validates, mints shares to receiver, and emits event on success
 // On failure, rolls back by transferring asset(TON or Jetton) back to initiator and throws error
-fun handleDeposit(depositAsset: Asset, initiator: address, queryId: QueryId, remainingValue: coins, depositAmount: coins, depositParams: DepositParams, inBody: slice, assetJettonWallet: address? = null) {
+fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coins, depositParams: DepositParams, assetJettonWallet: address? = null) {
     try {
         val maxDepositAmount = maxDeposit();
         assert (depositAmount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
@@ -57,20 +56,17 @@ fun handleDeposit(depositAsset: Asset, initiator: address, queryId: QueryId, rem
         val shares = previewDeposit(depositAmount);
         assert (shares >= depositParams.minShares) throw ERR_FAILED_MIN_SHARES;
 
-        mint(initiator, queryId, remainingValue, mutate depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback, inBody);
-        emitDeposited(Deposited { initiator: initiator, receiver: depositParams.receiver, depositAmount: depositAmount, shares: shares });
+        mint(txContext, mutate depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback);
+        emitDeposited(Deposited { initiator: txContext.initiator, receiver: depositParams.receiver, depositAmount: depositAmount, shares: shares });
         return shares;
     } catch (errCode) {
         transferAsset(
             depositAsset,
-            initiator, 
-            queryId, 
-            remainingValue, 
+            txContext, 
             depositAmount, 
-            initiator, 
+            txContext.initiator, 
             Result.Error(errCode), 
             depositParams.callbacks.failureCallback, 
-            inBody,
             assetJettonWallet,
         );   
         commitContractDataAndActions();
@@ -80,7 +76,7 @@ fun handleDeposit(depositAsset: Asset, initiator: address, queryId: QueryId, rem
 
 // Handles withdrawal logic: validates, transfers assets to receiver, and emits event on success
 // On failure, rolls back by minting shares back to initiator and throws error
-fun handleWithdraw(withdrawAsset: Asset,initiator: address, queryId: QueryId, remainingValue: coins, shares: coins, withdrawFp: WithdrawFp, inBody: slice, assetJettonWallet: address? = null) {
+fun handleWithdraw(txContext: TxContext, withdrawAsset: Asset, shares: coins, withdrawFp: WithdrawFp, assetJettonWallet: address? = null) {
     try {
         val maxShares = maxWithdraw();
         assert (shares <= maxShares) throw ERR_EXCEEDED_MAX_WITHDRAW;
@@ -90,20 +86,17 @@ fun handleWithdraw(withdrawAsset: Asset,initiator: address, queryId: QueryId, re
         
         transferAsset(
             withdrawAsset,
-            initiator, 
-            queryId, 
-            remainingValue, 
+            txContext, 
             withdrawAmount, 
             withdrawFp.receiver, 
             Result.Success(), 
             withdrawFp.callbacks.successCallback, 
-            inBody, 
             assetJettonWallet,
         );
-        emitWithdrawn(Withdrawn { initiator: initiator, receiver: withdrawFp.receiver, withdrawAmount: withdrawAmount, burnedShares: shares });
+        emitWithdrawn(Withdrawn { initiator: txContext.initiator, receiver: withdrawFp.receiver, withdrawAmount: withdrawAmount, burnedShares: shares });
         return withdrawAmount;
     } catch (errCode) {
-        mint(initiator, queryId, remainingValue, mutate initiator, shares, Result.Error(errCode), withdrawFp.callbacks.failureCallback, inBody);
+        mint(txContext, mutate txContext.initiator, shares, Result.Error(errCode), withdrawFp.callbacks.failureCallback);
         commitContractDataAndActions();
         throw errCode;
     }

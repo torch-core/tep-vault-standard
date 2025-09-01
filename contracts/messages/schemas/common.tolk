@@ -1,7 +1,6 @@
 import "../../constants/common-types"
 import "../../types/callback-params"
 import "../../types/vault-result"
-import "../../types/asset"
 
 struct VaultOptions {
     // Add your optional params for vault here
@@ -54,4 +53,11 @@ struct (0x0f8a7ea5) AskToTransfer {
     customPayload: cell?
     forwardTonAmount: coins
     forwardPayload: Cell<VaultNotificationFp>?
+}
+
+struct TxContext {
+    initiator: address;
+    queryId: QueryId;
+    remainingValue: coins;
+    inBody: slice;
 }
