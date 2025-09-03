@@ -717,7 +717,7 @@ Many TON DeFi contracts allow upgrades. Combining Point 1 (multisig) and Point 2
 
 ### Mitigation of Donation Attacks
 
-**Rationale**: No donation attacks per design, as transfers require valid payloads to update `totalAssets`. Direct transfers without payloads are ignored. Issues arise only if rates are off-chain calculated from balances—in such cases, vaults should avoid relying on direct balance checks to prevent manipulation.
+**Rationale**: No donation attacks per design, as transfers require valid payloads and will not update the vault's storage. Direct transfers without valid payloads are ignored, preventing manipulation.
 
 ### Gas Estimation for Developer Experience
 
