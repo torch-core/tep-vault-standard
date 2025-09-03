@@ -134,11 +134,9 @@ fun onInternalMessage(in: InMessage) {
             val remainingValue = chargeProvideQuoteGas(in.valueCoins);
             val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: "" };
             
-            var quoteAsset: Asset = storage.getAsset();
-            sendTakeQuote(txContext, quoteAsset, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
+            sendTakeQuote(txContext, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 
             emitQuoted(Quoted {
-                quoteAsset: quoteAsset.toCell(),
                 initiator: txContext.initiator,
                 receiver: inMsg.receiver,
                 totalSupply: storage.totalSupply,

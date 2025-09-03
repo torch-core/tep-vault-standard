@@ -125,17 +125,17 @@ describe('Query Quote', () => {
         timestamp: number,
         forwardPayload?: Cell,
     ) {
-        const quoteAssetCell =
-            quoteAsset?.toCell() ??
-            beginCell()
-                .storeUint(AssetType.EXTRA_CURRENCY, ASSET_TYPE_SIZE)
-                .storeUint(ecId, EXTRA_CURRENCY_ID_SIZE)
-                .endCell();
+        // const quoteAssetCell =
+        //     quoteAsset?.toCell() ??
+        //     beginCell()
+        //         .storeUint(AssetType.EXTRA_CURRENCY, ASSET_TYPE_SIZE)
+        //         .storeUint(ecId, EXTRA_CURRENCY_ID_SIZE)
+        //         .endCell();
         return beginCell()
             .storeUint(Opcodes.Vault.TakeQuote, OPCODE_SIZE)
             .storeUint(queryId, QUERY_ID_SIZE)
             .storeAddress(initiator)
-            .storeRef(quoteAssetCell)
+            .storeMaybeRef(null)
             .storeCoins(totalSupply)
             .storeCoins(totalAssets)
             .storeUint(timestamp, TIMESTAMP_SIZE)
