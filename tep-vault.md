@@ -224,7 +224,7 @@ The specific storage structure for managing underlying assets, Jetton wallets, a
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Jetton.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers required gas.
-    - MUST verify that Jetton deposits are supported by the vault's asset configuration.
+    - MUST verify that Jetton is an accepted deposit asset for the vault.
         - MUST verify the deposit comes from the correct Jetton wallet address.
         - If Jetton deposits are not supported or the specific Jetton is not supported, SHOULD throw an error and reject the transaction.
     - MUST validate `depositAmount` is greater than 0 and within vault's deposit limits.
@@ -251,7 +251,7 @@ The specific storage structure for managing underlying assets, Jetton wallets, a
 - **Description**: Mint shares to `receiver` by depositing exactly `depositAmount` of Extra Currency.
 - **Requirements**:
     - MUST verify `in.valueCoins` covers required gas.
-    - MUST verify that Extra Currency deposits are supported by the vault's asset configuration.
+    - MUST verify that Extra Currency is an accepted deposit asset for the vault.
         - MUST verify that the specific Extra Currency ID is supported by the vault.
         - MUST verify that exactly one Extra Currency is deposited (multiple Extra Currencies in a single transaction are not allowed).
         - If Extra Currency deposits are not supported, the specific ID is not supported, or multiple Extra Currencies are deposited, SHOULD throw an error and reject the transaction.
