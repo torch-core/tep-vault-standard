@@ -737,8 +737,6 @@ This section highlights open questions that remain unresolved in the current dra
 
 - **Admin Security Risks**: Even with multisig admins, timelock upgrades, and third-party monitoring to prevent illicit contract updates, there remains inherent risk in upgradable vaults. Beyond fully disabling code upgrades, no 100% foolproof method exists to eliminate compromise risks, particularly in a dynamic DeFi environment. How can protocols further harden against this without sacrificing maintainability? This ties into Drawbacks' notification security concerns and invites exploration in implementations.
 
-These questions do not affect the core standard but provide opportunities for refinement based on real-world usage.
-
 ## Future Possibilities
 
 TEP-4626 establishes a solid foundation for TON vaults, with potential for evolution as the ecosystem advances. The following extensions build on the current design:
