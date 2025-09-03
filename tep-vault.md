@@ -189,7 +189,7 @@ The specific storage structure for managing underlying assets, Jetton wallets, a
         - `depositAmount` exceeds vault limit
         - Minted shares are less than `minShares`
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
-    - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
+    - If `receiver` is address none, MUST set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
 
 - **Message**:
@@ -233,7 +233,7 @@ The specific storage structure for managing underlying assets, Jetton wallets, a
         - `depositAmount` exceeds vault limit
         - Minted shares are less than `minShares`
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
-    - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
+    - If `receiver` is address none, MUST set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
 
 - **Message**:
@@ -261,7 +261,7 @@ The specific storage structure for managing underlying assets, Jetton wallets, a
         - `depositAmount` exceeds vault limit
         - Minted shares are less than `minShares`
     - On successful share minting, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) with `successCallback.payload` to `receiver`.
-    - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
+    - If `receiver` is address none, MUST set `receiver` to `initiator`.
     - MUST emit `TOPIC_DEPOSITED` event.
 
 - **Message**:
@@ -286,7 +286,7 @@ The specific storage structure for managing underlying assets, Jetton wallets, a
         - Burned shares exceed vault limit
         - Withdrawn amount is less than `minWithdraw`
     - On successful withdrawal, MUST send [OP_VAULT_NOTIFICATION_FP](#op_vault_notification_fp) (for Jetton), [OP_VAULT_NOTIFICATION_EC](#op_vault_notification_ec) (for Extra Currency), or [OP_VAULT_NOTIFICATION](#op_vault_notification) (for TON) with `successCallback.payload` to `receiver`.
-    - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
+    - If `receiver` is address none, MUST set `receiver` to `initiator`.
     - MUST emit `TOPIC_WITHDRAWN` event.
 
 - **Message**:
@@ -314,7 +314,7 @@ The specific storage structure for managing underlying assets, Jetton wallets, a
 - **Requirements**:
     - MUST verify `in.valueCoins` covers gas for Provide Quote.
     - MUST send [OP_TAKE_QUOTE](#op_take_quote) to `receiver`.
-    - If `receiver` is address none, SHOULD set `receiver` to `initiator`.
+    - If `receiver` is address none, MUST set `receiver` to `initiator`.
     - MAY emit `TOPIC_QUOTED` event.
 
 - **Messages**:
