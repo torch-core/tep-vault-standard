@@ -676,13 +676,14 @@ The vault interface follows ERC-4626 design principles while adapting to the uni
 ### Asynchronous Notifications and Security Risks
 
 **Rationale**: TON is an asynchronous system, making rollbacks or inter-protocol interactions challenging. Without standards, integrations become difficult and prone to vulnerabilities, such as those seen in TON from improper use of success/failure payloads. Thus, a notification system is essential for vaults, allowing interacting contracts to perform next steps based on outcomes. However, this introduces risks if the vault's admin is compromised, enabling forged messages via contract upgrades.  
-**Alternatives**: To mitigate, three approaches are recommended:
+**Alternatives**: To mitigate, four approaches are recommended:
 
 1. Use multisig wallet for admin
 2. Implement timelocks for upgrades, with third-party guardians independent of the admin able to cancel
-3. Disable code upgrades entirely.
+3. Require dual approval for upgrades: both admin approval and independent third-party guard approval before contract updates.
+4. Disable code upgrades entirely.
 
-Many TON DeFi contracts allow upgrades. Combining Point 1 (multisig) and Point 2 (timelocks) is an effective way to significantly reduce the risk of attack, providing robust security for contracts that require upgradeability.
+Many TON DeFi contracts allow upgrades. Combining Point 1 (multisig), Point 2 (timelocks), and Point 3 (dual approval) together can significantly reduce the risk of attack through multiple layers of protection, though some residual risk remains inherent in any upgradable contract system.
 
 ### Multi-Asset Support
 
