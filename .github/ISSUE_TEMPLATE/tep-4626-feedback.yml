@@ -1,0 +1,75 @@
+name: 💭 TEP-4626 Feedback & Discussion
+description: Provide feedback, suggestions, or report issues on the TEP-4626 draft
+title: "[Feedback] "
+labels: ["discussion", "feedback"]
+assignees: ["@ipromise2324"]
+body:
+  - type: dropdown
+    id: feedback-type
+    attributes:
+      label: Type of Feedback
+      description: What type of feedback are you providing?
+      options:
+        - Bug/Issue
+        - Suggestion/Improvement
+        - Question/Clarification
+        - Security Concern
+        - Implementation Feedback
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: related-section
+    attributes:
+      label: Related Section in the Draft
+      description: Which section of TEP-4626 does this relate to?
+      placeholder: "e.g., Deposit Options, Notifications, Multi-Asset Support, etc."
+    validations:
+      required: false
+
+  - type: textarea
+    id: detailed-description
+    attributes:
+      label: Detailed Description
+      description: Explain your feedback in detail
+      placeholder: |
+        Clearly describe:
+        - What is the issue/suggestion?
+        - Why is this important?
+        - How does it affect the standard?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: If applicable, suggest how to address this
+      placeholder: |
+        Describe your proposed solution or alternative approach...
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives-considered
+    attributes:
+      label: Alternatives Considered
+      description: What other approaches have you considered?
+      placeholder: |
+        List alternative solutions you've thought about...
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Any additional context, examples, or references
+      placeholder: |
+        - Links to related standards or implementations
+        - Code examples
+        - Use case scenarios
+        - Screenshots or diagrams
+    validations:
+      required: false
