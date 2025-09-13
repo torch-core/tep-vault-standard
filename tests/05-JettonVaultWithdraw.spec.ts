@@ -1,8 +1,14 @@
-import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import {
+    Blockchain,
+    BlockchainSnapshot,
+    SandboxContract,
+    SendMessageResult,
+    TreasuryContract,
+} from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
-import { JettonMaster, JettonWallet } from '@ton/ton';
+import { JettonWallet } from '@ton/ton';
 import {
     buildBurnNotificationPayload,
     buildCallbackFp,
@@ -17,20 +23,22 @@ import { expectWithdrawnEmitLog } from './helper/emitLog';
 import { VaultErrors } from '../wrappers/constants/error';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
+import { MAX_COINS_VALUE } from './helper/constants';
+import { JettonMinter } from '../wrappers/mock-jetton/JettonMinter';
 
 describe('Withdraw from Jetton Vault', () => {
     let blockchain: Blockchain;
-    let USDT: SandboxContract<JettonMaster>;
+    let USDT: SandboxContract<JettonMinter>;
     let USDTVault: SandboxContract<Vault>;
     let vaultTotalSupplyBefore: bigint;
     let vaultTotalAssetsBefore: bigint;
 
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;
+    let admin: SandboxContract<TreasuryContract>;
     let maxeyShareWallet: SandboxContract<JettonWallet>;
     let maxeyShareBalBefore: bigint;
     let bobShareWallet: SandboxContract<JettonWallet>;
-    let bobShareBalBefore: bigint;
     let vaultUSDTWallet: SandboxContract<JettonWallet>;
     let vaultUSDTWalletBalBefore: bigint;
     let vaultTonBalBefore: bigint;
@@ -39,12 +47,14 @@ describe('Withdraw from Jetton Vault', () => {
     let maxeyUSDTWalletBalBefore: bigint;
     let bobUSDTWallet: SandboxContract<JettonWallet>;
     let bobUSDTWalletBalBefore: bigint;
+    let beforeMintUSDTSnapshot: BlockchainSnapshot | null = null;
+
     const queryId = 8n;
     const { getTestContext, resetToInitSnapshot } = createTestEnvironment();
 
     beforeEach(async () => {
         await resetToInitSnapshot();
-        ({ blockchain, maxey, bob, USDTVault: USDTVault, USDT } = getTestContext());
+        ({ blockchain, maxey, bob, USDTVault: USDTVault, USDT, admin, beforeMintUSDTSnapshot } = getTestContext());
         maxeyShareWallet = blockchain.openContract(
             JettonWallet.create(await USDTVault.getWalletAddress(maxey.address)),
         );
@@ -67,7 +77,6 @@ describe('Withdraw from Jetton Vault', () => {
         await maxey.send(depositArgs);
 
         maxeyShareBalBefore = await maxeyShareWallet.getBalance();
-        bobShareBalBefore = await bobShareWallet.getBalance();
         vaultUSDTWalletBalBefore = await vaultUSDTWallet.getBalance();
         maxeyUSDTWalletBalBefore = await maxeyUSDTWallet.getBalance();
         vaultTonBalBefore = (await blockchain.getContract(USDTVault.address)).balance;
@@ -340,6 +349,50 @@ describe('Withdraw from Jetton Vault', () => {
                 expectedWithdrawAmount,
                 successCallbackPayload,
                 inBody,
+            );
+        });
+
+        it('should handle withdraw with max amount', async () => {
+            // Reset blockchain before miting any USDT
+            await blockchain.loadFrom(beforeMintUSDTSnapshot!);
+
+            // Mint max amount of USDT to maxey
+            await USDT.sendMint(admin.getSender(), maxey.address, MAX_COINS_VALUE);
+
+            // Deposit max amount
+            const depositAmount = MAX_COINS_VALUE;
+            const depositArgs = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+            });
+            await maxey.send(depositArgs);
+            const maxeyShareBalBefore = await maxeyShareWallet.getBalance();
+
+            // Update balances before
+            maxeyUSDTWalletBalBefore = await maxeyUSDTWallet.getBalance();
+            vaultUSDTWalletBalBefore = await vaultUSDTWallet.getBalance();
+            const storage = await USDTVault.getStorage();
+            vaultTotalSupplyBefore = storage.totalSupply;
+            vaultTotalAssetsBefore = storage.totalAssets;
+
+            // Withdraw max amount
+            const burnShares = maxeyShareBalBefore;
+            const expectedWithdrawAmount = await USDTVault.getPreviewWithdraw(burnShares);
+            const withdrawArgs = await USDTVault.getWithdrawArg(maxey.address, burnShares);
+            const withdrawResult = await maxey.send(withdrawArgs);
+
+            // Expect withdraw flows is success
+            await expectWithdrawJettonFlows(
+                withdrawResult,
+                maxey,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                maxey,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                burnShares,
+                expectedWithdrawAmount,
+                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
             );
         });
     });

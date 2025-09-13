@@ -6,6 +6,7 @@ import { JettonMinter } from '../../wrappers/mock-jetton/JettonMinter';
 import { Opcodes } from '../../wrappers/constants/op';
 import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 import { expectVaultStorage } from './expectVault';
+import { MAX_COINS_VALUE } from './constants';
 
 export const expectVaultJettonData = async (
     vault: SandboxContract<Vault>,
@@ -29,6 +30,7 @@ export const createTestEnvironment = () => {
     // Blockchain
     let blockchain: Blockchain;
     let initSnapshot: BlockchainSnapshot | null = null;
+    let beforeMintUSDTSnapshot: BlockchainSnapshot | null = null;
 
     // Codes
     let vaultCode: Cell;
@@ -106,12 +108,6 @@ export const createTestEnvironment = () => {
         // Deploy USDT Vault
         USDT = await deployJettonMinter(blockchain, admin, 'USDT');
 
-        // Mint USDT to maxey and bob
-        await Promise.all([
-            USDT.sendMint(admin.getSender(), maxey.address, 1000_000_000_000n),
-            USDT.sendMint(admin.getSender(), bob.address, 1000_000_000_000n),
-        ]);
-
         USDTVault = blockchain.openContract(
             Vault.createFromConfig(
                 {
@@ -162,6 +158,14 @@ export const createTestEnvironment = () => {
             content,
             jettonWalletCode,
         });
+
+        // Mint USDT to maxey and bob
+        beforeMintUSDTSnapshot = blockchain.snapshot();
+        await Promise.all([
+            USDT.sendMint(admin.getSender(), admin.address, 1000_000_000_000n),
+            USDT.sendMint(admin.getSender(), maxey.address, 1000_000_000_000n),
+            USDT.sendMint(admin.getSender(), bob.address, 1000_000_000_000n),
+        ]);
 
         // Deploy EC Vault
         ecVault = blockchain.openContract(
@@ -252,6 +256,7 @@ export const createTestEnvironment = () => {
             ecVault,
             ecId,
             otherEcId,
+            beforeMintUSDTSnapshot,
         };
     };
 
@@ -278,9 +283,6 @@ export const createTestEnvironment = () => {
         );
 
         await jetton.sendDeploy(deployer.getSender(), toNano('1.5'));
-
-        // Mint some tokens to admin
-        await jetton.sendMint(deployer.getSender(), deployer.address, premint * BigInt(10 ** decimals));
 
         return jetton;
     };

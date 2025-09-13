@@ -1,8 +1,8 @@
-import { Blockchain, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
+import { Blockchain, BlockchainSnapshot, SandboxContract, SendMessageResult, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
-import { JettonMaster, JettonWallet } from '@ton/ton';
+import { JettonWallet } from '@ton/ton';
 import { expectFailDepositJettonTxs, expectJettonDepositTxs } from './helper/expectTxResults';
 import { expectDepositedEmitLog } from './helper/emitLog';
 import { expectJettonDepositorBalances } from './helper/expectBalances';
@@ -19,14 +19,17 @@ import { VaultErrors } from '../wrappers/constants/error';
 import { expectJettonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
 import { writeFileSync } from 'fs';
 import { Asset } from '@torch-finance/core';
+import { MAX_COINS_VALUE } from './helper/constants';
+import { JettonMinter } from '../wrappers/mock-jetton/JettonMinter';
 
 describe('Deposit to Jetton Vault', () => {
     let blockchain: Blockchain;
-    let USDT: SandboxContract<JettonMaster>;
+    let USDT: SandboxContract<JettonMinter>;
     let USDTVault: SandboxContract<Vault>;
 
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;
+    let admin: SandboxContract<TreasuryContract>;
     let maxeyShareWallet: SandboxContract<JettonWallet>;
     let maxeyShareBalBefore: bigint;
     let bobShareWallet: SandboxContract<JettonWallet>;
@@ -37,13 +40,14 @@ describe('Deposit to Jetton Vault', () => {
 
     let maxeyUSDTWallet: SandboxContract<JettonWallet>;
     let maxeyUSDTWalletBalBefore: bigint;
+    let beforeMintUSDTSnapshot: BlockchainSnapshot | null = null;
 
     const queryId = 8n;
     const { getTestContext, resetToInitSnapshot, deployJettonMinter } = createTestEnvironment();
 
     beforeEach(async () => {
         await resetToInitSnapshot();
-        ({ blockchain, maxey, bob, USDTVault: USDTVault, USDT } = getTestContext());
+        ({ blockchain, maxey, bob, USDTVault: USDTVault, USDT, beforeMintUSDTSnapshot, admin } = getTestContext());
         maxeyShareWallet = blockchain.openContract(
             JettonWallet.create(await USDTVault.getWalletAddress(maxey.address)),
         );
@@ -413,6 +417,42 @@ describe('Deposit to Jetton Vault', () => {
                 firstDepositAmount,
             );
         });
+
+        it('should handle deposit with max amount', async () => {
+            // Reset blockchain before miting any USDT
+            await blockchain.loadFrom(beforeMintUSDTSnapshot!);
+
+            // Mint max amount of USDT to maxey
+            await USDT.sendMint(admin.getSender(), maxey.address, MAX_COINS_VALUE);
+
+            // Reset balances before
+            maxeyUSDTWalletBalBefore = await maxeyUSDTWallet.getBalance();
+            vaultUSDTWalletBalBefore = await vaultUSDTWallet.getBalance();
+
+            // Deposit max amount of USDT to USDTVault
+            const depositAmount = MAX_COINS_VALUE;
+            const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
+                queryId,
+                depositAmount,
+            });
+            const depositResult = await maxey.send(depositArg);
+
+            // Expect that deposit is successful
+            await expectJettonDepositFlows(
+                depositResult,
+                maxey.address,
+                maxeyUSDTWallet,
+                maxeyUSDTWalletBalBefore,
+                depositAmount,
+                buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey),
+                maxey.address,
+                maxeyShareWallet,
+                maxeyShareBalBefore,
+                USDTVault,
+                vaultUSDTWallet,
+                vaultUSDTWalletBalBefore,
+            );
+        });
     });
 
     describe('Deposit Jetton failure due to minimum shares not met and refund', () => {
@@ -726,6 +766,10 @@ describe('Deposit to Jetton Vault', () => {
         it('should throw INVALID_JETTON_WALLET when Jetton master is not the vault', async () => {
             // Deploy fake Jetton master
             const fakeJetton = await deployJettonMinter(blockchain, maxey, 'Fake Jetton');
+
+            // Mint max amount of Fake Jetton to maxey
+            await fakeJetton.sendMint(maxey.getSender(), maxey.address, MAX_COINS_VALUE);
+
             const maxeyFakeJettonWalletAddress = await fakeJetton.getWalletAddress(maxey.address);
             const depositAmount = 10000n;
             const depositArg = await USDTVault.getJettonDepositArg(maxey.address, {
