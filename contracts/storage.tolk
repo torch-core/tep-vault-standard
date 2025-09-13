@@ -58,7 +58,8 @@ fun VaultStorage.getExtraCurrencyInfo(self) {
     return (externalAssetInfo is ExtraCurrencyInfo) ? externalAssetInfo : null;
 }
 
-fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: coins, assetsDelta: coins) {
+// WARNING: If delta is negative, caller must ensure it doesn't exceed totalSupply or totalAssets
+fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: int, assetsDelta: int) {
     self.totalSupply = self.totalSupply + sharesDelta;
     self.totalAssets = self.totalAssets + assetsDelta;
     self.save();
