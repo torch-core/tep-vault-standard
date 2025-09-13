@@ -2,7 +2,6 @@ import "@stdlib/tvm-dicts"
 import "../constants/common-types";
 import "../constants/values"
 import "../constants/errors"
-import "../types/vault-result";
 import "../types/callback-params";
 import "../types/asset"
 import "schemas/common"
@@ -13,6 +12,16 @@ import "../helper/jetton";
 import "../helper/extra-currency"
 import "../fees-management"
 
+struct TransferParams {
+    asset: Asset;
+    txContext: TxContext;
+    transferAmount: coins;
+    receiver: address;
+    resultCode: ResultCode;
+    callbackParams: CallbackParams;
+    assetJettonWallet: address? = null;
+}
+
 @pure
 fun resolveReceiver(receiver: address, initiator: address) {
     // If receiver is None -> use initiator as receiver
@@ -20,29 +29,21 @@ fun resolveReceiver(receiver: address, initiator: address) {
 }
 
 @pure
-fun createVaultNotificationParams(result: Result, initiator: address, callbackParams: Cell<CallbackParams>?, inBody: slice): VaultNotificationParams {
-    var callback: CallbackParams?;
-    if (callbackParams == null) {
-        // If callbackParams is null -> use default callbacks
-        callback = result == Result.Success() ? CallbackParams.defaultSuccess() : CallbackParams.defaultFailure();
-    } else {
-        callback = callbackParams.load();
-    }
-
+fun createVaultNotificationParams(resultCode: ResultCode, initiator: address, callbackParams: CallbackParams, inBody: slice): VaultNotificationParams {
     return VaultNotificationParams {
-        result: result,
+        resultCode: resultCode,
         initiator: initiator,
-        callbackPayload: callback.payload,
-        inBody: callback.includeBody ? inBody.toCell() : null
+        callbackPayload: callbackParams.payload,
+        inBody: callbackParams.includeBody ? inBody.toCell() : null
     };
 }
 
 @pure
-fun createForwardPayload(result: Result, initiator: address, callbackParams: Cell<CallbackParams>?, inBody: slice): Cell<VaultNotificationFp> {
-    return VaultNotificationFp { vaultNotificationParams: createVaultNotificationParams(result, initiator, callbackParams, inBody) }.toCell();
+fun createForwardPayload(resultCode: ResultCode, initiator: address, callbackParams: CallbackParams, inBody: slice): Cell<VaultNotificationFp> {
+    return VaultNotificationFp { vaultNotificationParams: createVaultNotificationParams(resultCode, initiator, callbackParams, inBody) }.toCell();
 }
 
-fun mint(txContext: TxContext, mutate receiver: address, shares: coins, result: Result, callbackParams: Cell<CallbackParams>?) {
+fun mint(txContext: TxContext, mutate receiver: address, shares: coins, resultCode: ResultCode, callbackParams: CallbackParams) {
     assert (shares > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
     
     receiver = resolveReceiver(receiver, txContext.initiator);
@@ -57,8 +58,8 @@ fun mint(txContext: TxContext, mutate receiver: address, shares: coins, result: 
             jettonAmount: shares,
             initiator: minterAddress,
             sendExcessesTo: receiver,
-            forwardTonAmount: calcForwardTonAmount(callbackParams, txContext.remainingValue),
-            forwardPayload: createForwardPayload(result, txContext.initiator, callbackParams, txContext.inBody)
+            forwardTonAmount: txContext.remainingValue - JETTON_TRANSFER_FEE,
+            forwardPayload: createForwardPayload(resultCode, txContext.initiator, callbackParams, txContext.inBody)
         },
     });
     mintMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
@@ -66,18 +67,18 @@ fun mint(txContext: TxContext, mutate receiver: address, shares: coins, result: 
 
 fun jettonTransfer(
     txContext: TxContext, 
-    jettonWallet: address, 
+    assetJettonWallet: address, 
     receiver: address, 
     transferAmount: coins, 
-    result: Result, 
-    callbackParams: Cell<CallbackParams>?, 
+    resultCode: ResultCode, 
+    callbackParams: CallbackParams, 
 ) {
     assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
 
     receiver = resolveReceiver(receiver, txContext.initiator);
     val transferMsg = createMessage({
         bounce: false,
-        dest: jettonWallet,
+        dest: assetJettonWallet,
         value: txContext.remainingValue,
         body: AskToTransfer {
             queryId: txContext.queryId,
@@ -85,14 +86,14 @@ fun jettonTransfer(
             transferRecipient: receiver,
             sendExcessesTo: txContext.initiator,
             customPayload: null,
-            forwardTonAmount: calcForwardTonAmount(callbackParams, txContext.remainingValue),
-            forwardPayload: createForwardPayload(result, txContext.initiator, callbackParams, txContext.inBody)
+            forwardTonAmount: txContext.remainingValue - JETTON_TRANSFER_FEE,
+            forwardPayload: createForwardPayload(resultCode, txContext.initiator, callbackParams, txContext.inBody)
         },
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun tonTransfer(txContext: TxContext,transferAmount: coins, receiver: address, result: Result, callbackParams: Cell<CallbackParams>?) {
+fun tonTransfer(txContext: TxContext,transferAmount: coins, receiver: address, resultCode: ResultCode, callbackParams: CallbackParams) {
     assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
     
     val transferMsg = createMessage({
@@ -101,7 +102,7 @@ fun tonTransfer(txContext: TxContext,transferAmount: coins, receiver: address, r
         value: txContext.remainingValue + transferAmount, 
         body: VaultNotification {
             queryId: txContext.queryId,
-            vaultNotificationParams: createVaultNotificationParams(result, txContext.initiator, callbackParams, txContext.inBody)
+            vaultNotificationParams: createVaultNotificationParams(resultCode, txContext.initiator, callbackParams, txContext.inBody)
         }
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
@@ -112,8 +113,8 @@ fun extraCurrencyTransfer(
     extraCurrencyId: ExtraCurrencyId, 
     receiver: address, 
     transferAmount: coins, 
-    result: Result, 
-    callbackParams: Cell<CallbackParams>?, 
+    resultCode: ResultCode, 
+    callbackParams: CallbackParams, 
 ) {
     assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
 
@@ -125,31 +126,23 @@ fun extraCurrencyTransfer(
         value: (txContext.remainingValue, extraCurrencyDict),
         body: VaultNotificationEc {
             queryId: txContext.queryId,
-            vaultNotificationParams: createVaultNotificationParams(result, txContext.initiator, callbackParams, txContext.inBody)
+            vaultNotificationParams: createVaultNotificationParams(resultCode, txContext.initiator, callbackParams, txContext.inBody)
         }
     });
     transferMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun transferAsset(
-    transferAsset: Asset,
-    txContext: TxContext,
-    transferAmount: coins,
-    receiver: address, 
-    result: Result, 
-    callbackParams: Cell<CallbackParams>?, 
-    assetJettonWallet: address? = null
-) {
-    match (transferAsset) {
+fun transferAsset(transferParams: TransferParams) {
+    match (transferParams.asset) {
         TonAsset => {
-            tonTransfer(txContext, transferAmount, receiver, result, callbackParams);
+            tonTransfer(transferParams.txContext, transferParams.transferAmount, transferParams.receiver, transferParams.resultCode, transferParams.callbackParams);
         }
         JettonAsset => {
-            assert (assetJettonWallet != null) throw ERR_MISSING_ASSET_JETTON_WALLET;
-            jettonTransfer(txContext, assetJettonWallet!, receiver, transferAmount, result, callbackParams);
+            assert (transferParams.assetJettonWallet != null) throw ERR_MISSING_ASSET_JETTON_WALLET;
+            jettonTransfer(transferParams.txContext, transferParams.assetJettonWallet, transferParams.receiver, transferParams.transferAmount, transferParams.resultCode, transferParams.callbackParams);
         }
         ExtraCurrencyAsset => {
-            extraCurrencyTransfer(txContext, transferAsset.extraCurrencyId, receiver, transferAmount, result, callbackParams);
+            extraCurrencyTransfer(transferParams.txContext, transferParams.asset.extraCurrencyId, transferParams.receiver, transferParams.transferAmount, transferParams.resultCode, transferParams.callbackParams);
         }
     }
 }

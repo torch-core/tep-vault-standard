@@ -4,17 +4,12 @@ import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { Address, beginCell, Cell, toNano } from '@ton/core';
 import { Opcodes } from '../wrappers/constants/op';
-import {
-    ASSET_TYPE_SIZE,
-    EXTRA_CURRENCY_ID_SIZE,
-    OPCODE_SIZE,
-    QUERY_ID_SIZE,
-    TIMESTAMP_SIZE,
-} from '../wrappers/constants/size';
+import { OPCODE_SIZE, QUERY_ID_SIZE, TIMESTAMP_SIZE } from '../wrappers/constants/size';
 import { writeFileSync } from 'fs';
 import { VaultErrors } from '../wrappers/constants/error';
-import { Asset, AssetType } from '@torch-finance/core';
+import { Asset } from '@torch-finance/core';
 import { JettonMaster } from '@ton/ton';
+import { PROVIDE_QUOTE_GAS } from './helper/constants';
 
 describe('Query Quote', () => {
     let blockchain: Blockchain;
@@ -125,12 +120,6 @@ describe('Query Quote', () => {
         timestamp: number,
         forwardPayload?: Cell,
     ) {
-        // const quoteAssetCell =
-        //     quoteAsset?.toCell() ??
-        //     beginCell()
-        //         .storeUint(AssetType.EXTRA_CURRENCY, ASSET_TYPE_SIZE)
-        //         .storeUint(ecId, EXTRA_CURRENCY_ID_SIZE)
-        //         .endCell();
         return beginCell()
             .storeUint(Opcodes.Vault.TakeQuote, OPCODE_SIZE)
             .storeUint(queryId, QUERY_ID_SIZE)
@@ -447,7 +436,7 @@ describe('Query Quote', () => {
     describe('Get methods', () => {
         it('should preview provide quote fee', async () => {
             const fee = await tonVault.getPreviewProvideQuoteFee();
-            expect(fee).toBe(toNano('0.01'));
+            expect(fee).toBe(PROVIDE_QUOTE_GAS);
         });
     });
 });

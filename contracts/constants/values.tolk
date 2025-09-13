@@ -1,3 +1,4 @@
 const MAX_COINS_VALUE = 1329227995784915872903807060280344575 as coins; // Maximum value of coins type is 2^120 - 1
 const MAX_ASSETS_PER_CELL = 3;
 const EXTRA_CURRENCY_ID_SIZE = 32;
+const SUCCESS_RESULT_CODE = 0;

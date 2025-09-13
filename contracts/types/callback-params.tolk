@@ -7,15 +7,16 @@ struct CallbackParams {
 
 struct CommentPayload {
     opcode: Opcode = 0;
-    comment: slice;
+    action: slice;
+    message: slice;
 }
 
 @pure
-fun CallbackParams.defaultSuccess(): CallbackParams {
-    return CallbackParams { payload: CommentPayload { comment: "Vault interaction successful" }.toCell() };
+fun CallbackParams.defaultSuccess(action: slice) {
+    return CallbackParams { payload: CommentPayload { action: action, message: " successful" }.toCell() };
 }
 
 @pure
-fun CallbackParams.defaultFailure(): CallbackParams {
-    return CallbackParams { payload: CommentPayload { comment: "Vault interaction failed" }.toCell() };
+fun CallbackParams.defaultFailure(action: slice) {
+    return CallbackParams { payload: CommentPayload { action: action, message: " failed" }.toCell() };
 }

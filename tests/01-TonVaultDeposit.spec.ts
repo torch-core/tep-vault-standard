@@ -3,7 +3,12 @@ import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, toNano } from '@ton/core';
-import { buildCallbackFp, DEFAULT_FAIL_CALLBACK_PAYLOAD, SUCCESS_RESULT } from './helper/callbackPayload';
+import {
+    buildCallbackFp,
+    DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD,
+    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+    SUCCESS_RESULT,
+} from './helper/callbackPayload';
 import { expectFailDepositTONTxs, expectTONDepositTxs } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emitLog';
@@ -12,7 +17,7 @@ import { expectTonDepositorBalances } from './helper/expectBalances';
 import { JettonMaster, JettonWallet } from '@ton/ton';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
-import { MAX_COINS_VALUE } from './helper/constants';
+import { DEPOSIT_GAS, MAX_COINS_VALUE } from './helper/constants';
 import { Asset } from '@torch-finance/core';
 import { OPCODE_SIZE } from '../wrappers/constants/size';
 
@@ -30,7 +35,7 @@ describe('Deposit to TON Vault', () => {
     let tonVaultTonBalDelta: bigint;
     let USDT: SandboxContract<JettonMaster>;
     const queryId = 8n;
-    const DEPOSIT_FAIL_GAS = toNano('0.015');
+    const DEPOSIT_FAIL_GAS = toNano('0.02');
 
     const { getTestContext, resetToInitSnapshot } = createTestEnvironment();
 
@@ -122,7 +127,14 @@ describe('Deposit to TON Vault', () => {
                 maxeyShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    tonVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+                ),
             );
         });
 
@@ -147,7 +159,14 @@ describe('Deposit to TON Vault', () => {
                 bobShareBalBefore,
                 maxeyTonBalBefore,
                 depositAmount,
-                buildCallbackFp(queryId, depositAmount, tonVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    tonVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+                ),
             );
         });
 
@@ -311,7 +330,14 @@ describe('Deposit to TON Vault', () => {
                 maxeyShareBalBefore,
                 maxeyTonBalBefore,
                 firstDepositAmount,
-                buildCallbackFp(queryId, firstDepositAmount, tonVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(
+                    queryId,
+                    firstDepositAmount,
+                    tonVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+                ),
             );
 
             // Update maxey share and ton balances
@@ -340,7 +366,14 @@ describe('Deposit to TON Vault', () => {
                 maxeyShareBalBefore,
                 maxeyTonBalBefore,
                 secondDepositAmount,
-                buildCallbackFp(secondQueryId, secondDepositAmount, tonVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(
+                    secondQueryId,
+                    secondDepositAmount,
+                    tonVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+                ),
                 firstDepositAmount,
                 firstDepositAmount,
             );
@@ -380,7 +413,7 @@ describe('Deposit to TON Vault', () => {
                 tonVault,
                 queryId,
                 VaultErrors.FailedMinShares,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD,
             );
         });
 
@@ -404,7 +437,7 @@ describe('Deposit to TON Vault', () => {
                 tonVault,
                 queryId,
                 VaultErrors.FailedMinShares,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD,
             );
         });
 
@@ -618,7 +651,7 @@ describe('Deposit to TON Vault', () => {
     describe('Get methods', () => {
         it('should preview ton deposit fee', async () => {
             const fee = await tonVault.getPreviewTonDepositFee();
-            expect(fee).toBe(toNano('0.012'));
+            expect(fee).toBe(DEPOSIT_GAS);
         });
 
         it('should get max deposit', async () => {

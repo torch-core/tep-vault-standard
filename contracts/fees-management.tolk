@@ -6,7 +6,7 @@ const REQUEST_JETTON_WALLET_ADDRESS_FEE = ton("0.05");
 const DEFAULT_JETTON_NOTIFICATION_FEE = 1;
 
 // Gas Fees
-const DEPOSIT_GAS = ton("0.012");
+const DEPOSIT_GAS = ton("0.013");
 const WITHDRAW_GAS = ton("0.012");
 const PROVIDE_QUOTE_GAS = ton("0.01");
 
