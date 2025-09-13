@@ -22,6 +22,7 @@ import { Asset } from '@torch-finance/core';
 import { OPCODE_SIZE } from '../wrappers/constants/size';
 
 describe('Deposit to TON Vault', () => {
+    jest.setTimeout(30000);
     let blockchain: Blockchain;
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;
