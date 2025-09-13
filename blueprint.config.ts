@@ -1,5 +1,5 @@
 import { Config } from '@ton/blueprint';
 
 export const config: Config = {
-    requestTimeout: 40000, // 40 seconds
+    requestTimeout: 50000, // 50 seconds
 };
