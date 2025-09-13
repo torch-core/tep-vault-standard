@@ -47,7 +47,7 @@ fun onInternalMessage(in: InMessage) {
         // Processes TON deposits and mints shares to receiver
         Deposit => {
             // Verifies vault supports TON deposits to prevent TON deposits in Jetton/Extra Currency vaults
-            assert (storage.externalAssetInfo == null) throw ERR_NON_SUPPORTED_TON_DEPOSIT;
+            assert (storage.externalAssetInfo == null) throw ERR_UNSUPPORTED_TON_DEPOSIT;
 
             assert (inMsg.depositAmount > 0) throw ERR_INVALID_DEPOSIT_AMOUNT;
 
@@ -65,7 +65,7 @@ fun onInternalMessage(in: InMessage) {
         DepositEc => {
             // Verifies vault supports Extra Currency deposits to prevent Extra Currency deposits in TON/Jetton vaults
             val extraCurrencyInfo = storage.getExtraCurrencyInfo();
-            assert (extraCurrencyInfo != null) throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT;
+            assert (extraCurrencyInfo != null) throw ERR_UNSUPPORTED_EXTRA_CURRENCY_DEPOSIT;
 
             // Validates the deposited Extra Currency ID is supported and ensures single Extra Currency deposit
             val extraCurrencyId = extraCurrencyInfo.extraCurrencyId;
@@ -84,7 +84,7 @@ fun onInternalMessage(in: InMessage) {
         VaultTransferNotification => {
             // Verifies vault supports Jetton deposits to prevent Jetton deposits in TON/Extra Currency vaults
             val assetJettonInfo = storage.getAssetJettonInfo();
-            assert (assetJettonInfo != null) throw ERR_NON_SUPPORTED_JETTON_DEPSIT;
+            assert (assetJettonInfo != null) throw ERR_UNSUPPORTED_JETTON_DEPOSIT;
 
             // Verifies sender is from vault's underlying Jetton wallet to prevent unauthorized Jetton asset deposits  
             assert (in.senderAddress == assetJettonInfo.walletAddress) throw ERR_INVALID_JETTON_WALLET;

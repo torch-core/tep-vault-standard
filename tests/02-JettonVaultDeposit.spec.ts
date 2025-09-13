@@ -648,7 +648,7 @@ describe('Deposit to Jetton Vault', () => {
     });
 
     describe('Other failure cases', () => {
-        it('should throw ERR_NON_SUPPORTED_TON_DEPOSIT when deposit TON in jetton vault', async () => {
+        it('should throw ERR_UNSUPPORTED_TON_DEPOSIT when deposit TON in jetton vault', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await USDTVault.getTonDepositArg({
                 queryId,
@@ -664,7 +664,7 @@ describe('Deposit to Jetton Vault', () => {
                 exitCode: VaultErrors.NonSupportedTonDeposit,
             });
         });
-        it('should throw ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT when deposit Extra Currency in jetton vault', async () => {
+        it('should throw ERR_UNSUPPORTED_EXTRA_CURRENCY_DEPOSIT when deposit Extra Currency in jetton vault', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await USDTVault.getEcDepositArg(
                 {

@@ -17,9 +17,9 @@ const ERR_FAILED_MIN_SHARES = 2003;
 const ERR_INSUFFICIENT_TON_DEPOSIT_GAS = 2004;
 const ERR_INSUFFICIENT_JETTON_DEPOSIT_GAS = 2005;
 const ERR_INSUFFICIENT_EXTRA_CURRENCY_DEPOSIT_GAS = 2006; 
-const ERR_NON_SUPPORTED_TON_DEPOSIT = 2007;                 // When vault is Jetton/Extra Currency vault, and deposit is ton
-const ERR_NON_SUPPORTED_JETTON_DEPSIT = 2008;               // When vault is ton vault, and deposit is Jetton
-const ERR_NON_SUPPORTED_EXTRA_CURRENCY_DEPOSIT = 2009;      // When vault is ton vault, and deposit is Extra Currency
+const ERR_UNSUPPORTED_TON_DEPOSIT = 2007;                 // When vault is Jetton/Extra Currency vault, and deposit is ton
+const ERR_UNSUPPORTED_JETTON_DEPOSIT = 2008;               // When vault is ton vault, and deposit is Jetton
+const ERR_UNSUPPORTED_EXTRA_CURRENCY_DEPOSIT = 2009;      // When vault is ton vault, and deposit is Extra Currency
 const ERR_INVALID_EXTRA_CURRENCY_ID = 2010;
 const ERR_MULTI_EXTRA_CURRENCY_DEPOSIT = 2011;
 
