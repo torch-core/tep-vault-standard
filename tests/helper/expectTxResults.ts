@@ -150,7 +150,7 @@ export function expectFailDepositTONTxs(
     vault: SandboxContract<Vault>,
     queryId: bigint,
     exitCode: number,
-    callbackPayload?: Cell,
+    callbackPayload: Cell,
     inBody?: Cell,
 ) {
     // Deposit transaction fails with specified exit code
@@ -209,7 +209,7 @@ export function expectFailDepositEcTxs(
     vault: SandboxContract<Vault>,
     queryId: bigint,
     exitCode: number,
-    callbackPayload?: Cell,
+    callbackPayload: Cell,
     inBody?: Cell,
 ) {
     // Deposit transaction fails with specified exit code

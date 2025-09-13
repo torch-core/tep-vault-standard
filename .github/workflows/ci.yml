@@ -1,0 +1,58 @@
+name: CI
+
+# trigger on Pull request for all branches and on push for main branch
+# only works for contracts, tests, wrappers, and workflows files
+on:
+  pull_request:
+    branches:
+      - "*"
+    paths:
+      - "contracts/**"
+      - "tests/**"
+      - "wrappers/**"
+      - ".github/workflows/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "contracts/**"
+      - "tests/**"
+      - "wrappers/**"
+      - ".github/workflows/**"
+
+jobs:
+  build:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18]
+
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: "pnpm"
+          registry-url: https://registry.npmjs.org
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm build --all
+
+      - name: Run tests
+        run: pnpm test

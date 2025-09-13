@@ -1,7 +1,7 @@
 import { Blockchain, SandboxContract } from '@ton/sandbox';
 import { Vault, VaultStorage } from '../../wrappers/Vault';
-import { DEPOSIT_GAS } from './expectBalances';
 import { JettonWallet } from '@ton/ton';
+import { DEPOSIT_GAS } from './constants';
 
 // =============================================================================
 // Storage Validation Helpers

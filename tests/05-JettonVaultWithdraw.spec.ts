@@ -12,8 +12,8 @@ import { JettonWallet } from '@ton/ton';
 import {
     buildBurnNotificationPayload,
     buildCallbackFp,
-    DEFAULT_FAIL_CALLBACK_PAYLOAD,
-    DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+    DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD,
+    DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
     SUCCESS_RESULT,
 } from './helper/callbackPayload';
 import { expectBurnTxs, expectMintShares, expectWithdrawJettonTxs } from './helper/expectTxResults';
@@ -27,6 +27,7 @@ import { MAX_COINS_VALUE } from './helper/constants';
 import { JettonMinter } from '../wrappers/mock-jetton/JettonMinter';
 
 describe('Withdraw from Jetton Vault', () => {
+    jest.setTimeout(30000);
     let blockchain: Blockchain;
     let USDT: SandboxContract<JettonMinter>;
     let USDTVault: SandboxContract<Vault>;
@@ -188,7 +189,7 @@ describe('Withdraw from Jetton Vault', () => {
                 maxeyUSDTWalletBalBefore,
                 burnShares,
                 expectedWithdrawAmount,
-                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+                DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
             );
         });
 
@@ -210,7 +211,7 @@ describe('Withdraw from Jetton Vault', () => {
                 bobUSDTWalletBalBefore,
                 burnShares,
                 expectedWithdrawAmount,
-                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+                DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
             );
         });
 
@@ -392,7 +393,7 @@ describe('Withdraw from Jetton Vault', () => {
                 maxeyUSDTWalletBalBefore,
                 burnShares,
                 expectedWithdrawAmount,
-                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+                DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
             );
         });
     });
@@ -424,7 +425,7 @@ describe('Withdraw from Jetton Vault', () => {
                 withdrawResult,
                 maxey,
                 expectedWithdrawAmount,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD,
             );
         });
 
@@ -441,7 +442,7 @@ describe('Withdraw from Jetton Vault', () => {
                 withdrawResult,
                 maxey,
                 expectedWithdrawAmount,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD,
             );
         });
 

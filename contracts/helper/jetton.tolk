@@ -1,7 +1,5 @@
 import "../storage"
-import "../types/callback-params"
 import "../types/wallet-status"
-import "../fees-management"
 
 @pure
 fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell): AutoDeployAddress {
@@ -18,11 +16,6 @@ fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jett
             data: emptyWalletStorage.toCell()
         }
     }
-}
-
-@pure
-fun calcForwardTonAmount(callbackParams: Cell<CallbackParams>?, sendingValue: coins) {
-    return (callbackParams == null ? DEFAULT_JETTON_NOTIFICATION_FEE : sendingValue - JETTON_TRANSFER_FEE) as coins;
 }
 
 fun buildAddressOfJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell) {

@@ -9,8 +9,8 @@ import {
     buildBurnNotificationPayload,
     buildCallbackFp,
     buildVaultNotificationEc,
-    DEFAULT_FAIL_CALLBACK_PAYLOAD,
-    DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+    DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD,
+    DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
 } from './helper/callbackPayload';
 import { expectWithdrawnEmitLog } from './helper/emitLog';
 import { VaultErrors } from '../wrappers/constants/error';
@@ -162,7 +162,7 @@ describe('Withdraw from Extra Currency Vault', () => {
                 maxeyEcBalBefore,
                 burnShares,
                 expectedWithdrawAmount,
-                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+                DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
             );
         });
 
@@ -184,7 +184,7 @@ describe('Withdraw from Extra Currency Vault', () => {
                 bobEcBalBefore,
                 burnShares,
                 expectedWithdrawAmount,
-                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+                DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
             );
         });
 
@@ -343,7 +343,7 @@ describe('Withdraw from Extra Currency Vault', () => {
             });
             const withdrawResult = await maxey.send(withdrawArgs);
 
-            await expectWithdrawEcFailure(withdrawResult, maxey, expectedWithdrawAmount, DEFAULT_FAIL_CALLBACK_PAYLOAD);
+            await expectWithdrawEcFailure(withdrawResult, maxey, expectedWithdrawAmount, DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD);
         });
 
         it('should handle withdraw failure with receiver', async () => {
@@ -355,7 +355,7 @@ describe('Withdraw from Extra Currency Vault', () => {
             });
             const withdrawResult = await maxey.send(withdrawArgs);
 
-            await expectWithdrawEcFailure(withdrawResult, maxey, expectedWithdrawAmount, DEFAULT_FAIL_CALLBACK_PAYLOAD);
+            await expectWithdrawEcFailure(withdrawResult, maxey, expectedWithdrawAmount, DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD);
         });
 
         it('should handle withdraw failure with failure callback (body not included)', async () => {

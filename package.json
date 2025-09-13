@@ -10,6 +10,7 @@
         "release": "blueprint pack && npm publish --access public",
         "coverage": "ts-node coverage/coverage.ts"
     },
+    "packageManager": "pnpm@10.0.0",
     "dependencies": {
         "@ton/core": "~0",
         "@torch-finance/core": "^1.3.3",

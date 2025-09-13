@@ -1,6 +1,5 @@
 import "../../constants/common-types"
 import "../../types/callback-params"
-import "../../types/vault-result"
 
 struct VaultOptions {
     // Add your optional params for vault here
@@ -16,7 +15,7 @@ struct Callbacks {
 }
 
 struct VaultNotificationParams {
-    result: Result
+    resultCode: ResultCode
     initiator: address
     callbackPayload: cell?
     inBody: cell?

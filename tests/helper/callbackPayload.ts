@@ -8,14 +8,24 @@ import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 
 export const SUCCESS_RESULT = 0;
 
-export const DEFAULT_SUCCESS_CALLBACK_PAYLOAD = beginCell()
+export const DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD = beginCell()
     .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
-    .storeStringTail('Vault interaction successful')
+    .storeStringTail('Deposit successful')
     .endCell();
 
-export const DEFAULT_FAIL_CALLBACK_PAYLOAD = beginCell()
+export const DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD = beginCell()
     .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
-    .storeStringTail('Vault interaction failed')
+    .storeStringTail('Deposit failed')
+    .endCell();
+
+export const DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD = beginCell()
+    .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
+    .storeStringTail('Withdraw successful')
+    .endCell();
+
+export const DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD = beginCell()
+    .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
+    .storeStringTail('Withdraw failed')
     .endCell();
 
 export function buildTransferNotificationPayload(
@@ -54,7 +64,7 @@ export function buildVaultNotification(
     queryId: bigint,
     result: number,
     initiator: Address,
-    callbackPayload?: Cell,
+    callbackPayload: Cell,
     inBody?: Cell,
 ) {
     return beginCell()
@@ -71,7 +81,7 @@ export function buildVaultNotificationEc(
     queryId: bigint,
     result: number,
     initiator: Address,
-    callbackPayload?: Cell,
+    callbackPayload: Cell,
     inBody?: Cell,
 ) {
     return beginCell()
@@ -90,14 +100,14 @@ export function buildCallbackFp(
     vault: SandboxContract<Vault>,
     result: number,
     initiator: SandboxContract<TreasuryContract>,
-    callbackPayload?: Cell,
+    callbackPayload: Cell,
     inBody?: Cell,
 ) {
     const fowardPayload = beginCell()
         .storeUint(Opcodes.Vault.VaultNotificationFp, OPCODE_SIZE)
         .storeUint(result, RESULT_SIZE)
         .storeAddress(initiator.address)
-        .storeMaybeRef(callbackPayload ?? DEFAULT_SUCCESS_CALLBACK_PAYLOAD)
+        .storeMaybeRef(callbackPayload)
         .storeMaybeRef(inBody)
         .endCell();
     return buildTransferNotificationPayload(queryId, transferAmount, vault.address, fowardPayload);

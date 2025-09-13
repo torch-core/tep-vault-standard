@@ -1,8 +1,7 @@
 import { Blockchain, SandboxContract } from '@ton/sandbox';
 import { TreasuryContract } from '@ton/sandbox';
-import { JettonWallet, toNano } from '@ton/ton';
-
-export const DEPOSIT_GAS = toNano('0.012');
+import { JettonWallet } from '@ton/ton';
+import { DEPOSIT_GAS } from './constants';
 
 export async function expectTonDepositorBalances(
     depositor: SandboxContract<TreasuryContract>,

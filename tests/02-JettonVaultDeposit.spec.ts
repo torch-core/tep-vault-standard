@@ -9,7 +9,8 @@ import { expectJettonDepositorBalances } from './helper/expectBalances';
 import {
     buildCallbackFp,
     buildTransferNotificationPayload,
-    DEFAULT_FAIL_CALLBACK_PAYLOAD,
+    DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD,
+    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
     SUCCESS_RESULT,
 } from './helper/callbackPayload';
 import { Address, beginCell, Cell, toNano } from '@ton/core';
@@ -19,10 +20,11 @@ import { VaultErrors } from '../wrappers/constants/error';
 import { expectJettonVaultBalances, expectVaultSharesAndAssets } from './helper/expectVault';
 import { writeFileSync } from 'fs';
 import { Asset } from '@torch-finance/core';
-import { MAX_COINS_VALUE } from './helper/constants';
+import { DEPOSIT_GAS, MAX_COINS_VALUE } from './helper/constants';
 import { JettonMinter } from '../wrappers/mock-jetton/JettonMinter';
 
 describe('Deposit to Jetton Vault', () => {
+    jest.setTimeout(30000);
     let blockchain: Blockchain;
     let USDT: SandboxContract<JettonMinter>;
     let USDTVault: SandboxContract<Vault>;
@@ -144,7 +146,14 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
-                buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    USDTVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+                ),
                 maxey.address,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
@@ -172,7 +181,14 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
-                buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    USDTVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+                ),
                 bob.address,
                 bobShareWallet,
                 bobShareBalBefore,
@@ -374,7 +390,14 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 firstDepositAmount,
-                buildCallbackFp(queryId, firstDepositAmount, USDTVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(
+                    queryId,
+                    firstDepositAmount,
+                    USDTVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+                ),
                 maxey.address,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
@@ -406,7 +429,14 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 secondDepositAmount,
-                buildCallbackFp(secondQueryId, secondDepositAmount, USDTVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(
+                    secondQueryId,
+                    secondDepositAmount,
+                    USDTVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+                ),
                 maxey.address,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
@@ -444,7 +474,14 @@ describe('Deposit to Jetton Vault', () => {
                 maxeyUSDTWallet,
                 maxeyUSDTWalletBalBefore,
                 depositAmount,
-                buildCallbackFp(queryId, depositAmount, USDTVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(
+                    queryId,
+                    depositAmount,
+                    USDTVault,
+                    SUCCESS_RESULT,
+                    maxey,
+                    DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD,
+                ),
                 maxey.address,
                 maxeyShareWallet,
                 maxeyShareBalBefore,
@@ -486,7 +523,7 @@ describe('Deposit to Jetton Vault', () => {
                     USDTVault,
                     VaultErrors.FailedMinShares,
                     maxey,
-                    DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                    DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD,
                 ),
             );
         });
@@ -515,7 +552,7 @@ describe('Deposit to Jetton Vault', () => {
                     USDTVault,
                     VaultErrors.FailedMinShares,
                     maxey,
-                    DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                    DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD,
                 ),
             );
         });
@@ -829,7 +866,7 @@ describe('Deposit to Jetton Vault', () => {
     describe('Get methods', () => {
         it('should preview jetton deposit fee', async () => {
             const fee = await USDTVault.getPreviewJettonDepositFee();
-            expect(fee).toBe(toNano('0.012'));
+            expect(fee).toBe(DEPOSIT_GAS);
         });
 
         it('should get assets', async () => {

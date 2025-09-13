@@ -9,14 +9,14 @@ import {
     buildBurnNotificationPayload,
     buildCallbackFp,
     buildVaultNotification,
-    DEFAULT_FAIL_CALLBACK_PAYLOAD,
-    DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+    DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD,
+    DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
 } from './helper/callbackPayload';
 import { expectWithdrawnEmitLog } from './helper/emitLog';
 import { VaultErrors } from '../wrappers/constants/error';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
-import { MAX_COINS_VALUE } from './helper/constants';
+import { MAX_COINS_VALUE, WITHDRAW_GAS } from './helper/constants';
 
 describe('Withdraw from TON Vault', () => {
     let blockchain: Blockchain;
@@ -160,7 +160,7 @@ describe('Withdraw from TON Vault', () => {
                 maxeyTonBalBefore,
                 burnShares,
                 expectedWithdrawAmount,
-                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+                DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
             );
 
             tonVaultTonBalDelta += expectedWithdrawAmount;
@@ -184,7 +184,7 @@ describe('Withdraw from TON Vault', () => {
                 bobTonBalBefore,
                 burnShares,
                 expectedWithdrawAmount,
-                DEFAULT_SUCCESS_CALLBACK_PAYLOAD,
+                DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD,
             );
 
             tonVaultTonBalDelta += expectedWithdrawAmount;
@@ -357,7 +357,7 @@ describe('Withdraw from TON Vault', () => {
                 withdrawResult,
                 maxey,
                 expectedWithdrawAmount,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD,
             );
         });
 
@@ -374,7 +374,7 @@ describe('Withdraw from TON Vault', () => {
                 withdrawResult,
                 maxey,
                 expectedWithdrawAmount,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD,
             );
         });
 
@@ -560,7 +560,7 @@ describe('Withdraw from TON Vault', () => {
     describe('Get methods', () => {
         it('should preview ton withdraw fee', async () => {
             const fee = await tonVault.getPreviewWithdrawFee();
-            expect(fee).toBe(toNano('0.012'));
+            expect(fee).toBe(WITHDRAW_GAS);
         });
 
         it('should get max withdraw', async () => {

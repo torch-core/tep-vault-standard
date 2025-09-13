@@ -3,7 +3,7 @@ import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
 import { beginCell, Cell, toNano } from '@ton/core';
-import { buildCallbackFp, DEFAULT_FAIL_CALLBACK_PAYLOAD, SUCCESS_RESULT } from './helper/callbackPayload';
+import { buildCallbackFp, DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD, DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD, SUCCESS_RESULT } from './helper/callbackPayload';
 import { expectEcDepositTxs, expectFailDepositEcTxs } from './helper/expectTxResults';
 import { VaultErrors } from '../wrappers/constants/error';
 import { expectDepositedEmitLog } from './helper/emitLog';
@@ -13,6 +13,7 @@ import { JettonMaster, JettonWallet } from '@ton/ton';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
 import { ASSET_TYPE_SIZE, EXTRA_CURRENCY_ID_SIZE } from '../wrappers/constants/size';
+import { DEPOSIT_GAS } from './helper/constants';
 
 describe('Deposit to Extra Currency  Vault', () => {
     let blockchain: Blockchain;
@@ -124,7 +125,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 maxeyShareBalBefore,
                 maxeyEcBalBefore,
                 depositAmount,
-                buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey, DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD),
             );
         });
 
@@ -149,7 +150,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 bobShareBalBefore,
                 maxeyEcBalBefore,
                 depositAmount,
-                buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(queryId, depositAmount, ecVault, SUCCESS_RESULT, maxey, DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD),
             );
         });
 
@@ -313,7 +314,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 maxeyShareBalBefore,
                 maxeyEcBalBefore,
                 firstDepositAmount,
-                buildCallbackFp(queryId, firstDepositAmount, ecVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(queryId, firstDepositAmount, ecVault, SUCCESS_RESULT, maxey, DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD),
             );
 
             // Update maxey share and ton balances
@@ -339,7 +340,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 maxeyShareBalBefore,
                 maxeyEcBalBefore,
                 secondDepositAmount,
-                buildCallbackFp(secondQueryId, secondDepositAmount, ecVault, SUCCESS_RESULT, maxey),
+                buildCallbackFp(secondQueryId, secondDepositAmount, ecVault, SUCCESS_RESULT, maxey, DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD),
                 firstDepositAmount,
                 firstDepositAmount,
             );
@@ -379,7 +380,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 ecVault,
                 queryId,
                 VaultErrors.FailedMinShares,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD,
             );
         });
 
@@ -403,7 +404,7 @@ describe('Deposit to Extra Currency  Vault', () => {
                 ecVault,
                 queryId,
                 VaultErrors.FailedMinShares,
-                DEFAULT_FAIL_CALLBACK_PAYLOAD,
+                DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD,
             );
         });
 
@@ -642,7 +643,7 @@ describe('Deposit to Extra Currency  Vault', () => {
     describe('Get methods', () => {
         it('should preview Extra Currency deposit fee', async () => {
             const fee = await ecVault.getPreviewExtraCurrencyDepositFee();
-            expect(fee).toBe(toNano('0.012'));
+            expect(fee).toBe(DEPOSIT_GAS);
         });
 
         it('should get assets', async () => {

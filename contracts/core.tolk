@@ -1,8 +1,8 @@
 import "constants/values";
 import "constants/errors";
 import "types/rounding";
-import "types/vault-result";
 import "types/asset"
+import "types/callback-params"
 import "storage"
 import "messages/schemas/common"
 import "messages/schemas/deposit"
@@ -48,7 +48,7 @@ fun previewWithdraw(shares: coins, withdrawConfig: WithdrawConfig? = null) {
 
 // Handles deposit logic: validates, mints shares to receiver, and emits event on success
 // On failure, rolls back by transferring asset(TON or Jetton) back to initiator and throws error
-fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coins, depositParams: DepositParams, assetJettonWallet: address? = null) {
+fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coins, depositParams: DepositParams, assetJettonWallet: address? = null, action: slice = "Deposit") {
     try {
         val maxDepositAmount = maxDeposit();
         assert (depositAmount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
@@ -56,19 +56,21 @@ fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coin
         val shares = previewDeposit(depositAmount);
         assert (shares >= depositParams.minShares) throw ERR_FAILED_MIN_SHARES;
 
-        mint(txContext, mutate depositParams.receiver, shares, Result.Success(), depositParams.callbacks.successCallback);
+        val callbackParams = depositParams.callbacks.successCallback != null ? depositParams.callbacks.successCallback.load() : CallbackParams.defaultSuccess(action);
+        mint(txContext, mutate depositParams.receiver, shares, SUCCESS_RESULT_CODE, callbackParams);
         emitDeposited(Deposited { initiator: txContext.initiator, receiver: depositParams.receiver, depositAmount: depositAmount, shares: shares });
         return shares;
     } catch (errCode) {
-        transferAsset(
-            depositAsset,
-            txContext, 
-            depositAmount, 
-            txContext.initiator, 
-            Result.Error(errCode), 
-            depositParams.callbacks.failureCallback, 
-            assetJettonWallet,
-        );   
+        val callbackParams = depositParams.callbacks.failureCallback != null ? depositParams.callbacks.failureCallback.load() : CallbackParams.defaultFailure(action);
+        transferAsset(TransferParams {
+            asset: depositAsset,
+            txContext: txContext, 
+            transferAmount: depositAmount, 
+            receiver: txContext.initiator, 
+            resultCode: errCode, 
+            callbackParams: callbackParams, 
+            assetJettonWallet: assetJettonWallet,
+        });   
         commitContractDataAndActions();
         throw errCode;
     }
@@ -76,7 +78,7 @@ fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coin
 
 // Handles withdrawal logic: validates, transfers assets to receiver, and emits event on success
 // On failure, rolls back by minting shares back to initiator and throws error
-fun handleWithdraw(txContext: TxContext, withdrawAsset: Asset, shares: coins, withdrawFp: WithdrawFp, assetJettonWallet: address? = null) {
+fun handleWithdraw(txContext: TxContext, withdrawAsset: Asset, shares: coins, withdrawFp: WithdrawFp, assetJettonWallet: address? = null, action: slice = "Withdraw") {
     try {
         val maxShares = maxWithdraw();
         assert (shares <= maxShares) throw ERR_EXCEEDED_MAX_WITHDRAW;
@@ -84,19 +86,21 @@ fun handleWithdraw(txContext: TxContext, withdrawAsset: Asset, shares: coins, wi
         val withdrawAmount = previewWithdraw(shares);
         assert (withdrawAmount >= withdrawFp.minWithdraw) throw ERR_FAILED_MIN_WITHDRAW;
         
-        transferAsset(
-            withdrawAsset,
-            txContext, 
-            withdrawAmount, 
-            withdrawFp.receiver, 
-            Result.Success(), 
-            withdrawFp.callbacks.successCallback, 
-            assetJettonWallet,
-        );
+        val callbackParams = withdrawFp.callbacks.successCallback != null ? withdrawFp.callbacks.successCallback.load() : CallbackParams.defaultSuccess(action);
+        transferAsset(TransferParams {
+            asset: withdrawAsset,
+            txContext: txContext, 
+            transferAmount: withdrawAmount, 
+            receiver: withdrawFp.receiver, 
+            resultCode: SUCCESS_RESULT_CODE, 
+            callbackParams: callbackParams, 
+            assetJettonWallet: assetJettonWallet,
+        });
         emitWithdrawn(Withdrawn { initiator: txContext.initiator, receiver: withdrawFp.receiver, withdrawAmount: withdrawAmount, burnedShares: shares });
         return withdrawAmount;
     } catch (errCode) {
-        mint(txContext, mutate txContext.initiator, shares, Result.Error(errCode), withdrawFp.callbacks.failureCallback);
+        val callbackParams = withdrawFp.callbacks.failureCallback != null ? withdrawFp.callbacks.failureCallback.load() : CallbackParams.defaultFailure(action);
+        mint(txContext, mutate txContext.initiator, shares, errCode, callbackParams);
         commitContractDataAndActions();
         throw errCode;
     }
