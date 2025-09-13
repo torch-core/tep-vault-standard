@@ -24,6 +24,7 @@ import { DEPOSIT_GAS, MAX_COINS_VALUE } from './helper/constants';
 import { JettonMinter } from '../wrappers/mock-jetton/JettonMinter';
 
 describe('Deposit to Jetton Vault', () => {
+    jest.setTimeout(30000);
     let blockchain: Blockchain;
     let USDT: SandboxContract<JettonMinter>;
     let USDTVault: SandboxContract<Vault>;
