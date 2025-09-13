@@ -67,7 +67,7 @@ All `TEP-4626` vaults MUST implement [`TEP-64`](https://github.com/ton-blockchai
     - `ROUND_DOWN = 0`
     - `ROUND_UP = 1`
     - `ROUND_HALF_UP = 2` — standard rounding (i.e., round half up)
-- **`Result`** <a id="result"></a>: `uint16`
+- **`ResultCode`** <a id="resultcode"></a>: `uint16`
     - Outcome of the vault operation.
     - Values:
         - `0` (success)
@@ -149,7 +149,7 @@ The specific storage structure for managing underlying assets, Jetton wallets, a
 
         | Field             | Type              | Description                                                                                                                                     |
         | ----------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-        | `result`          | [Result](#result) | Outcome of the vault operation.                                                                                                                 |
+        | `resultCode`      | [ResultCode](#resultcode) | Outcome of the vault operation.                                                                                                                 |
         | `initiator`       | `Address`         | Address initiating the vault interaction.                                                                                                       |
         | `callbackPayload` | `Cell?`           | `successCallback.payload` (on success) or `failureCallback.payload` (on failure). `Null` if not specified in [CallbackParams](#callbackparams). |
         | `inBody`          | `Cell?`           | The vault Interaction message payload if `includeBody` is `true`; otherwise, `Null`.                                                            |
