@@ -395,7 +395,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
         - MUST NOT include fees charged against assets.
         - MUST NOT vary by sender.
         - MUST NOT reflect slippage or on-chain conditions.
-        - MUST NOT revert unless due to integer overflow from unreasonably large input.
+        - MUST NOT revert unless due to integer overflow from unreasonably large input or if vaultOptions/vaultConfig is not provided when required.
         - MUST round down to `0`.
         - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
         - For multi-asset vaults, SHOULD handle conversions via `vaultConfig` if needed.
@@ -421,7 +421,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
         - MUST NOT include fees charged against assets.
         - MUST NOT vary by sender.
         - MUST NOT reflect slippage or on-chain conditions.
-        - MUST NOT revert unless due to integer overflow from unreasonably large input.
+        - MUST NOT revert unless due to integer overflow from unreasonably large input or if vaultOptions/vaultConfig is not provided when required.
         - MUST round down to `0`.
         - MAY NOT reflect per-user price-per-share, but SHOULD reflect the average user’s price-per-share.
         - For multi-asset vaults, SHOULD handle conversions via vault`Config if needed.
@@ -448,6 +448,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
         - Assumes the user has unlimited asset amount for the underlying asset.
         - MUST consider global or asset-specific constraints for the given asset (e.g., return `0` if deposits for that asset are disabled).
         - MAY return the maximum value of the `Coins` type if no deposit limits exist for the specified asset.
+        - MAY revert if depositOptions/depositConfig is not provided when required.
         - For multi-asset vaults, SHOULD handle asset-specific limits via `depositConfig` if needed.
     - **Input**:
       | Field | Type | Description |
@@ -493,6 +494,7 @@ TEP-4626 vaults MUST implement the following functions for querying vault state 
         - MUST return the maximum shares that can be withdrawn for the specified asset without reverting, underestimating if necessary.
         - MUST consider global or asset-specific constraints for the given asset (e.g., return `0` if withdrawals for that asset are disabled).
         - MAY return the maximum value of the `Coins` type if no withdraw limits exist for the specified asset.
+        - MAY revert if withdrawOptions/withdrawConfig is not provided when required.
         - For multi-asset vaults, SHOULD handle asset-specific limits via `withdrawConfig` if needed.
     - **Input**:
       | Field | Type | Description |
