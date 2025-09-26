@@ -103,7 +103,7 @@ describe('Deposit to TON Vault', () => {
         );
 
         // Expect that deposited emit log is emitted
-        expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount);
+        expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount, oldTotalSupply, oldTotalAssets, Asset.ton());
 
         // Update tonVaultTonBalDelta
         tonVaultTonBalDelta += depositAmount;

@@ -50,9 +50,10 @@ struct DepositLogOptions {
 struct(0x11475d67) Deposited {
     initiator: address
     receiver: address
-    depositAsset: Cell<Asset>? = null
+    depositAsset: Cell<Asset>
     depositAmount: coins
     shares: coins
+    vaultStateAfter: Cell<VaultStateAfter>
     depositLogOptions: Cell<DepositLogOptions>? = null
 }
 

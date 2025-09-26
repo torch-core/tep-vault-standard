@@ -56,7 +56,7 @@ fun onInternalMessage(in: InMessage) {
             val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: in.body };
 
             val depositAsset = Asset.tonAsset();
-            val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, inMsg.depositParams);
+            val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, inMsg.depositParams, storage.totalAssets, storage.totalSupply);
 
             storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
         }
@@ -75,7 +75,7 @@ fun onInternalMessage(in: InMessage) {
             val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: in.body };
 
             val depositAsset = Asset.extraCurrencyAsset(extraCurrencyId);
-            val shares = handleDeposit(txContext, depositAsset, depositAmount, inMsg.depositParams);
+            val shares = handleDeposit(txContext, depositAsset, depositAmount, inMsg.depositParams, storage.totalAssets, storage.totalSupply);
 
             storage.updateSupplyAndAssets(shares, depositAmount);
         }
@@ -99,7 +99,7 @@ fun onInternalMessage(in: InMessage) {
 
                     val depositAsset = Asset.jettonAsset(assetJettonInfo.masterAddress);
                     val depositParams = inMsg.forwardPayload.load().depositParams;
-                    val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, depositParams, assetJettonInfo.walletAddress);
+                    val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, depositParams, storage.totalAssets, storage.totalSupply, assetJettonInfo.walletAddress);
 
                     storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
                 }
@@ -122,7 +122,7 @@ fun onInternalMessage(in: InMessage) {
                     val withdrawAsset = storage.getAsset();
                     val withdrawFp = inMsg.customPayload.load();
                     val assetJettonWallet = (withdrawAsset is JettonAsset) ? storage.getAssetJettonInfo()!.walletAddress : null;
-                    val withdrawAmount = handleWithdraw(txContext, withdrawAsset, inMsg.shares, withdrawFp, assetJettonWallet);
+                    val withdrawAmount = handleWithdraw(txContext, withdrawAsset, inMsg.shares, withdrawFp, storage.totalAssets, storage.totalSupply, assetJettonWallet);
 
                     storage.updateSupplyAndAssets(-inMsg.shares, -withdrawAmount);
                 }
@@ -137,10 +137,13 @@ fun onInternalMessage(in: InMessage) {
             sendTakeQuote(txContext, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
 
             emitQuoted(Quoted {
+                quoteAsset: storage.getAsset().toCell(),
                 initiator: txContext.initiator,
                 receiver: inMsg.receiver,
-                totalSupply: storage.totalSupply,
-                totalAssets: storage.totalAssets,
+                vaultStateAfter: VaultStateAfter {
+                    totalSupply: storage.totalSupply,
+                    totalAssetAmount: storage.totalAssets
+                }.toCell(),
                 timestamp: blockchain.now()
             });
         }

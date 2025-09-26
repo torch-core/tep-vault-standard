@@ -48,7 +48,17 @@ fun previewWithdraw(shares: coins, withdrawConfig: WithdrawConfig? = null) {
 
 // Handles deposit logic: validates, mints shares to receiver, and emits event on success
 // On failure, rolls back by transferring asset(TON or Jetton) back to initiator and throws error
-fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coins, depositParams: DepositParams, assetJettonWallet: address? = null, action: slice = "Deposit") {
+fun handleDeposit(
+    txContext: TxContext, 
+    depositAsset: Asset, 
+    depositAmount: coins, 
+    depositParams: DepositParams, 
+    totalAssets: coins, 
+    totalSupply: coins, 
+    assetJettonWallet: address? = null, 
+    action: slice = "Deposit"
+    ) 
+{
     try {
         val maxDepositAmount = maxDeposit();
         assert (depositAmount <= maxDepositAmount) throw ERR_EXCEEDED_MAX_DEPOSIT;
@@ -58,7 +68,17 @@ fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coin
 
         val callbackParams = depositParams.callbacks.successCallback != null ? depositParams.callbacks.successCallback.load() : CallbackParams.defaultSuccess(action);
         mint(txContext, mutate depositParams.receiver, shares, SUCCESS_RESULT_CODE, callbackParams);
-        emitDeposited(Deposited { initiator: txContext.initiator, receiver: depositParams.receiver, depositAmount: depositAmount, shares: shares });
+        emitDeposited(Deposited {
+            initiator: txContext.initiator,
+            receiver: depositParams.receiver,
+            depositAsset: depositAsset.toCell(),
+            depositAmount: depositAmount,
+            shares: shares,
+            vaultStateAfter: VaultStateAfter {
+                totalSupply: totalSupply + shares,
+                totalAssetAmount: totalAssets + depositAmount
+            }.toCell(),     
+        });
         return shares;
     } catch (errCode) {
         val callbackParams = depositParams.callbacks.failureCallback != null ? depositParams.callbacks.failureCallback.load() : CallbackParams.defaultFailure(action);
@@ -78,7 +98,16 @@ fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coin
 
 // Handles withdrawal logic: validates, transfers assets to receiver, and emits event on success
 // On failure, rolls back by minting shares back to initiator and throws error
-fun handleWithdraw(txContext: TxContext, withdrawAsset: Asset, shares: coins, withdrawFp: WithdrawFp, assetJettonWallet: address? = null, action: slice = "Withdraw") {
+fun handleWithdraw(
+    txContext: TxContext, 
+    withdrawAsset: Asset, 
+    shares: coins, 
+    withdrawFp: WithdrawFp, 
+    totalAssets: coins, 
+    totalSupply: coins,
+    assetJettonWallet: address? = null, action: slice = "Withdraw"
+    ) 
+{
     try {
         val maxShares = maxWithdraw();
         assert (shares <= maxShares) throw ERR_EXCEEDED_MAX_WITHDRAW;
@@ -96,7 +125,17 @@ fun handleWithdraw(txContext: TxContext, withdrawAsset: Asset, shares: coins, wi
             callbackParams: callbackParams, 
             assetJettonWallet: assetJettonWallet,
         });
-        emitWithdrawn(Withdrawn { initiator: txContext.initiator, receiver: withdrawFp.receiver, withdrawAmount: withdrawAmount, burnedShares: shares });
+        emitWithdrawn(Withdrawn {
+            initiator: txContext.initiator,
+            receiver: withdrawFp.receiver,
+            withdrawAsset: withdrawAsset.toCell(),
+            withdrawAmount: withdrawAmount,
+            burnedShares: shares,
+            vaultStateAfter: VaultStateAfter {
+                totalSupply: totalSupply - shares,
+                totalAssetAmount: totalAssets - withdrawAmount
+            }.toCell(),
+        });
         return withdrawAmount;
     } catch (errCode) {
         val callbackParams = withdrawFp.callbacks.failureCallback != null ? withdrawFp.callbacks.failureCallback.load() : CallbackParams.defaultFailure(action);

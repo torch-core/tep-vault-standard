@@ -36,9 +36,10 @@ struct WithdrawLogOptions {
 struct (0xedfb416d) Withdrawn {
     initiator: address
     receiver: address
-    withdrawAsset: Cell<Asset>? = null
+    withdrawAsset: Cell<Asset>
     withdrawAmount: coins
     burnedShares: coins
+    vaultStateAfter: Cell<VaultStateAfter>
     withdrawLogOptions: Cell<WithdrawLogOptions>? = null
 }
 

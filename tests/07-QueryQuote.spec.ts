@@ -10,6 +10,7 @@ import { VaultErrors } from '../wrappers/constants/error';
 import { Asset } from '@torch-finance/core';
 import { JettonMaster } from '@ton/ton';
 import { PROVIDE_QUOTE_GAS } from './helper/constants';
+import { expectQuotedEmitLog } from './helper/emitLog';
 
 describe('Query Quote', () => {
     let blockchain: Blockchain;
@@ -26,6 +27,10 @@ describe('Query Quote', () => {
     let ecVaultTotalSupply: bigint;
     let ecVaultTotalAssets: bigint;
     let ecId: number;
+    let tonAsset: Asset;
+    let jettonAsset: Asset;
+    let ecAsset: Asset;
+
     const queryId = 8n;
     const forwardPayload = beginCell().storeUint(1, 32).endCell();
     const { getTestContext, resetToInitSnapshot } = createTestEnvironment();
@@ -33,6 +38,9 @@ describe('Query Quote', () => {
     beforeEach(async () => {
         await resetToInitSnapshot();
         ({ blockchain, maxey: contractToQuery, USDTVault, tonVault, bob, USDT, ecVault, ecId } = getTestContext());
+        tonAsset = Asset.ton();
+        jettonAsset = Asset.jetton(USDT.address);
+        ecAsset = Asset.extraCurrency(ecId);
         blockchain.now = Math.floor(Date.now() / 1000);
 
         // Deposit 1 TON to tonVault
@@ -135,6 +143,9 @@ describe('Query Quote', () => {
     function expectProvideQuoteFlows(
         provideQuoteResult: SendMessageResult,
         vaultAddress: Address,
+        quoteAsset: Asset,
+        totalSupply: bigint,
+        totalAssets: bigint,
         receiver?: Address,
         body?: Cell,
     ) {
@@ -164,6 +175,16 @@ describe('Query Quote', () => {
                 success: true,
             });
         }
+
+        // Expect quoted emit log
+        expectQuotedEmitLog(
+            provideQuoteResult,
+            contractToQuery.address,
+            receiver ?? contractToQuery.address,
+            quoteAsset,
+            totalSupply,
+            totalAssets,
+        );
     }
 
     describe('Provide Quote from TON Vault', () => {
@@ -175,7 +196,14 @@ describe('Query Quote', () => {
                 body: provideQuotePayload,
             });
 
-            expectProvideQuoteFlows(provideQuoteResult, tonVault.address, contractToQuery.address);
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                tonVault.address,
+                tonAsset,
+                tonVaultTotalSupply,
+                tonVaultTotalAssets,
+                contractToQuery.address,
+            );
         });
 
         it('should provide quote from TON Vault with receiver', async () => {
@@ -186,7 +214,14 @@ describe('Query Quote', () => {
                 body: provideQuotePayload,
             });
 
-            expectProvideQuoteFlows(provideQuoteResult, tonVault.address, bob.address);
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                tonVault.address,
+                tonAsset,
+                tonVaultTotalSupply,
+                tonVaultTotalAssets,
+                bob.address,
+            );
         });
 
         it('should provide quote from TON Vault with forward payload', async () => {
@@ -200,11 +235,14 @@ describe('Query Quote', () => {
             expectProvideQuoteFlows(
                 provideQuoteResult,
                 tonVault.address,
+                tonAsset,
+                tonVaultTotalSupply,
+                tonVaultTotalAssets,
                 contractToQuery.address,
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
-                    Asset.ton(),
+                    tonAsset,
                     tonVaultTotalSupply,
                     tonVaultTotalAssets,
                     blockchain.now!,
@@ -224,11 +262,14 @@ describe('Query Quote', () => {
             expectProvideQuoteFlows(
                 provideQuoteResult,
                 tonVault.address,
+                tonAsset,
+                tonVaultTotalSupply,
+                tonVaultTotalAssets,
                 bob.address,
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
-                    Asset.ton(),
+                    tonAsset,
                     tonVaultTotalSupply,
                     tonVaultTotalAssets,
                     blockchain.now!,
@@ -264,7 +305,14 @@ describe('Query Quote', () => {
                 body: provideQuotePayload,
             });
 
-            expectProvideQuoteFlows(provideQuoteResult, USDTVault.address, contractToQuery.address);
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                USDTVault.address,
+                jettonAsset,
+                USDTVaultTotalSupply,
+                USDTVaultTotalAssets,
+                contractToQuery.address,
+            );
         });
 
         it('should provide quote from USDT Vault with receiver', async () => {
@@ -275,7 +323,14 @@ describe('Query Quote', () => {
                 body: provideQuotePayload,
             });
 
-            expectProvideQuoteFlows(provideQuoteResult, USDTVault.address, bob.address);
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                USDTVault.address,
+                jettonAsset,
+                USDTVaultTotalSupply,
+                USDTVaultTotalAssets,
+                bob.address,
+            );
         });
 
         it('should provide quote from USDT Vault with forward payload', async () => {
@@ -289,11 +344,14 @@ describe('Query Quote', () => {
             expectProvideQuoteFlows(
                 provideQuoteResult,
                 USDTVault.address,
+                jettonAsset,
+                USDTVaultTotalSupply,
+                USDTVaultTotalAssets,
                 bob.address,
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
-                    Asset.jetton(USDT.address),
+                    jettonAsset,
                     USDTVaultTotalSupply,
                     USDTVaultTotalAssets,
                     blockchain.now!,
@@ -313,11 +371,14 @@ describe('Query Quote', () => {
             expectProvideQuoteFlows(
                 provideQuoteResult,
                 USDTVault.address,
+                jettonAsset,
+                USDTVaultTotalSupply,
+                USDTVaultTotalAssets,
                 bob.address,
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
-                    Asset.jetton(USDT.address),
+                    jettonAsset,
                     USDTVaultTotalSupply,
                     USDTVaultTotalAssets,
                     blockchain.now!,
@@ -353,7 +414,14 @@ describe('Query Quote', () => {
                 body: provideQuotePayload,
             });
 
-            expectProvideQuoteFlows(provideQuoteResult, ecVault.address, contractToQuery.address);
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                ecVault.address,
+                ecAsset,
+                ecVaultTotalSupply,
+                ecVaultTotalAssets,
+                contractToQuery.address,
+            );
         });
 
         it('should provide quote from Extra Currency Vault with receiver', async () => {
@@ -364,7 +432,14 @@ describe('Query Quote', () => {
                 body: provideQuotePayload,
             });
 
-            expectProvideQuoteFlows(provideQuoteResult, ecVault.address, bob.address);
+            expectProvideQuoteFlows(
+                provideQuoteResult,
+                ecVault.address,
+                ecAsset,
+                ecVaultTotalSupply,
+                ecVaultTotalAssets,
+                bob.address,
+            );
         });
 
         it('should provide quote from Extra Currency Vault with forward payload', async () => {
@@ -378,11 +453,14 @@ describe('Query Quote', () => {
             expectProvideQuoteFlows(
                 provideQuoteResult,
                 ecVault.address,
+                Asset.extraCurrency(ecId),
+                ecVaultTotalSupply,
+                ecVaultTotalAssets,
                 contractToQuery.address,
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
-                    null,
+                    ecAsset,
                     ecVaultTotalSupply,
                     ecVaultTotalAssets,
                     blockchain.now!,
@@ -402,11 +480,14 @@ describe('Query Quote', () => {
             expectProvideQuoteFlows(
                 provideQuoteResult,
                 ecVault.address,
+                ecAsset,
+                ecVaultTotalSupply,
+                ecVaultTotalAssets,
                 bob.address,
                 buildTakeQuotePayload(
                     queryId,
                     contractToQuery.address,
-                    null,
+                    ecAsset,
                     ecVaultTotalSupply,
                     ecVaultTotalAssets,
                     blockchain.now!,

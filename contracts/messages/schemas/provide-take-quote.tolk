@@ -30,11 +30,10 @@ struct QuoteLogOptions {
     // Leave it empty if you don't need any extra logs
 }
 struct (0xb7bfa697) Quoted {
-    quoteAsset: Cell<Asset>? = null
+    quoteAsset: Cell<Asset>
     initiator: address
     receiver: address
-    totalSupply: coins
-    totalAssets: coins
+    vaultStateAfter: Cell<VaultStateAfter>
     timestamp: Timestamp
     quoteLogOptions: Cell<QuoteLogOptions>? = null
 }
