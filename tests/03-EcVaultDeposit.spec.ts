@@ -14,6 +14,7 @@ import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
 import { ASSET_TYPE_SIZE, EXTRA_CURRENCY_ID_SIZE } from '../wrappers/constants/size';
 import { DEPOSIT_GAS } from './helper/constants';
+import { Asset } from '@torch-finance/core';
 
 describe('Deposit to Extra Currency  Vault', () => {
     let blockchain: Blockchain;
@@ -104,7 +105,7 @@ describe('Deposit to Extra Currency  Vault', () => {
         );
 
         // Expect that deposited emit log is emitted
-        expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount);
+        expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount, oldTotalSupply, oldTotalAssets, Asset.extraCurrency(ecId));
     }
 
     describe('Deposit Extra Currency success', () => {

@@ -17,6 +17,7 @@ import { VaultErrors } from '../wrappers/constants/error';
 import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
 import { MAX_COINS_VALUE, WITHDRAW_GAS } from './helper/constants';
+import { Asset } from '@torch-finance/core';
 
 describe('Withdraw from TON Vault', () => {
     let blockchain: Blockchain;
@@ -117,7 +118,7 @@ describe('Withdraw from TON Vault', () => {
         );
 
         // Expect withdraw emit log
-        expectWithdrawnEmitLog(withdrawResult, initiator.address, receiver.address, expectedWithdrawAmount, burnShares);
+        expectWithdrawnEmitLog(withdrawResult, initiator.address, receiver.address, expectedWithdrawAmount, burnShares, tonVaultTotalSupplyBefore, tonVaultTotalAssetsBefore, Asset.ton());
     }
 
     async function expectWithdrawTONFailure(

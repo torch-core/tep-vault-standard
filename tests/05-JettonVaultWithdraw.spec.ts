@@ -25,6 +25,7 @@ import { Opcodes } from '../wrappers/constants/op';
 import { writeFileSync } from 'fs';
 import { MAX_COINS_VALUE } from './helper/constants';
 import { JettonMinter } from '../wrappers/mock-jetton/JettonMinter';
+import { Asset } from '@torch-finance/core';
 
 describe('Withdraw from Jetton Vault', () => {
     jest.setTimeout(30000);
@@ -150,7 +151,7 @@ describe('Withdraw from Jetton Vault', () => {
         );
 
         // Expect withdraw emit log
-        expectWithdrawnEmitLog(withdrawResult, initiator.address, receiver.address, expectedWithdrawAmount, burnShares);
+        expectWithdrawnEmitLog(withdrawResult, initiator.address, receiver.address, expectedWithdrawAmount, burnShares, vaultTotalSupplyBefore, vaultTotalAssetsBefore, Asset.jetton(USDT.address));
     }
 
     async function expectWithdrawJettonFailure(

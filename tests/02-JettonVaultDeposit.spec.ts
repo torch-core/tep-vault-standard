@@ -127,7 +127,7 @@ describe('Deposit to Jetton Vault', () => {
         );
 
         // Expect that deposited emit log is emitted
-        expectDepositedEmitLog(depositResult, depositor, receiver, depositAmount, depositAmount);
+        expectDepositedEmitLog(depositResult, depositor, receiver, depositAmount, depositAmount, oldTotalSupply, oldTotalAssets, Asset.jetton(USDT.address));
     }
 
     describe('Deposit Jetton success', () => {
