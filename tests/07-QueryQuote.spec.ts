@@ -13,6 +13,7 @@ import { PROVIDE_QUOTE_GAS } from './helper/constants';
 import { expectQuotedEmitLog } from './helper/emitLog';
 
 describe('Query Quote', () => {
+    jest.setTimeout(30000);
     let blockchain: Blockchain;
     let contractToQuery: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;

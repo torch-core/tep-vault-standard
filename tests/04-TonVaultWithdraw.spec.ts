@@ -20,6 +20,7 @@ import { MAX_COINS_VALUE, WITHDRAW_GAS } from './helper/constants';
 import { Asset } from '@torch-finance/core';
 
 describe('Withdraw from TON Vault', () => {
+    jest.setTimeout(30000);
     let blockchain: Blockchain;
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;

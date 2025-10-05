@@ -40,7 +40,6 @@ describe('Withdraw from Jetton Vault', () => {
     let admin: SandboxContract<TreasuryContract>;
     let maxeyShareWallet: SandboxContract<JettonWallet>;
     let maxeyShareBalBefore: bigint;
-    let bobShareWallet: SandboxContract<JettonWallet>;
     let vaultUSDTWallet: SandboxContract<JettonWallet>;
     let vaultUSDTWalletBalBefore: bigint;
     let vaultTonBalBefore: bigint;
@@ -60,7 +59,6 @@ describe('Withdraw from Jetton Vault', () => {
         maxeyShareWallet = blockchain.openContract(
             JettonWallet.create(await USDTVault.getWalletAddress(maxey.address)),
         );
-        bobShareWallet = blockchain.openContract(JettonWallet.create(await USDTVault.getWalletAddress(bob.address)));
 
         vaultUSDTWallet = blockchain.openContract(JettonWallet.create(await USDT.getWalletAddress(USDTVault.address)));
 

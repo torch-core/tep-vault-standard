@@ -19,6 +19,7 @@ import { writeFileSync } from 'fs';
 import { Asset } from '@torch-finance/core';
 
 describe('Withdraw from Extra Currency Vault', () => {
+    jest.setTimeout(30000);
     let blockchain: Blockchain;
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;

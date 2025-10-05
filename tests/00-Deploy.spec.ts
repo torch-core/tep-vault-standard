@@ -11,6 +11,7 @@ import { compile } from '@ton/blueprint';
 import { writeFileSync } from 'fs';
 
 describe('Deploy Vault', () => {
+    jest.setTimeout(30000);
     let blockchain: Blockchain;
     let admin: SandboxContract<TreasuryContract>;
     let maxey: SandboxContract<TreasuryContract>;

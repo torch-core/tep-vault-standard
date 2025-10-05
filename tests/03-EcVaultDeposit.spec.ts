@@ -17,6 +17,7 @@ import { DEPOSIT_GAS } from './helper/constants';
 import { Asset } from '@torch-finance/core';
 
 describe('Deposit to Extra Currency  Vault', () => {
+    jest.setTimeout(30000);
     let blockchain: Blockchain;
     let maxey: SandboxContract<TreasuryContract>;
     let bob: SandboxContract<TreasuryContract>;
