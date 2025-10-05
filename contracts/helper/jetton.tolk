@@ -1,10 +1,10 @@
-import "../storage"
 import "../types/wallet-status"
+import "../storage"
 
 @pure
 fun calcDeployedJettonWallet(ownerAddress: address, minterAddress: address, jettonWalletCode: cell): AutoDeployAddress {
     val emptyWalletStorage: WalletStorage = {
-        status: WalletStatus.unlocked(),
+        status: WalletStatus.Unlocked,
         jettonBalance: 0,
         ownerAddress,
         minterAddress,

@@ -6,7 +6,7 @@ struct CallbackParams {
 }
 
 struct CommentPayload {
-    opcode: Opcode = 0;
+    private readonly opcode: Opcode = 0;
     action: slice;
     message: slice;
 }
