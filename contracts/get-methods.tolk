@@ -21,11 +21,11 @@ get fun getTotalAssets(vaultOptionsCell: Cell<VaultOptions>? = null) {
     return totalAssets();
 }
 
-get fun getConvertToShares(assetAmount: coins, vaultOptionsCell: Cell<VaultOptions>? = null, rounding: RoundingType = ROUND_DOWN) {
+get fun getConvertToShares(assetAmount: coins, vaultOptionsCell: Cell<VaultOptions>? = null, rounding: RoundingType = RoundingType.Down) {
     return convertToShares(assetAmount);
 }
 
-get fun getConvertToAssets(shares: coins, vaultOptionsCell: Cell<VaultOptions>? = null, rounding: RoundingType = ROUND_DOWN) {
+get fun getConvertToAssets(shares: coins, vaultOptionsCell: Cell<VaultOptions>? = null, rounding: RoundingType = RoundingType.Down) {
     return convertToAssets(shares);
 }
 

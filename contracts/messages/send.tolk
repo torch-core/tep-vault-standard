@@ -1,6 +1,4 @@
-import "@stdlib/tvm-dicts"
 import "../constants/common-types";
-import "../constants/values"
 import "../constants/errors"
 import "../types/callback-params";
 import "../types/asset"
@@ -9,7 +7,6 @@ import "schemas/deploy"
 import "schemas/provide-take-quote"
 import "../storage";
 import "../helper/jetton";
-import "../helper/extra-currency"
 import "../fees-management"
 
 struct TransferParams {
@@ -118,12 +115,12 @@ fun extraCurrencyTransfer(
 ) {
     assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
 
-    var extraCurrencyDict = createEmptyDict();
-    extraCurrencyDict.uDictSetBuilder(EXTRA_CURRENCY_ID_SIZE, extraCurrencyId, beginCell().storeEcValue(transferAmount));
+    var extraCurrencyMap: ExtraCurrenciesMap = createEmptyMap();
+    extraCurrencyMap.set(extraCurrencyId, transferAmount as ExtraCurrencyAmount);
     val transferMsg = createMessage({
         bounce: false,
         dest: resolveReceiver(receiver, txContext.initiator),
-        value: (txContext.remainingValue, extraCurrencyDict),
+        value: (txContext.remainingValue, extraCurrencyMap),
         body: VaultNotificationEc {
             queryId: txContext.queryId,
             vaultNotificationParams: createVaultNotificationParams(resultCode, txContext.initiator, callbackParams, txContext.inBody)

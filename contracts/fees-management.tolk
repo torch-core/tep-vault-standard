@@ -3,7 +3,6 @@ import "constants/errors";
 // Transaction Fees
 const JETTON_TRANSFER_FEE = ton("0.06");
 const REQUEST_JETTON_WALLET_ADDRESS_FEE = ton("0.05");
-const DEFAULT_JETTON_NOTIFICATION_FEE = 1;
 
 // Gas Fees
 const DEPOSIT_GAS = ton("0.013");

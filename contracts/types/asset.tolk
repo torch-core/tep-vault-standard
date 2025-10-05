@@ -1,15 +1,13 @@
 import "../constants/common-types"
 
-type AssetType = uint4;
-
 struct (0x0) TonAsset {}
 
 struct (0x1) JettonAsset {
-    jettonMaster: address;
+    readonly jettonMaster: address;
 }
 
 struct (0x2) ExtraCurrencyAsset {
-    extraCurrencyId: ExtraCurrencyId;
+    readonly extraCurrencyId: ExtraCurrencyId;
 }
 
 type Asset = TonAsset | JettonAsset | ExtraCurrencyAsset;
@@ -32,7 +30,3 @@ fun Asset.extraCurrencyAsset(extraCurrencyId: ExtraCurrencyId) {
         extraCurrencyId: extraCurrencyId,
     };
 }
-
-const TON_ASSET_TYPE: AssetType = TonAsset.getDeclaredPackPrefix();
-const JETTON_ASSET_TYPE: AssetType = JettonAsset.getDeclaredPackPrefix();
-const EXTRA_CURRENCY_ASSET_TYPE: AssetType = ExtraCurrencyAsset.getDeclaredPackPrefix();
