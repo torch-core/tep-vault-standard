@@ -59,6 +59,7 @@ fun VaultStorage.mustGetExtraCurrencyInfo(self) {
     if (self.externalAssetInfo == null) {
         throw ERR_MISSING_EXTRA_CURRENCY_INFO;
     }
+
     var externalAssetInfo = self.externalAssetInfo.load();
     if (!(externalAssetInfo is ExtraCurrencyInfo)) {
         throw ERR_MISSING_EXTRA_CURRENCY_INFO;
@@ -76,6 +77,7 @@ fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: int, assetsDelt
 
 fun VaultStorage.setJettonWalletAddress(mutate self, senderAddress: address, jettonWalletAddress: address) {
     assert (self.externalAssetInfo != null) throw ERR_MISSING_JETTON_INFO;
+    
     var externalAssetInfo = self.externalAssetInfo.load();
     if (externalAssetInfo is JettonInfo) {
         assert (senderAddress == externalAssetInfo.masterAddress) throw ERR_INVALID_JETTON_MASTER; 
