@@ -27,6 +27,12 @@ pnpm build:all
 pnpm test
 ```
 
+### Check test coverage
+
+```bash
+pnpm coverage
+```
+
 ### Deploy or run scripts
 
 ```bash
