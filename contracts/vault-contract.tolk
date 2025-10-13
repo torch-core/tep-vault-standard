@@ -1,7 +1,7 @@
 /**
- * TEP-4626: Tokenized Vault Standard for TON Blockchain
+ * TEP-524: Tokenized Vault Standard for TON Blockchain
  *
- * Implementation of the TEP-4626 "Tokenized Vault Standard" as defined in the TEP proposal.
+ * Implementation of the TEP-524 "Tokenized Vault Standard" as defined in the TEP proposal.
  * This vault contract extends TEP-74 Jetton functionality to provide standardized deposit/withdrawal
  * operations for TON, Jetton and Extra Currency assets, issuing proportional shares as TEP-74 tokens.
  * Based on ERC-4626 design principles with TON blockchain adaptations.
