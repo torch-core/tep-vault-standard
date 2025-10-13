@@ -133,13 +133,15 @@ fun onInternalMessage(in: InMessage) {
             val remainingValue = chargeProvideQuoteGas(in.valueCoins);
             val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: "" };
             
-            sendTakeQuote(txContext, inMsg.receiver, storage.vaultState, inMsg.forwardPayload);
+            val normalizedTotalAssets = totalAssets();
+            sendTakeQuote(txContext, inMsg.receiver, storage.vaultState.totalSupply, normalizedTotalAssets, inMsg.forwardPayload);
 
             emitQuoted(Quoted {
                 quoteAsset: storage.getAsset().toCell(),
                 initiator: txContext.initiator,
                 receiver: inMsg.receiver,
-                vaultState: storage.vaultState.toCell(),
+                totalSupply: storage.vaultState.totalSupply,
+                normalizedTotalAssets: normalizedTotalAssets,
                 timestamp: blockchain.now()
             });
         }

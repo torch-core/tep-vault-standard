@@ -153,7 +153,7 @@ fun sendRequestWalletAddress(jettonMaster: address, queryId: QueryId) {
     requestMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
 }
 
-fun sendTakeQuote(txContext: TxContext, receiver: address, vaultState: VaultState, forwardPayload: cell?) {
+fun sendTakeQuote(txContext: TxContext, receiver: address, totalSupply: coins, normalizedTotalAssets: coins, forwardPayload: cell?) {
     val takeQuoteMsg = createMessage({
         bounce: false,
         dest: resolveReceiver(receiver, txContext.initiator),
@@ -161,7 +161,8 @@ fun sendTakeQuote(txContext: TxContext, receiver: address, vaultState: VaultStat
         body: TakeQuote { 
             queryId: txContext.queryId, 
             initiator: txContext.initiator, 
-            vaultState: vaultState, 
+            totalSupply: totalSupply, 
+            normalizedTotalAssets: normalizedTotalAssets, 
             timestamp: blockchain.now(), 
             forwardPayload: forwardPayload,
         }

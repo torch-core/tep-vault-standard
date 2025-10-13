@@ -72,8 +72,7 @@ export function expectQuotedEmitLog(
     expect(extBody.loadRef().equals(quoteAsset.toCell())).toBeTruthy();
     expect(extBody.loadAddress().equals(initiator)).toBeTruthy();
     expect(extBody.loadMaybeAddress()?.equals(receiver)).toBeTruthy();
-    const vaultState = extBody.loadRef();
-    expect(vaultState.beginParse().loadCoins()).toBe(totalSupply);
-    expect(vaultState.beginParse().loadCoins()).toBe(totalAssets);
+    expect(extBody.loadCoins()).toBe(totalSupply);
+    expect(extBody.loadCoins()).toBe(totalAssets);
     expect(extBody.loadMaybeRef()).toBe(optionalQuotedLogs ?? null);
 }
