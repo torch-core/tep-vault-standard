@@ -2,6 +2,7 @@ import "constants/common-types"
 import "constants/errors"
 import "types/wallet-status"
 import "types/asset"
+import "messages/schemas/common"
 
 // ==== Vault Storage ====
 struct (0x1) JettonInfo {
@@ -17,8 +18,7 @@ type ExternalAssetInfo = JettonInfo | ExtraCurrencyInfo
 
 struct VaultStorage {
     adminAddress: address
-    totalSupply: coins
-    totalAssets: coins
+    vaultState: VaultState
     externalAssetInfo: Cell<ExternalAssetInfo>?
     jettonWalletCode: cell
     content: cell
@@ -42,31 +42,42 @@ fun VaultStorage.getAsset(self): Asset {
         : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId);
 }
 
-fun VaultStorage.getAssetJettonInfo(self) {
+fun VaultStorage.mustGetJettonInfo(self) {
     if (self.externalAssetInfo == null) {
-        return null;
+        throw ERR_MISSING_JETTON_INFO;
     }
+
     var externalAssetInfo = self.externalAssetInfo.load();
-    return (externalAssetInfo is JettonInfo) ? externalAssetInfo : null;
+    if (!(externalAssetInfo is JettonInfo)) {
+        throw ERR_MISSING_JETTON_INFO;
+    }
+
+    return externalAssetInfo;
 }
 
-fun VaultStorage.getExtraCurrencyInfo(self) {
+fun VaultStorage.mustGetExtraCurrencyInfo(self) {
     if (self.externalAssetInfo == null) {
-        return null;
+        throw ERR_MISSING_EXTRA_CURRENCY_INFO;
     }
+
     var externalAssetInfo = self.externalAssetInfo.load();
-    return (externalAssetInfo is ExtraCurrencyInfo) ? externalAssetInfo : null;
+    if (!(externalAssetInfo is ExtraCurrencyInfo)) {
+        throw ERR_MISSING_EXTRA_CURRENCY_INFO;
+    }
+
+    return externalAssetInfo;
 }
 
 // WARNING: If delta is negative, caller must ensure it doesn't exceed totalSupply or totalAssets
 fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: int, assetsDelta: int) {
-    self.totalSupply = self.totalSupply + sharesDelta;
-    self.totalAssets = self.totalAssets + assetsDelta;
+    self.vaultState.totalSupply = self.vaultState.totalSupply + sharesDelta;
+    self.vaultState.totalAssets = self.vaultState.totalAssets + assetsDelta;
     self.save();
 }
 
-fun VaultStorage.SetJettonWalletAddress(mutate self, senderAddress: address, jettonWalletAddress: address) {
-    assert (self.externalAssetInfo != null) throw ERR_MISSING_ASSET_JETTON_INFO;
+fun VaultStorage.setJettonWalletAddress(mutate self, senderAddress: address, jettonWalletAddress: address) {
+    assert (self.externalAssetInfo != null) throw ERR_MISSING_JETTON_INFO;
+    
     var externalAssetInfo = self.externalAssetInfo.load();
     if (externalAssetInfo is JettonInfo) {
         assert (senderAddress == externalAssetInfo.masterAddress) throw ERR_INVALID_JETTON_MASTER; 

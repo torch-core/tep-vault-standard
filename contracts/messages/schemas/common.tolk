@@ -61,7 +61,7 @@ struct TxContext {
     inBody: slice;
 }
 
-struct VaultStateAfter {
+struct VaultState {
     totalSupply: coins
-    totalAssetAmount: coins
+    totalAssets: coins
 }

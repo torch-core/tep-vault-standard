@@ -98,7 +98,7 @@ describe('Deploy Vault', () => {
             });
         });
 
-        it('should throw ERR_MISSING_ASSET_JETTON_INFO when Jetton master send OP_RESPONSE_WALLET_ADDRESS to TON vault', async () => {
+        it('should throw ERR_MISSING_JETTON_INFO when Jetton master send OP_RESPONSE_WALLET_ADDRESS to TON vault', async () => {
             const deployResult = await maxey.send({
                 to: tonVault.address,
                 body: getResponseWalletAddressBody(),
@@ -109,7 +109,7 @@ describe('Deploy Vault', () => {
                 to: tonVault.address,
                 op: Opcodes.Jetton.ResponseWalletAddress,
                 success: false,
-                exitCode: VaultErrors.MissingAssetJettonInfo,
+                exitCode: VaultErrors.MissingJettonInfo,
             });
         });
 

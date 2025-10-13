@@ -80,7 +80,7 @@ get fun get_jetton_data(): JettonDataReply {
     val storage = lazy VaultStorage.load();
 
     return {
-        totalSupply: storage.totalSupply,
+        totalSupply: storage.vaultState.totalSupply,
         mintable: true,
         adminAddress: storage.adminAddress,
         jettonContent: storage.content,

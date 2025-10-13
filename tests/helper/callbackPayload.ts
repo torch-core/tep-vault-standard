@@ -10,22 +10,22 @@ export const SUCCESS_RESULT = 0;
 
 export const DEFAULT_SUCCESS_DEPOSIT_CALLBACK_PAYLOAD = beginCell()
     .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
-    .storeStringTail('Deposit successful')
+    .storeStringTail('Operation successful')
     .endCell();
 
 export const DEFAULT_FAIL_DEPOSIT_CALLBACK_PAYLOAD = beginCell()
     .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
-    .storeStringTail('Deposit failed')
+    .storeStringTail('Operation failed')
     .endCell();
 
 export const DEFAULT_SUCCESS_WITHDRAW_CALLBACK_PAYLOAD = beginCell()
     .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
-    .storeStringTail('Withdraw successful')
+    .storeStringTail('Operation successful')
     .endCell();
 
 export const DEFAULT_FAIL_WITHDRAW_CALLBACK_PAYLOAD = beginCell()
     .storeUint(Opcodes.Vault.Comment, OPCODE_SIZE)
-    .storeStringTail('Withdraw failed')
+    .storeStringTail('Operation failed')
     .endCell();
 
 export function buildTransferNotificationPayload(
