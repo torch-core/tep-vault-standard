@@ -44,23 +44,27 @@ fun VaultStorage.getAsset(self): Asset {
 
 fun VaultStorage.mustGetJettonInfo(self) {
     if (self.externalAssetInfo == null) {
-        throw ERR_MISSING_ASSET_JETTON_INFO;
+        throw ERR_MISSING_JETTON_INFO;
     }
 
     var externalAssetInfo = self.externalAssetInfo.load();
     if (!(externalAssetInfo is JettonInfo)) {
-        throw ERR_MISSING_ASSET_JETTON_INFO;
+        throw ERR_MISSING_JETTON_INFO;
     }
 
     return externalAssetInfo;
 }
 
-fun VaultStorage.getExtraCurrencyInfo(self) {
+fun VaultStorage.mustGetExtraCurrencyInfo(self) {
     if (self.externalAssetInfo == null) {
-        return null;
+        throw ERR_MISSING_EXTRA_CURRENCY_INFO;
     }
     var externalAssetInfo = self.externalAssetInfo.load();
-    return (externalAssetInfo is ExtraCurrencyInfo) ? externalAssetInfo : null;
+    if (!(externalAssetInfo is ExtraCurrencyInfo)) {
+        throw ERR_MISSING_EXTRA_CURRENCY_INFO;
+    }
+
+    return externalAssetInfo;
 }
 
 // WARNING: If delta is negative, caller must ensure it doesn't exceed totalSupply or totalAssets
@@ -71,7 +75,7 @@ fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: int, assetsDelt
 }
 
 fun VaultStorage.setJettonWalletAddress(mutate self, senderAddress: address, jettonWalletAddress: address) {
-    assert (self.externalAssetInfo != null) throw ERR_MISSING_ASSET_JETTON_INFO;
+    assert (self.externalAssetInfo != null) throw ERR_MISSING_JETTON_INFO;
     var externalAssetInfo = self.externalAssetInfo.load();
     if (externalAssetInfo is JettonInfo) {
         assert (senderAddress == externalAssetInfo.masterAddress) throw ERR_INVALID_JETTON_MASTER; 

@@ -65,8 +65,7 @@ fun onInternalMessage(in: InMessage) {
         // Processes Extra Currency deposits and mints shares to receiver
         DepositEc => {
             // Verifies vault supports Extra Currency deposits to prevent Extra Currency deposits in TON/Jetton vaults
-            val extraCurrencyInfo = storage.getExtraCurrencyInfo();
-            assert (extraCurrencyInfo != null) throw ERR_UNSUPPORTED_EXTRA_CURRENCY_DEPOSIT;
+            val extraCurrencyInfo = storage.mustGetExtraCurrencyInfo();
 
             // Validates the deposited Extra Currency ID is supported and ensures single Extra Currency deposit
             val extraCurrencyId = extraCurrencyInfo.extraCurrencyId;

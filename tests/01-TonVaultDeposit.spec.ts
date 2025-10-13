@@ -103,7 +103,16 @@ describe('Deposit to TON Vault', () => {
         );
 
         // Expect that deposited emit log is emitted
-        expectDepositedEmitLog(depositResult, depositor.address, receiver.address, depositAmount, depositAmount, oldTotalSupply, oldTotalAssets, Asset.ton());
+        expectDepositedEmitLog(
+            depositResult,
+            depositor.address,
+            receiver.address,
+            depositAmount,
+            depositAmount,
+            oldTotalSupply,
+            oldTotalAssets,
+            Asset.ton(),
+        );
 
         // Update tonVaultTonBalDelta
         tonVaultTonBalDelta += depositAmount;
@@ -568,7 +577,7 @@ describe('Deposit to TON Vault', () => {
     });
 
     describe('Other failure cases', () => {
-        it('should throw ERR_UNSUPPORTED_EXTRA_CURRENCY_DEPOSIT when deposit Extra Currency in ton vault', async () => {
+        it('should throw ERR_MISSING_EXTRA_CURRENCY_INFO when deposit Extra Currency in ton vault', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await tonVault.getEcDepositArg(
                 {
@@ -584,10 +593,10 @@ describe('Deposit to TON Vault', () => {
                 to: tonVault.address,
                 op: Opcodes.Vault.DepositEc,
                 success: false,
-                exitCode: VaultErrors.NonSupportedExtraCurrencyDeposit,
+                exitCode: VaultErrors.MissingExtraCurrencyInfo,
             });
         });
-        it('should throw ERR_UNSUPPORTED_JETTON_DEPOSIT when deposit jetton in ton vault', async () => {
+        it('should throw ERR_MISSING_JETTON_INFO when deposit jetton in ton vault', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await tonVault.getJettonDepositArg(
                 maxey.address,
@@ -604,7 +613,7 @@ describe('Deposit to TON Vault', () => {
                 to: tonVault.address,
                 op: Opcodes.Jetton.TransferNotification,
                 success: false,
-                exitCode: VaultErrors.MissingAssetJettonInfo,
+                exitCode: VaultErrors.MissingJettonInfo,
             });
         });
         it('should throw ERR_INSUFFICIENT_TON_DEPOSIT_GAS when valueCoins < depositAmount + deposit gas', async () => {

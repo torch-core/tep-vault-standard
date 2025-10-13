@@ -741,7 +741,7 @@ describe('Deposit to Jetton Vault', () => {
                 exitCode: VaultErrors.NonSupportedTonDeposit,
             });
         });
-        it('should throw ERR_UNSUPPORTED_EXTRA_CURRENCY_DEPOSIT when deposit Extra Currency in jetton vault', async () => {
+        it('should throw ERR_MISSING_EXTRA_CURRENCY_INFO when deposit Extra Currency in jetton vault', async () => {
             const depositAmount = toNano('0.01');
             const depositArgs = await USDTVault.getEcDepositArg(
                 {
@@ -757,7 +757,7 @@ describe('Deposit to Jetton Vault', () => {
                 to: USDTVault.address,
                 op: Opcodes.Vault.DepositEc,
                 success: false,
-                exitCode: VaultErrors.NonSupportedExtraCurrencyDeposit,
+                exitCode: VaultErrors.MissingExtraCurrencyInfo,
             });
         });
         it('should throw ERR_INSUFFICIENT_JETTON_DEPOSIT_GAS when valueCoins < deposit gas', async () => {

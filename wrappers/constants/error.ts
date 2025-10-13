@@ -4,9 +4,10 @@ export const VaultErrors = {
     UnauthorizedAdmin: 1000,
     InvalidJettonWallet: 1001,
     InvalidJettonMaster: 1002,
-    MissingAssetJettonInfo: 1003,
-    InvalidRoundingType: 1004,
-    InvalidTransferAmount: 1005,
+    MissingJettonInfo: 1003,
+    MissingExtraCurrencyInfo: 1004,
+    InvalidRoundingType: 1005,
+    InvalidTransferAmount: 1006,
 
     // Deposit Errors (2000-2999)
     MissingForwardPayload: 2000,
@@ -17,10 +18,8 @@ export const VaultErrors = {
     InsufficientJettonDepositGas: 2005,
     InsufficientExtraCurrencyDepositGas: 2006,
     NonSupportedTonDeposit: 2007,
-    NonSupportedJettonDeposit: 2008,
-    NonSupportedExtraCurrencyDeposit: 2009,
-    InvalidExtraCurrencyId: 2010,
-    MultiExtraCurrencyDeposit: 2011,
+    InvalidExtraCurrencyId: 2008,
+    MultiExtraCurrencyDeposit: 2009,
 
     // Withdraw Errors (3000-3999)
     UnauthorizedBurn: 3000,
