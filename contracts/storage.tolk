@@ -65,7 +65,7 @@ fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: int, assetsDelt
     self.save();
 }
 
-fun VaultStorage.SetJettonWalletAddress(mutate self, senderAddress: address, jettonWalletAddress: address) {
+fun VaultStorage.setJettonWalletAddress(mutate self, senderAddress: address, jettonWalletAddress: address) {
     assert (self.externalAssetInfo != null) throw ERR_MISSING_ASSET_JETTON_INFO;
     var externalAssetInfo = self.externalAssetInfo.load();
     if (externalAssetInfo is JettonInfo) {
