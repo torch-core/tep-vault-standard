@@ -42,5 +42,4 @@ struct (0xedfb416d) Withdrawn {
     vaultStateAfter: Cell<VaultStateAfter>
     withdrawLogOptions: Cell<WithdrawLogOptions>? = null
 }
-
 const TOPIC_WITHDRAWN = Withdrawn.getDeclaredPackPrefix();

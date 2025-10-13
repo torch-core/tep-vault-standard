@@ -72,7 +72,6 @@ fun jettonTransfer(
 ) {
     assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
 
-    receiver = resolveReceiver(receiver, txContext.initiator);
     val transferMsg = createMessage({
         bounce: false,
         dest: assetJettonWallet,
@@ -80,7 +79,7 @@ fun jettonTransfer(
         body: AskToTransfer {
             queryId: txContext.queryId,
             jettonAmount: transferAmount,
-            transferRecipient: receiver,
+            transferRecipient: resolveReceiver(receiver, txContext.initiator),
             sendExcessesTo: txContext.initiator,
             customPayload: null,
             forwardTonAmount: txContext.remainingValue - JETTON_TRANSFER_FEE,
@@ -94,7 +93,7 @@ fun tonTransfer(txContext: TxContext,transferAmount: coins, receiver: address, r
     assert (transferAmount > 0) throw ERR_INVALID_TRANSFER_AMOUNT;
     
     val transferMsg = createMessage({
-        bounce: true,
+        bounce: false,
         dest: resolveReceiver(receiver, txContext.initiator),
         value: txContext.remainingValue + transferAmount, 
         body: VaultNotification {

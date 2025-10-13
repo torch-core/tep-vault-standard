@@ -37,5 +37,4 @@ struct (0xb7bfa697) Quoted {
     timestamp: Timestamp
     quoteLogOptions: Cell<QuoteLogOptions>? = null
 }
-
 const TOPIC_QUOTED = Quoted.getDeclaredPackPrefix();

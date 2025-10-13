@@ -56,6 +56,4 @@ struct(0x11475d67) Deposited {
     vaultStateAfter: Cell<VaultStateAfter>
     depositLogOptions: Cell<DepositLogOptions>? = null
 }
-
-
 const TOPIC_DEPOSITED = Deposited.getDeclaredPackPrefix();
