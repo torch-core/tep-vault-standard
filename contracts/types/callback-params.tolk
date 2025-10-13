@@ -12,11 +12,11 @@ struct CommentPayload {
 }
 
 @pure
-fun CallbackParams.defaultSuccess(action: slice) {
+fun CallbackParams.defaultSuccess(action: slice = "Operation") {
     return CallbackParams { payload: CommentPayload { action: action, message: " successful" }.toCell() };
 }
 
 @pure
-fun CallbackParams.defaultFailure(action: slice) {
+fun CallbackParams.defaultFailure(action: slice = "Operation") {
     return CallbackParams { payload: CommentPayload { action: action, message: " failed" }.toCell() };
 }

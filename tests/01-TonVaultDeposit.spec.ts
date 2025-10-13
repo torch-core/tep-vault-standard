@@ -604,7 +604,7 @@ describe('Deposit to TON Vault', () => {
                 to: tonVault.address,
                 op: Opcodes.Jetton.TransferNotification,
                 success: false,
-                exitCode: VaultErrors.NonSupportedJettonDeposit,
+                exitCode: VaultErrors.MissingAssetJettonInfo,
             });
         });
         it('should throw ERR_INSUFFICIENT_TON_DEPOSIT_GAS when valueCoins < depositAmount + deposit gas', async () => {

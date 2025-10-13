@@ -57,7 +57,7 @@ fun onInternalMessage(in: InMessage) {
             val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: in.body };
 
             val depositAsset = Asset.tonAsset();
-            val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, inMsg.depositParams, storage.totalAssets, storage.totalSupply);
+            val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, inMsg.depositParams, storage.vaultState);
 
             storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
         }
@@ -76,7 +76,7 @@ fun onInternalMessage(in: InMessage) {
             val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: in.body };
 
             val depositAsset = Asset.extraCurrencyAsset(extraCurrencyId);
-            val shares = handleDeposit(txContext, depositAsset, depositAmount, inMsg.depositParams, storage.totalAssets, storage.totalSupply);
+            val shares = handleDeposit(txContext, depositAsset, depositAmount, inMsg.depositParams, storage.vaultState);
 
             storage.updateSupplyAndAssets(shares, depositAmount);
         }
@@ -84,8 +84,7 @@ fun onInternalMessage(in: InMessage) {
         // Processes Jetton deposits and mints shares to receiver
         VaultTransferNotification => {
             // Verifies vault supports Jetton deposits to prevent Jetton deposits in TON/Extra Currency vaults
-            val assetJettonInfo = storage.getAssetJettonInfo();
-            assert (assetJettonInfo != null) throw ERR_UNSUPPORTED_JETTON_DEPOSIT;
+            val assetJettonInfo = storage.mustGetJettonInfo();
 
             // Verifies sender is from vault's underlying Jetton wallet to prevent unauthorized Jetton asset deposits  
             assert (in.senderAddress == assetJettonInfo.walletAddress) throw ERR_INVALID_JETTON_WALLET;
@@ -100,7 +99,7 @@ fun onInternalMessage(in: InMessage) {
 
                     val depositAsset = Asset.jettonAsset(assetJettonInfo.masterAddress);
                     val depositParams = inMsg.forwardPayload.load().depositParams;
-                    val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, depositParams, storage.totalAssets, storage.totalSupply, assetJettonInfo.walletAddress);
+                    val shares = handleDeposit(txContext, depositAsset, inMsg.depositAmount, depositParams, storage.vaultState, assetJettonInfo.walletAddress);
 
                     storage.updateSupplyAndAssets(shares, inMsg.depositAmount);
                 }
@@ -122,8 +121,8 @@ fun onInternalMessage(in: InMessage) {
 
                     val withdrawAsset = storage.getAsset();
                     val withdrawFp = inMsg.customPayload.load();
-                    val assetJettonWallet = (withdrawAsset is JettonAsset) ? storage.getAssetJettonInfo()!.walletAddress : null;
-                    val withdrawAmount = handleWithdraw(txContext, withdrawAsset, inMsg.shares, withdrawFp, storage.totalAssets, storage.totalSupply, assetJettonWallet);
+                    val assetJettonWallet = (withdrawAsset is JettonAsset) ? storage.mustGetJettonInfo().walletAddress : null;
+                    val withdrawAmount = handleWithdraw(txContext, withdrawAsset, inMsg.shares, withdrawFp, storage.vaultState, assetJettonWallet);
 
                     storage.updateSupplyAndAssets(-inMsg.shares, -withdrawAmount);
                 }
@@ -135,16 +134,13 @@ fun onInternalMessage(in: InMessage) {
             val remainingValue = chargeProvideQuoteGas(in.valueCoins);
             val txContext = TxContext { initiator: in.senderAddress, queryId: inMsg.queryId, remainingValue: remainingValue, inBody: "" };
             
-            sendTakeQuote(txContext, inMsg.receiver, storage.totalSupply, totalAssets(), inMsg.forwardPayload);
+            sendTakeQuote(txContext, inMsg.receiver, storage.vaultState, inMsg.forwardPayload);
 
             emitQuoted(Quoted {
                 quoteAsset: storage.getAsset().toCell(),
                 initiator: txContext.initiator,
                 receiver: inMsg.receiver,
-                vaultStateAfter: VaultStateAfter {
-                    totalSupply: storage.totalSupply,
-                    totalAssetAmount: storage.totalAssets
-                }.toCell(),
+                vaultState: storage.vaultState.toCell(),
                 timestamp: blockchain.now()
             });
         }

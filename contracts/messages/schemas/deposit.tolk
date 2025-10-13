@@ -53,7 +53,7 @@ struct(0x11475d67) Deposited {
     depositAsset: Cell<Asset>
     depositAmount: coins
     shares: coins
-    vaultStateAfter: Cell<VaultStateAfter>
+    vaultState: Cell<VaultState>
     depositLogOptions: Cell<DepositLogOptions>? = null
 }
 const TOPIC_DEPOSITED = Deposited.getDeclaredPackPrefix();

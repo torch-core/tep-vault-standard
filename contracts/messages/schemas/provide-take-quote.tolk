@@ -18,8 +18,7 @@ struct (0x68ec31ea) TakeQuote {
     queryId: QueryId
     initiator: address
     quoteAsset: Cell<Asset>? = null
-    totalSupply: coins
-    totalAssets: coins
+    vaultState: VaultState
     timestamp: Timestamp
     forwardPayload: cell?
 }
@@ -33,7 +32,7 @@ struct (0xb7bfa697) Quoted {
     quoteAsset: Cell<Asset>
     initiator: address
     receiver: address
-    vaultStateAfter: Cell<VaultStateAfter>
+    vaultState: Cell<VaultState>
     timestamp: Timestamp
     quoteLogOptions: Cell<QuoteLogOptions>? = null
 }

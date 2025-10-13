@@ -2,6 +2,7 @@ import "constants/common-types"
 import "constants/errors"
 import "types/wallet-status"
 import "types/asset"
+import "messages/schemas/common"
 
 // ==== Vault Storage ====
 struct (0x1) JettonInfo {
@@ -17,8 +18,7 @@ type ExternalAssetInfo = JettonInfo | ExtraCurrencyInfo
 
 struct VaultStorage {
     adminAddress: address
-    totalSupply: coins
-    totalAssets: coins
+    vaultState: VaultState
     externalAssetInfo: Cell<ExternalAssetInfo>?
     jettonWalletCode: cell
     content: cell
@@ -42,12 +42,17 @@ fun VaultStorage.getAsset(self): Asset {
         : Asset.extraCurrencyAsset(externalAssetInfo.extraCurrencyId);
 }
 
-fun VaultStorage.getAssetJettonInfo(self) {
+fun VaultStorage.mustGetJettonInfo(self) {
     if (self.externalAssetInfo == null) {
-        return null;
+        throw ERR_MISSING_ASSET_JETTON_INFO;
     }
+
     var externalAssetInfo = self.externalAssetInfo.load();
-    return (externalAssetInfo is JettonInfo) ? externalAssetInfo : null;
+    if (!(externalAssetInfo is JettonInfo)) {
+        throw ERR_MISSING_ASSET_JETTON_INFO;
+    }
+
+    return externalAssetInfo;
 }
 
 fun VaultStorage.getExtraCurrencyInfo(self) {
@@ -60,8 +65,8 @@ fun VaultStorage.getExtraCurrencyInfo(self) {
 
 // WARNING: If delta is negative, caller must ensure it doesn't exceed totalSupply or totalAssets
 fun VaultStorage.updateSupplyAndAssets(mutate self, sharesDelta: int, assetsDelta: int) {
-    self.totalSupply = self.totalSupply + sharesDelta;
-    self.totalAssets = self.totalAssets + assetsDelta;
+    self.vaultState.totalSupply = self.vaultState.totalSupply + sharesDelta;
+    self.vaultState.totalAssets = self.vaultState.totalAssets + assetsDelta;
     self.save();
 }
 

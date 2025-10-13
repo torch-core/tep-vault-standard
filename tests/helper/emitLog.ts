@@ -11,7 +11,7 @@ export function expectDepositedEmitLog(
     depositAmount: bigint,
     shares: bigint,
     oldTotalSupply: bigint,
-    oldTotalAssetAmount: bigint,
+    oldTotalAssets: bigint,
     depositAsset: Asset,
     optionalDepositLogs?: Cell,
 ) {
@@ -24,9 +24,9 @@ export function expectDepositedEmitLog(
     expect(extBody.loadRef().equals(depositAsset.toCell())).toBeTruthy();
     expect(extBody.loadCoins()).toBe(depositAmount);
     expect(extBody.loadCoins()).toBe(shares);
-    const vaultStateAfter = extBody.loadRef();
-    expect(vaultStateAfter.beginParse().loadCoins()).toBe(oldTotalSupply + shares);
-    expect(vaultStateAfter.beginParse().loadCoins()).toBe(oldTotalAssetAmount + depositAmount);
+    const vaultState = extBody.loadRef();
+    expect(vaultState.beginParse().loadCoins()).toBe(oldTotalSupply + shares);
+    expect(vaultState.beginParse().loadCoins()).toBe(oldTotalAssets + depositAmount);
     expect(extBody.loadMaybeRef()).toBe(optionalDepositLogs ?? null);
 }
 
@@ -37,7 +37,7 @@ export function expectWithdrawnEmitLog(
     withdrawAmount: bigint,
     burnShares: bigint,
     oldTotalSupply: bigint,
-    oldTotalAssetAmount: bigint,
+    oldTotalAssets: bigint,
     withdrawAsset: Asset,
     optionalWithdrawLogs?: Cell,
 ) {
@@ -50,9 +50,9 @@ export function expectWithdrawnEmitLog(
     expect(extBody.loadRef().equals(withdrawAsset.toCell())).toBeTruthy();
     expect(extBody.loadCoins()).toBe(withdrawAmount);
     expect(extBody.loadCoins()).toBe(burnShares);
-    const vaultStateAfter = extBody.loadRef();
-    expect(vaultStateAfter.beginParse().loadCoins()).toBe(oldTotalSupply - burnShares);
-    expect(vaultStateAfter.beginParse().loadCoins()).toBe(oldTotalAssetAmount - withdrawAmount);
+    const vaultState = extBody.loadRef();
+    expect(vaultState.beginParse().loadCoins()).toBe(oldTotalSupply - burnShares);
+    expect(vaultState.beginParse().loadCoins()).toBe(oldTotalAssets - withdrawAmount);
     expect(extBody.loadMaybeRef()).toBe(optionalWithdrawLogs ?? null);
 }
 
@@ -62,7 +62,7 @@ export function expectQuotedEmitLog(
     receiver: Address,
     quoteAsset: Asset,
     totalSupply: bigint,
-    totalAssetAmount: bigint,
+    totalAssets: bigint,
     optionalQuotedLogs?: Cell,
 ) {
     expect(result.externals[0].info.dest?.value).toBe(BigInt(Topics.Quoted));
@@ -72,8 +72,8 @@ export function expectQuotedEmitLog(
     expect(extBody.loadRef().equals(quoteAsset.toCell())).toBeTruthy();
     expect(extBody.loadAddress().equals(initiator)).toBeTruthy();
     expect(extBody.loadMaybeAddress()?.equals(receiver)).toBeTruthy();
-    const vaultStateAfter = extBody.loadRef();
-    expect(vaultStateAfter.beginParse().loadCoins()).toBe(totalSupply);
-    expect(vaultStateAfter.beginParse().loadCoins()).toBe(totalAssetAmount);
+    const vaultState = extBody.loadRef();
+    expect(vaultState.beginParse().loadCoins()).toBe(totalSupply);
+    expect(vaultState.beginParse().loadCoins()).toBe(totalAssets);
     expect(extBody.loadMaybeRef()).toBe(optionalQuotedLogs ?? null);
 }

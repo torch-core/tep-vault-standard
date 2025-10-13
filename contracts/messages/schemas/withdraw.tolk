@@ -39,7 +39,7 @@ struct (0xedfb416d) Withdrawn {
     withdrawAsset: Cell<Asset>
     withdrawAmount: coins
     burnedShares: coins
-    vaultStateAfter: Cell<VaultStateAfter>
+    vaultState: Cell<VaultState>
     withdrawLogOptions: Cell<WithdrawLogOptions>? = null
 }
 const TOPIC_WITHDRAWN = Withdrawn.getDeclaredPackPrefix();
