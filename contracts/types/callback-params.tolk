@@ -20,3 +20,13 @@ fun CallbackParams.defaultSuccess(action: slice = "Operation") {
 fun CallbackParams.defaultFailure(action: slice = "Operation") {
     return CallbackParams { payload: CommentPayload { action: action, message: " failed" }.toCell() };
 }
+
+@pure
+fun resolveSuccessCallback(successCallback: Cell<CallbackParams>?): CallbackParams {
+    return successCallback != null ? successCallback.load() : CallbackParams.defaultSuccess();
+}
+
+@pure
+fun resolveFailureCallback(failureCallback: Cell<CallbackParams>?): CallbackParams {
+    return failureCallback != null ? failureCallback.load() : CallbackParams.defaultFailure();
+}
