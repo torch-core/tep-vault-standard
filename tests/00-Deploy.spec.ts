@@ -2,7 +2,7 @@ import { Blockchain, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import { Vault } from '../wrappers/Vault';
 import '@ton/test-utils';
 import { createTestEnvironment } from './helper/setup';
-import { beginCell, toNano } from '@ton/core';
+import { beginCell, Cell, toNano } from '@ton/core';
 import { VaultErrors } from '../wrappers/constants/error';
 import { JettonMaster } from '@ton/ton';
 import { Opcodes } from '../wrappers/constants/op';
@@ -20,12 +20,17 @@ describe('Deploy Vault', () => {
     let USDTVault: SandboxContract<Vault>;
     let tonVault: SandboxContract<Vault>;
     let ecVault: SandboxContract<Vault>;
+    let jettonWalletCode: Cell;
 
     const { getTestContext, resetToInitSnapshot, deployJettonMinter } = createTestEnvironment();
 
     beforeEach(async () => {
         await resetToInitSnapshot();
         ({ blockchain, admin, maxey, USDTVault, tonVault, ecVault } = getTestContext());
+    });
+
+    beforeAll(async () => {
+        jettonWalletCode = await compile('JettonWallet');
     });
 
     afterAll(() => {
@@ -53,12 +58,22 @@ describe('Deploy Vault', () => {
             .endCell();
     }
 
+    describe('Get Jetton Data', () => {
+        it('should get Jetton data', async () => {
+            const jettonData = await USDTVault.getJettonData();
+            expect(jettonData.totalSupply).toBe(0n);
+            expect(jettonData.mintable).toBe(true);
+            expect(jettonData.adminAddress.equals(admin.address)).toBeTruthy();
+            expect(jettonData.content.equals(beginCell().endCell())).toBeTruthy();
+            expect(jettonData.walletCode.equals(jettonWalletCode)).toBeTruthy();
+        });
+    });
+
     describe('Deploy failure cases', () => {
         it('should throw ERR_UNAUTHORIZED_ADMIN when deploy vault with unauthorized admin', async () => {
             // Deploy USDT Vault
             USDC = await deployJettonMinter(blockchain, admin, 'USDC');
             const vaultCode = await compile('Vault');
-            const jettonWalletCode = await compile('JettonWallet');
 
             USDCVault = blockchain.openContract(
                 Vault.createFromConfig(

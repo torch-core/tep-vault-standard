@@ -6,7 +6,6 @@ import { JettonMinter } from '../../wrappers/mock-jetton/JettonMinter';
 import { Opcodes } from '../../wrappers/constants/op';
 import { JettonOpcodes } from '../../wrappers/mock-jetton/JettonConstants';
 import { expectVaultStorage } from './expectVault';
-import { MAX_COINS_VALUE } from './constants';
 
 export const expectVaultJettonData = async (
     vault: SandboxContract<Vault>,
@@ -55,7 +54,7 @@ export const createTestEnvironment = () => {
         jettonWalletCode = await compile('JettonWallet');
         blockchain = await Blockchain.create();
         blockchain.verbosity = { ...blockchain.verbosity, print: false };
-        blockchain.enableCoverage();
+        // blockchain.enableCoverage();
         [admin, maxey, bob] = await Promise.all([
             blockchain.treasury('admin'),
             blockchain.treasury('maxey'),
