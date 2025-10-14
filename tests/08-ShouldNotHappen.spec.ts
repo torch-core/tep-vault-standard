@@ -4,7 +4,6 @@ import { TestVault } from '../wrappers/TestVault';
 import '@ton/test-utils';
 import { compile } from '@ton/blueprint';
 import { VaultErrors } from '../wrappers/constants/error';
-import { Vault } from '../wrappers/Vault';
 
 describe('TestVault', () => {
     let code: Cell;
@@ -16,7 +15,6 @@ describe('TestVault', () => {
     let blockchain: Blockchain;
     let deployer: SandboxContract<TreasuryContract>;
     let testVault: SandboxContract<TestVault>;
-    let vault: SandboxContract<Vault>;
 
     beforeEach(async () => {
         blockchain = await Blockchain.create();
@@ -30,7 +28,6 @@ describe('TestVault', () => {
                 code,
             ),
         );
-        vault = blockchain.openContract(Vault.createFromAddress(testVault.address));
 
         deployer = await blockchain.treasury('deployer');
 
