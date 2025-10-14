@@ -1,10 +1,8 @@
-import "../types/asset"
-import "../core"
-import "../messages/schemas/common"
-import "../messages/schemas/deposit"
 import "../constants/values"
-import "../messages/send"
 import "../types/callback-params"
+import "../types/asset"
+import "../messages/schemas/common"
+import "../messages/send"
 
 tolk 1.1
 
@@ -24,12 +22,6 @@ fun Storage.save(self) {
     contract.setData(self.toCell())
 }
 
-// the struct uses a 32-bit opcode prefix for message identification
-struct (0x7e8764ef) IncreaseCounter {
-    queryId: uint64  // query id, typically included in messages
-    increaseBy: uint32
-}
-
 struct (0xa2519c55) InvalidTransferAmount {
     queryId: uint64
 }
@@ -41,7 +33,7 @@ struct (0xcf97c20f) MissingJettonWallet {
 
 // using unions to represent available messages
 // this allows processing them with pattern matching
-type AllowedMessage = IncreaseCounter | InvalidTransferAmount | MissingJettonWallet
+type AllowedMessage = InvalidTransferAmount | MissingJettonWallet
 
 // the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
@@ -49,14 +41,6 @@ fun onInternalMessage(in: InMessage) {
     val msg = lazy AllowedMessage.fromSlice(in.body);
 
     match (msg) {
-        IncreaseCounter => {
-            // load contract storage lazily (efficient for large or partial reads/updates)
-            var storage = lazy Storage.load();
-
-            storage.counter += msg.increaseBy;
-            storage.save();
-        }
-
         InvalidTransferAmount => {
             val depositAsset = Asset.tonAsset();
             val txContext = TxContext { initiator: in.senderAddress, queryId: 0, remainingValue: ton("0.05"), inBody: in.body };
