@@ -1,6 +1,7 @@
 import "../constants/values"
 import "../types/callback-params"
 import "../types/asset"
+import "../types/rounding"
 import "../messages/schemas/common"
 import "../messages/send"
 
@@ -30,10 +31,14 @@ struct (0xcf97c20f) MissingJettonWallet {
     queryId: uint64
 }
 
+struct (0x10ba9058) WrongRoundingType {
+    queryId: uint64
+}
+
 
 // using unions to represent available messages
 // this allows processing them with pattern matching
-type AllowedMessage = InvalidTransferAmount | MissingJettonWallet
+type AllowedMessage = InvalidTransferAmount | MissingJettonWallet | WrongRoundingType
 
 // the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
@@ -69,6 +74,28 @@ fun onInternalMessage(in: InMessage) {
                 callbackParams: CallbackParams.defaultSuccess(), 
                 assetJettonWallet: null,
             });  
+        }
+
+        WrongRoundingType => {
+            var storage = lazy Storage.load();
+
+            /*
+                Even if an invalid number is assigned to `roundingType` and forcibly converted using `as`, 
+                Tolk will not throw an error when using `match` — instead, it will enter *undefined behavior (UB)*. 
+                Therefore, extra caution is required when using it. 
+                
+                For a detailed explanation, please refer to:https://github.com/ton-blockchain/ton/issues/1839
+             */
+
+            // RoundingType can only be 0, 1, 2 but we're passing 5
+            val wrongRoundingType = 5 as RoundingType;
+            val a = 8;
+            val b = 3;
+            val c = 2;
+            val result = roundedMulDiv(a, b, c, wrongRoundingType);
+
+            storage.id = result;
+            storage.save();
         }
 
         else => {

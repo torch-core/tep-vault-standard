@@ -61,12 +61,25 @@ describe('TestVault', () => {
         const r = await testVault.sendMissingJettonWallet(deployer.getSender(), {
             value: toNano('0.05'),
         });
-        
+
         expect(r.transactions).toHaveTransaction({
             from: deployer.address,
             to: testVault.address,
             success: false,
             exitCode: VaultErrors.MissingJettonWallet,
+        });
+    });
+
+    it('should not throw when rounding type is invalid (enters UB)', async () => {
+        // See contracts/mock/test-vault.tolk line 79-99 for more details
+        const r = await testVault.sendWrongRoundingType(deployer.getSender(), {
+            value: toNano('0.05'),
+        });
+
+        expect(r.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: testVault.address,
+            success: true,
         });
     });
 });

@@ -13,6 +13,7 @@ export const Opcodes = {
     OP_INCREASE: 0x7e8764ef,
     OP_INVALID_TRANSFER_AMOUNT: 0xa2519c55,
     OP_MISSING_JETTON_WALLET: 0xcf97c20f,
+    OP_WRONG_ROUNDING_TYPE: 0x10ba9058,
 };
 
 export class TestVault implements Contract {
@@ -70,6 +71,24 @@ export class TestVault implements Contract {
             sendMode: SendMode.PAY_GAS_SEPARATELY,
             body: beginCell()
                 .storeUint(Opcodes.OP_MISSING_JETTON_WALLET, 32)
+                .storeUint(opts.queryID ?? 0, 64)
+                .endCell(),
+        });
+    }
+
+    async sendWrongRoundingType(
+        provider: ContractProvider,
+        via: Sender,
+        opts: {
+            value: bigint;
+            queryID?: number;
+        },
+    ) {
+        await provider.internal(via, {
+            value: opts.value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(Opcodes.OP_WRONG_ROUNDING_TYPE, 32)
                 .storeUint(opts.queryID ?? 0, 64)
                 .endCell(),
         });
