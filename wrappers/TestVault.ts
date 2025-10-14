@@ -12,6 +12,7 @@ export function testVaultConfigToCell(config: TestVaultConfig): Cell {
 export const Opcodes = {
     OP_INCREASE: 0x7e8764ef,
     OP_INVALID_TRANSFER_AMOUNT: 0xa2519c55,
+    OP_MISSING_JETTON_WALLET: 0xcf97c20f,
 };
 
 export class TestVault implements Contract {
@@ -38,26 +39,6 @@ export class TestVault implements Contract {
         });
     }
 
-    async sendIncrease(
-        provider: ContractProvider,
-        via: Sender,
-        opts: {
-            increaseBy: number;
-            value: bigint;
-            queryID?: number;
-        },
-    ) {
-        await provider.internal(via, {
-            value: opts.value,
-            sendMode: SendMode.PAY_GAS_SEPARATELY,
-            body: beginCell()
-                .storeUint(Opcodes.OP_INCREASE, 32)
-                .storeUint(opts.queryID ?? 0, 64)
-                .storeUint(opts.increaseBy, 32)
-                .endCell(),
-        });
-    }
-
     async sendInvalidTransferAmount(
         provider: ContractProvider,
         via: Sender,
@@ -76,13 +57,21 @@ export class TestVault implements Contract {
         });
     }
 
-    async getCounter(provider: ContractProvider) {
-        const result = await provider.get('currentCounter', []);
-        return result.stack.readNumber();
-    }
-
-    async getID(provider: ContractProvider) {
-        const result = await provider.get('initialId', []);
-        return result.stack.readNumber();
+    async sendMissingJettonWallet(
+        provider: ContractProvider,
+        via: Sender,
+        opts: {
+            value: bigint;
+            queryID?: number;
+        },
+    ) {
+        await provider.internal(via, {
+            value: opts.value,
+            sendMode: SendMode.PAY_GAS_SEPARATELY,
+            body: beginCell()
+                .storeUint(Opcodes.OP_MISSING_JETTON_WALLET, 32)
+                .storeUint(opts.queryID ?? 0, 64)
+                .endCell(),
+        });
     }
 }

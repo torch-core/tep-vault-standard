@@ -48,13 +48,25 @@ describe('TestVault', () => {
         const r = await testVault.sendInvalidTransferAmount(deployer.getSender(), {
             value: toNano('0.05'),
         });
-        printTransactionFees(r.transactions);
 
         expect(r.transactions).toHaveTransaction({
             from: deployer.address,
             to: testVault.address,
             success: false,
             exitCode: VaultErrors.InvalidTransferAmount,
+        });
+    });
+
+    it('should throw ERR_MISSING_JETTON_WALLET when missing jetton wallet', async () => {
+        const r = await testVault.sendMissingJettonWallet(deployer.getSender(), {
+            value: toNano('0.05'),
+        });
+        
+        expect(r.transactions).toHaveTransaction({
+            from: deployer.address,
+            to: testVault.address,
+            success: false,
+            exitCode: VaultErrors.MissingJettonWallet,
         });
     });
 });

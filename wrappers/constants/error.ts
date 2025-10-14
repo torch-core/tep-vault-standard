@@ -8,6 +8,7 @@ export const VaultErrors = {
     MissingExtraCurrencyInfo: 1004,
     InvalidRoundingType: 1005,
     InvalidTransferAmount: 1006,
+    MissingJettonWallet: 1007,
 
     // Deposit Errors (2000-2999)
     MissingForwardPayload: 2000,

@@ -34,9 +34,14 @@ struct (0xa2519c55) InvalidTransferAmount {
     queryId: uint64
 }
 
+struct (0xcf97c20f) MissingJettonWallet {
+    queryId: uint64
+}
+
+
 // using unions to represent available messages
 // this allows processing them with pattern matching
-type AllowedMessage = IncreaseCounter | InvalidTransferAmount
+type AllowedMessage = IncreaseCounter | InvalidTransferAmount | MissingJettonWallet
 
 // the main entrypoint: called when a contract receives an message from other contracts
 fun onInternalMessage(in: InMessage) {
@@ -53,7 +58,6 @@ fun onInternalMessage(in: InMessage) {
         }
 
         InvalidTransferAmount => {
-            var storage = lazy Storage.load();
             val depositAsset = Asset.tonAsset();
             val txContext = TxContext { initiator: in.senderAddress, queryId: 0, remainingValue: ton("0.05"), inBody: in.body };
             
@@ -66,9 +70,21 @@ fun onInternalMessage(in: InMessage) {
                 callbackParams: CallbackParams.defaultSuccess(), 
                 assetJettonWallet: null,
             });  
+        }
 
-            storage.counter = 0;
-            storage.save();
+        MissingJettonWallet => {
+            val depositAsset = Asset.jettonAsset(in.senderAddress);
+            val txContext = TxContext { initiator: in.senderAddress, queryId: 0, remainingValue: ton("0.05"), inBody: in.body };
+            
+            transferAsset(TransferParams {
+                asset: depositAsset,
+                txContext: txContext, 
+                transferAmount: 100, 
+                receiver: txContext.initiator, 
+                resultCode: SUCCESS_RESULT_CODE, 
+                callbackParams: CallbackParams.defaultSuccess(), 
+                assetJettonWallet: null,
+            });  
         }
 
         else => {
@@ -76,20 +92,4 @@ fun onInternalMessage(in: InMessage) {
             assert (in.body.isEmpty()) throw 0xFFFF
         }
     }
-}
-
-// a handler for bounced messages (not used here, may be ommited)
-fun onBouncedMessage(in: InMessageBounced) {
-}
-
-// get methods are a means to conveniently read contract data using, for example, HTTP APIs
-// note that unlike in many other smart contract VMs, get methods cannot be called by other contracts
-get fun currentCounter(): int {
-    val storage = lazy Storage.load();
-    return storage.counter;
-}
-
-get fun initialId(): int {
-    val storage = lazy Storage.load();
-    return storage.id;
 }
