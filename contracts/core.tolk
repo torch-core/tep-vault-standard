@@ -47,7 +47,7 @@ fun previewWithdraw(shares: coins, withdrawConfig: WithdrawConfig? = null) {
 }
 
 // Handles deposit logic: validates, mints shares to receiver, and emits event on success
-// On failure, rolls back by transferring asset(TON or Jetton) back to initiator and throws error
+// On failure, rolls back by transferring asset(TON, Jetton or Extra Currency) back to initiator and throws error
 fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coins, depositParams: DepositParams, vaultState: VaultState, assetJettonWallet: address? = null) {
     try {
         val maxDepositAmount = maxDeposit();
@@ -85,7 +85,7 @@ fun handleDeposit(txContext: TxContext, depositAsset: Asset, depositAmount: coin
 }
 
 // Handles withdrawal logic: validates, transfers assets to receiver, and emits event on success
-// On failure, rolls back by minting shares back to initiator and throws error
+// On failure, rolls back by minting shares back to initiator and throws error.         
 fun handleWithdraw(txContext: TxContext, withdrawAsset: Asset, shares: coins, withdrawFp: WithdrawFp, vaultState: VaultState, assetJettonWallet: address? = null) {
     try {
         val maxShares = maxWithdraw();
